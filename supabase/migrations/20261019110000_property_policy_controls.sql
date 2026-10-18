@@ -43,8 +43,8 @@ set
   accepted_payment_methods = '["cash"]'::jsonb,
   monthly_stays_allowed = true,
   max_stay_nights = 90,
-  house_rules_en = 'Smoking is allowed. Pets are not allowed. Parties and events are not allowed. No quiet hours are currently set.',
-  house_rules_el = 'Το κάπνισμα επιτρέπεται. Τα κατοικίδια δεν επιτρέπονται. Τα πάρτι και οι εκδηλώσεις δεν επιτρέπονται. Δεν έχουν οριστεί ώρες κοινής ησυχίας.',
+  house_rules_en = '',
+  house_rules_el = '',
   updated_at = now()
 where id = '00000000-0000-0000-0000-000000000001';
 
