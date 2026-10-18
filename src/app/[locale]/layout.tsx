@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import "../globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ScrollEnhancer from "@/components/ScrollEnhancer";
 import { getDictionary } from "@/lib/i18n";
 import { isLocale, SITE_CONFIG, type Locale } from "@/lib/site";
 
@@ -56,6 +57,7 @@ export default async function LocaleLayout({
       className={`${geistSans.variable} ${displayFont.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <ScrollEnhancer />
         <Navbar locale={locale as Locale} dict={dict} />
         <main className="flex-1">{children}</main>
         <Footer locale={locale as Locale} dict={dict} />
