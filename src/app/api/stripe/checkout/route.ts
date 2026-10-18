@@ -39,6 +39,9 @@ export async function POST(request: Request) {
   if (!secret) {
     return NextResponse.json({ error: "Stripe is not configured. Add STRIPE_SECRET_KEY in the deployment environment." }, { status: 503 });
   }
+  if (secret.startsWith("sk_live_") && process.env.STRIPE_LIVE_PAYMENTS_ENABLED !== "true") {
+    return NextResponse.json({ error: "Live Stripe payments are disabled until the property owner explicitly enables them." }, { status: 503 });
+  }
 
   let bookingId = "";
   try {
@@ -95,7 +98,9 @@ export async function POST(request: Request) {
   const transactionId = randomUUID();
   const idempotencyKey = randomUUID();
   const amountMinor = Math.round(amount * 100);
-  const origin = new URL(request.url).origin;
+  const requestOrigin = new URL(request.url).origin;
+  const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || (process.env.VERCEL_URL ? "https://" + process.env.VERCEL_URL : requestOrigin);
+  const origin = new URL(configuredOrigin).origin;
   const successUrl = new URL("/admin/payments?stripe=success", origin).toString();
   const cancelUrl = new URL("/admin/payments?stripe=cancelled", origin).toString();
 
