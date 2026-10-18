@@ -40,6 +40,10 @@ type PolicyRow = {
   tax_rate: number | null;
   damage_deposit: number;
   extra_fees: unknown;
+  terms_en: string;
+  terms_el: string;
+  privacy_en: string;
+  privacy_el: string;
 };
 
 function Field({ label, name, defaultValue = "", type = "text", hint }: {
@@ -190,6 +194,16 @@ export default async function PropertyPoliciesPage({
               ))}
             </div>
             <p className="admin-policy-note">Online card payment is only available through a secure booking-specific payment link. Live payment processing remains disabled until separately approved.</p>
+          </section>
+
+          <section className="admin-policy-section">
+            <div className="admin-policy-section-heading"><span>06</span><div><h2>Custom legal text additions</h2><p>Optional property-specific additions appended to the standard website Terms and Privacy pages. Have legal counsel review any changes before publication.</p></div></div>
+            <div className="admin-policy-fields">
+              <TextField label="Additional booking terms · English" name="terms_en" defaultValue={row.terms_en} hint="Add only terms specific to this property. The base policy remains published." />
+              <TextField label="Πρόσθετοι όροι κράτησης · Ελληνικά" name="terms_el" defaultValue={row.terms_el} hint="Προσθέστε μόνο ειδικούς όρους του καταλύματος." />
+              <TextField label="Additional privacy information · English" name="privacy_en" defaultValue={row.privacy_en} hint="Describe any property-specific processing or contact route. Do not put secrets here." />
+              <TextField label="Πρόσθετες πληροφορίες απορρήτου · Ελληνικά" name="privacy_el" defaultValue={row.privacy_el} hint="Μην εισάγετε κωδικούς ή μυστικά στοιχεία." />
+            </div>
           </section>
 
           <div className="admin-policy-actions">
