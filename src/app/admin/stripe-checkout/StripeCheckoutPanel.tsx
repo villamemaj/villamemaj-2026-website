@@ -39,6 +39,7 @@ export default function StripeCheckoutPanel({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [checkoutLinks, setCheckoutLinks] = useState<Record<string, string>>({});
 
   async function createCheckout(booking: PayableBooking) {
     setBusyId(booking.id);
@@ -55,7 +56,8 @@ export default function StripeCheckoutPanel({
         setError(result?.error || "Could not create a Stripe checkout session.");
         return;
       }
-      window.location.assign(result.checkoutUrl);
+      setCheckoutLinks((current) => ({ ...current, [booking.id]: result.checkoutUrl! }));
+      setNotice("Secure payment link created. Copy it and send it to the guest; the booking will update only after Stripe verifies payment.");
     } catch {
       setError("Network error while creating checkout. Please retry.");
     } finally {
@@ -105,8 +107,25 @@ export default function StripeCheckoutPanel({
                     disabled={busyId !== null}
                     className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {busyId === booking.id ? "Creating secure link…" : "Open Stripe Checkout"}
+                    {busyId === booking.id ? "Creating secure link…" : checkoutLinks[booking.id] ? "Create a new link" : "Create payment link"}
                   </button>
+                  {checkoutLinks[booking.id] ? (
+                    <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
+                      <a href={checkoutLinks[booking.id]} target="_blank" rel="noreferrer" className="text-sm font-semibold text-emerald-800 underline underline-offset-4">Preview checkout</a>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(checkoutLinks[booking.id]);
+                            setNotice("Payment link copied. Send it to " + booking.guest_name + ".");
+                          } catch {
+                            setError("Copy was blocked by this browser. Use the Preview checkout link and copy its URL from the address bar.");
+                          }
+                        }}
+                        className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                      >Copy payment link</button>
+                    </div>
+                  ) : null}
                 </div>
               </article>
             );
