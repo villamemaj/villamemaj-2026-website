@@ -105,8 +105,9 @@ export async function POST(request: Request) {
   const requestOrigin = new URL(request.url).origin;
   const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || (process.env.VERCEL_URL ? "https://" + process.env.VERCEL_URL : requestOrigin);
   const origin = new URL(configuredOrigin).origin;
-  const successUrl = new URL("/payment/result?status=success", origin).toString();
-  const cancelUrl = new URL("/payment/result?status=cancelled", origin).toString();
+  const locale = process.env.NEXT_PUBLIC_DEFAULT_LOCALE === "en" ? "en" : "el";
+  const successUrl = new URL("/" + locale + "/payment/result?status=success", origin).toString();
+  const cancelUrl = new URL("/" + locale + "/payment/result?status=cancelled", origin).toString();
 
   const { error: insertError } = await supabase.from("hotel_payment_transactions").insert({
     id: transactionId,
