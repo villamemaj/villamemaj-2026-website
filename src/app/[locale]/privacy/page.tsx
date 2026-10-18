@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import PolicyDocumentPage from "@/components/PolicyDocumentPage";
+import { getPublicHousePolicySettings } from "@/lib/data";
 import { getPolicyDocument } from "@/lib/legal-content";
 import { isLocale, type Locale } from "@/lib/site";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -14,7 +17,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const document = getPolicyDocument("privacy", locale as Locale);
+  const lang = locale as Locale;
+  const document = getPolicyDocument("privacy", lang);
   if (!document) notFound();
-  return <PolicyDocumentPage locale={locale as Locale} document={document} />;
+  const settings = await getPublicHousePolicySettings();
+  const addition = lang === "el" ? settings?.privacy_el : settings?.privacy_en;
+  const displayed = addition?.trim()
+    ? { ...document, sections: [...document.sections, {
+        heading: lang === "el" ? "Πρόσθετες πληροφορίες απορρήτου" : "Additional privacy information",
+        paragraphs: [addition.trim()],
+      }] }
+    : document;
+  return <PolicyDocumentPage locale={lang} document={displayed} />;
 }
