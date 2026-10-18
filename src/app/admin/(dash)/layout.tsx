@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AdminNav, { type NavItem } from "@/components/admin/AdminNav";
 import { requireStaff, STAFF_ROLE_LABELS } from "@/lib/admin/auth";
 import { signOut } from "@/lib/admin/auth-actions";
@@ -22,7 +23,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, role } = await requireStaff();
+  const { user, role, mfa } = await requireStaff();
 
   const items = ALL_ITEMS.filter(
     (item) => !item.roles || item.roles.includes(role)
@@ -76,7 +77,24 @@ export default async function DashboardLayout({
           </div>
         </div>
 
-        <main className="min-w-0 flex-1 p-5 lg:p-8">{children}</main>
+        <main className="min-w-0 flex-1 p-5 lg:p-8">
+          {mfa.shouldEnrol && (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="text-sm text-amber-900">
+                Two-factor authentication is off. A stolen password alone would expose guest
+                details, payments and staff accounts.
+              </p>
+              <Link
+                href="/admin/mfa"
+                className="rounded-lg bg-amber-900 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-amber-800"
+              >
+                Set up now
+              </Link>
+            </div>
+          )}
+
+          {children}
+        </main>
       </div>
     </div>
   );
