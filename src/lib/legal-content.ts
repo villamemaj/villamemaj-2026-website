@@ -39,7 +39,7 @@ const documents: Record<string, Record<Locale, PolicyDocument>> = {
           "To request a change or cancellation, contact us using the contact details in your confirmation as early as possible. A change is not agreed until we confirm it. Any valid refund will be processed according to the applicable rate terms and mandatory law. If you do not arrive and have not cancelled, the no-show terms displayed for your reservation apply."
         ] },
         { heading: "5. Check-in, check-out and guest details", paragraphs: [
-          "The current property information lists check-in from 12:00 to 23:00 and check-out from 08:00 to 10:00. Please use the times stated in your individual confirmation and contact us in advance if your arrival may fall outside the stated window.",
+          "Published check-in and check-out windows are shown on the House Rules page and in your reservation offer. Please use the times stated in your individual confirmation and contact us in advance if your arrival may fall outside that window.",
           "Provide accurate contact details and the correct number of adults and children. A phone number is required for booking coordination. The property may request identity or guest-registration information when required by applicable law; information should be collected only for a stated and lawful purpose."
         ] },
         { heading: "6. Use of the accommodation and house rules", paragraphs: [
@@ -86,7 +86,7 @@ const documents: Record<string, Record<Locale, PolicyDocument>> = {
           "Για αλλαγή ή ακύρωση, επικοινωνήστε το συντομότερο χρησιμοποιώντας τα στοιχεία της επιβεβαίωσης. Η αλλαγή ισχύει μόνο αφού την επιβεβαιώσουμε. Τυχόν επιστροφή ακολουθεί τους εφαρμοστέους όρους και την υποχρεωτική νομοθεσία. Αν δεν εμφανιστείτε χωρίς να έχετε ακυρώσει, εφαρμόζονται οι όροι μη εμφάνισης της κράτησής σας."
         ] },
         { heading: "5. Άφιξη, αναχώρηση και στοιχεία επισκεπτών", paragraphs: [
-          "Οι τρέχουσες πληροφορίες του καταλύματος αναφέρουν check-in από 12:00 έως 23:00 και check-out από 08:00 έως 10:00. Ακολουθήστε τις ώρες που αναφέρονται στην ατομική επιβεβαίωση και ενημερώστε μας εκ των προτέρων για πιθανή άφιξη εκτός του αναφερόμενου διαστήματος.",
+          "Τα δημοσιευμένα διαστήματα άφιξης και αναχώρησης εμφανίζονται στη σελίδα Κανόνες Καταλύματος και στην προσφορά κράτησης. Ακολουθήστε τις ώρες που αναφέρονται στην ατομική επιβεβαίωση και ενημερώστε μας εκ των προτέρων για πιθανή άφιξη εκτός του διαστήματος.",
           "Δώστε ακριβή στοιχεία επικοινωνίας και σωστό αριθμό ενηλίκων και παιδιών. Απαιτείται αριθμός τηλεφώνου για τον συντονισμό της κράτησης. Το κατάλυμα μπορεί να ζητήσει στοιχεία ταυτοποίησης ή καταχώρισης επισκεπτών όταν το απαιτεί η νομοθεσία, μόνο για νόμιμο και δηλωμένο σκοπό."
         ] },
         { heading: "6. Χρήση καταλύματος και κανόνες", paragraphs: [
