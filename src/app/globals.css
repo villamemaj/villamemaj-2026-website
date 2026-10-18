@@ -39,3 +39,16 @@ body {
   font-weight: 600;
   color: var(--color-gold);
 }
+
+@keyframes hero-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.hero-fade-out {
+  animation: hero-fade-out 1400ms ease-in-out forwards;
+}

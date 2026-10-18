@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import HeroCarousel from "@/components/HeroCarousel";
 import RoomCard from "@/components/RoomCard";
 import { getDictionary } from "@/lib/i18n";
 import { getGalleryImages, getRooms } from "@/lib/data";
@@ -18,17 +19,17 @@ export default async function HomePage({
   const previewRooms = rooms.slice(0, 3);
   const previewGallery = gallery.slice(0, 4);
 
+  const heroImage = "/902234060.jpg";
+  const galleryUrls = gallery.map((image) => image.image_url);
+  const heroImages =
+    galleryUrls.length > 0
+      ? [heroImage, ...galleryUrls.filter((url) => url !== heroImage)]
+      : [heroImage];
+
   return (
     <>
       <section className="relative flex min-h-[85vh] items-center overflow-hidden text-cream">
-        <Image
-          src="/902234060.jpg"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+        <HeroCarousel images={heroImages} />
         <div className="absolute inset-0 bg-gradient-to-r from-olive-dark/90 via-olive-dark/70 to-olive-dark/40" />
         <div className="relative mx-auto w-full max-w-6xl px-4 py-24 sm:px-6">
           <p className="section-label text-gold-soft">
