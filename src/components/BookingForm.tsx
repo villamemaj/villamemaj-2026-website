@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { getSupabase } from "@/lib/supabase";
 import type { Dictionary } from "@/lib/i18n";
 import type { HotelRoom } from "@/lib/types";
@@ -40,6 +40,13 @@ interface BookingResult {
   room_name_en: string;
 }
 
+interface IntakeResponse {
+  ok?: boolean;
+  reason?: "rate_limited" | "rejected" | "invalid";
+  message?: string;
+  booking?: BookingResult;
+}
+
 interface BookingFormProps {
   rooms: HotelRoom[];
   dict: Dictionary;
@@ -71,6 +78,8 @@ const STRINGS = {
       "Η κράτηση κρατείται για 30 λεπτά. Θα επικοινωνήσουμε μαζί σας για την κατάθεση και την επιβεβαίωση.",
     requestNote: "Το αίτημά σας καταχωρήθηκε. Θα το επιβεβαιώσουμε σύντομα.",
     code: "Κωδικός κράτησης",
+    rateLimited: "Πολλές προσπάθειες σε σύντομο διάστημα. Δοκιμάστε ξανά σε λίγα λεπτά ή επικοινωνήστε μαζί μας.",
+    rejected: "Δεν ήταν δυνατή η υποβολή του αιτήματος. Παρακαλούμε δοκιμάστε ξανά.",
   },
   en: {
     ratePlan: "Rate plan",
@@ -95,6 +104,8 @@ const STRINGS = {
       "Your dates are held for 30 minutes. We will contact you about the deposit and confirmation.",
     requestNote: "Your request has been recorded. We will confirm shortly.",
     code: "Booking code",
+    rateLimited: "Too many attempts in a short time. Please try again in a few minutes or contact us directly.",
+    rejected: "We could not submit your request. Please try again.",
   },
 } as const;
 
@@ -114,8 +125,10 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
   const [quote, setQuote] = useState<Quote | null>(null);
   const [result, setResult] = useState<BookingResult | null>(null);
   const [draft, setDraft] = useState<Record<string, string | number> | null>(null);
+  const startRef = useRef(0);
 
   useEffect(() => {
+    startRef.current = Date.now();
     getSupabase()
       .from("rate_plans")
       .select(
@@ -160,6 +173,8 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
       guest_email: String(fd.get("guest_email") ?? "").trim(),
       guest_phone: String(fd.get("guest_phone") ?? "").trim(),
       special_requests: String(fd.get("message") ?? "").trim(),
+      honeypot: String(fd.get("company_website") ?? "").trim(),
+      elapsed_ms: Math.max(0, Date.now() - startRef.current),
     };
 
     setBusy(true);
@@ -192,7 +207,7 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
     if (!draft) return;
     setError("");
     setBusy(true);
-    const { data, error: rpcError } = await getSupabase().rpc("create_booking", {
+    const { data, error: rpcError } = await getSupabase().rpc("submit_booking_request", {
       p_room_id: draft.room_id,
       p_rate_plan_id: draft.rate_plan_id,
       p_check_in: draft.check_in,
@@ -205,7 +220,8 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
       p_special_requests: draft.special_requests || null,
       p_currency: draft.currency,
       p_accepted_terms: true,
-      p_source: "direct",
+      p_honeypot: draft.honeypot || null,
+      p_elapsed_ms: Number(draft.elapsed_ms ?? 0),
     });
     setBusy(false);
 
@@ -213,7 +229,20 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
       setError(rpcError.message || dict.booking.errorText);
       return;
     }
-    setResult(data as BookingResult);
+
+    const response = (data ?? {}) as IntakeResponse;
+    if (!response.ok || !response.booking) {
+      setError(
+        response.reason === "rate_limited"
+          ? t.rateLimited
+          : response.reason === "invalid" && response.message
+            ? response.message
+            : t.rejected
+      );
+      return;
+    }
+
+    setResult(response.booking);
     setStep("success");
   }
 
@@ -246,6 +275,7 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
             setQuote(null);
             setResult(null);
             setDraft(null);
+            startRef.current = Date.now();
           }}
           className="mt-6 block rounded-full border border-olive/30 px-6 py-2 text-sm font-medium text-olive hover:bg-olive hover:text-cream"
         >
@@ -308,7 +338,10 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={() => setStep("form")}
+            onClick={() => {
+              setStep("form");
+              startRef.current = Date.now();
+            }}
             className="rounded-full border border-olive/30 px-6 py-3 text-sm font-medium text-olive hover:bg-olive hover:text-cream"
           >
             {t.back}
@@ -439,6 +472,18 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
           maxLength={2000}
           placeholder={dict.booking.messagePlaceholder}
           className={inputClass}
+        />
+      </div>
+
+      {/* Bot trap: invisible to guests, irresistible to naive form-filling bots. */}
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="company_website">Website</label>
+        <input
+          id="company_website"
+          name="company_website"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
         />
       </div>
 

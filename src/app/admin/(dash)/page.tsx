@@ -6,13 +6,21 @@ import { formatDate, formatMoney, SOURCE_LABELS } from "@/lib/admin/format";
 
 export const dynamic = "force-dynamic";
 
+function upcomingDates() {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  return {
+    today,
+    monthStart: `${today.slice(0, 7)}-01`,
+    in7: new Date(now.getTime() + 7 * 864e5).toISOString().slice(0, 10),
+  };
+}
+
 export default async function AdminDashboardPage() {
   await requireStaff();
   const supabase = await createSupabaseServerClient();
 
-  const today = new Date().toISOString().slice(0, 10);
-  const monthStart = `${today.slice(0, 7)}-01`;
-  const in7 = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+  const { today, monthStart, in7 } = upcomingDates();
 
   const [{ data: bookings }, { data: rooms }, { data: payments }] = await Promise.all([
     supabase
