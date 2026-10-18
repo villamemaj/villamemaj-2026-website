@@ -20,8 +20,17 @@ export default async function HomePage({
 
   return (
     <>
-      <section className="hero-gradient relative flex min-h-[85vh] items-center text-cream">
-        <div className="mx-auto w-full max-w-6xl px-4 py-24 sm:px-6">
+      <section className="relative flex min-h-[85vh] items-center overflow-hidden text-cream">
+        <Image
+          src="/902234060.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-olive-dark/90 via-olive-dark/70 to-olive-dark/40" />
+        <div className="relative mx-auto w-full max-w-6xl px-4 py-24 sm:px-6">
           <p className="section-label text-gold-soft">
             {dict.home.welcomeLabel}
           </p>
