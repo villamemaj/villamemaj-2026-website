@@ -147,3 +147,26 @@ revoke all on public.hotel_payment_webhook_events from anon, authenticated;
 revoke all on public.email_outbox from anon, authenticated;
 revoke all on public.booking_intake_attempts from anon, authenticated;
 revoke all on public.hotel_booking_requests from anon, authenticated;
+
+
+-- A deposit/prepaid rate plan creates a hold that must be payable online.
+-- The legacy create_booking RPC inserts pay_at_property for every booking, so normalize
+-- the payment mode at the database boundary rather than trusting the browser.
+create or replace function public.set_deposit_booking_online_mode()
+returns trigger
+language plpgsql
+set search_path = public
+as $function$
+begin
+  if coalesce(new.deposit_amount, 0) > 0 then
+    new.payment_mode := 'online';
+  end if;
+  return new;
+end
+$function$;
+
+revoke all on function public.set_deposit_booking_online_mode() from public, anon, authenticated;
+drop trigger if exists trg_deposit_booking_online_mode on public.hotel_bookings;
+create trigger trg_deposit_booking_online_mode
+before insert on public.hotel_bookings
+for each row execute function public.set_deposit_booking_online_mode();
