@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Geist } from "next/font/google";
 import "../globals.css";
+import Link from "next/link";
+import AdminPortalNav from "@/components/admin/AdminPortalNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -10,26 +11,30 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: {
-    default: "Property manager",
-    template: "%s | Villa Memaj CRM",
+    default: "Villa Memaj Extranet",
+    template: "%s | Villa Memaj Extranet",
   },
   robots: { index: false, follow: false },
 };
 
-export default function AdminRootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${geistSans.variable} antialiased`}>
-      <body className="min-h-screen bg-slate-100 text-slate-900">
-        <nav aria-label="CRM quick links" className="flex justify-end border-b border-slate-200 bg-white px-4 py-2">
-          <Link href="/admin/stripe-checkout" className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-900">
-            Stripe checkout
-          </Link>
-        </nav>
-        {children}
+      <body className="admin-portal-body min-h-screen bg-slate-100 text-slate-900">
+        <header className="admin-portal-header">
+          <div className="admin-portal-header-inner">
+            <Link href="/admin/extranet" className="admin-portal-brand">
+              <span className="admin-portal-brand-mark" aria-hidden="true">VM</span>
+              <span><strong>Villa Memaj</strong><small>Property Extranet</small></span>
+            </Link>
+            <div className="admin-portal-header-actions">
+              <span className="admin-portal-locale">English (UK)</span>
+              <Link href="/admin/account" className="admin-portal-account">Account <span aria-hidden="true">↗</span></Link>
+            </div>
+          </div>
+        </header>
+        <AdminPortalNav />
+        <main className="admin-portal-main">{children}</main>
       </body>
     </html>
   );

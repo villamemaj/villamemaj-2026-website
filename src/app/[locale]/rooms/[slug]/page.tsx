@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import EditorialPageHero from "@/components/EditorialPageHero";
 import BookingForm from "@/components/BookingForm";
 import { getDictionary } from "@/lib/i18n";
 import { getRoomBySlug, getRooms } from "@/lib/data";
@@ -10,119 +10,87 @@ import { isLocale, SITE_CONFIG, type Locale } from "@/lib/site";
 export async function generateStaticParams() {
   const rooms = await getRooms();
   const locales = ["el", "en"];
-  return locales.flatMap((locale) =>
-    rooms.map((room) => ({ locale, slug: room.slug }))
-  );
+  return locales.flatMap((locale) => rooms.map((room) => ({ locale, slug: room.slug })));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string; slug: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const safeLocale = isLocale(locale) ? (locale as Locale) : "el";
+  const lang = isLocale(locale) ? (locale as Locale) : "el";
   const room = await getRoomBySlug(slug);
   if (!room) return { title: SITE_CONFIG.name };
   return {
-    title: safeLocale === "el" ? room.name_el : room.name_en,
-    description: (safeLocale === "el" ? room.description_el : room.description_en) ?? undefined,
+    title: lang === "el" ? room.name_el : room.name_en,
+    description: (lang === "el" ? room.description_el : room.description_en) ?? undefined,
   };
 }
 
-export default async function RoomDetailPage({
-  params,
-}: {
-  params: Promise<{ locale: string; slug: string }>;
-}) {
+export default async function RoomDetailPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
-  if (!isLocale(locale)) return null;
-  const dict = await getDictionary(locale as Locale);
-
+  if (!isLocale(locale)) notFound();
+  const lang = locale as Locale;
+  const dict = await getDictionary(lang);
   const [room, rooms] = await Promise.all([getRoomBySlug(slug), getRooms()]);
   if (!room) notFound();
 
-  const name = locale === "el" ? room.name_el : room.name_en;
-  const description =
-    locale === "el" ? room.description_el : room.description_en;
+  const name = lang === "el" ? room.name_el : room.name_en;
+  const description = (lang === "el" ? room.description_el : room.description_en) ?? (lang === "el" ? "Ένας άνετος χώρος για να χαλαρώσετε." : "A comfortable space to slow down and unwind.");
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <Link
-        href={`/${locale}/rooms`}
-        className="text-sm font-medium text-olive hover:underline"
-      >
-        ← {dict.room.backToRooms}
-      </Link>
-
-      <div className="mt-6 grid gap-10 lg:grid-cols-2">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-sand">
-          {room.image_url ? (
-            <Image
-              src={room.image_url}
-              alt={name}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-5xl text-ink-soft/30">
-              ✦
+    <div className="editorial-page room-detail-page">
+      <EditorialPageHero
+        locale={lang}
+        eyebrow={lang === "el" ? "Οι χώροι μας" : "Our spaces"}
+        title={name}
+        subtitle={description}
+        imageSrc={room.image_url || "/723811999.jpg"}
+        imageAlt={name}
+      />
+      <section className="editorial-standard-content">
+        <Link href={`/${lang}/rooms`} className="inline-flex items-center gap-2 text-sm font-semibold text-olive hover:underline">
+          <span aria-hidden="true">←</span>{dict.room.backToRooms}
+        </Link>
+        <div className="room-overview-grid mt-8">
+          <div className="reveal-from-left">
+            <p className="section-label">{lang === "el" ? "Ο χώρος σας" : "Your space"}</p>
+            <h2 className="mt-3 font-display text-4xl font-medium tracking-tight text-olive-dark sm:text-5xl">
+              {lang === "el" ? "Όλα όσα χρειάζεστε, με τον δικό σας ρυθμό." : "Everything you need, at your own pace."}
+            </h2>
+            <div className="room-detail-stats">
+              <span className="room-detail-stat">{dict.rooms.guests}: {room.capacity}</span>
+              {room.size_sqm != null && <span className="room-detail-stat">{dict.rooms.size}: {room.size_sqm} m²</span>}
+              {room.price_per_night != null && <span className="room-detail-stat">{dict.rooms.from} {room.price_per_night} {dict.rooms.perNight}</span>}
             </div>
-          )}
-        </div>
-
-        <div>
-          <h1 className="font-display text-4xl font-semibold text-ink sm:text-5xl">
-            {name}
-          </h1>
-
-          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-soft">
-            <span>
-              {dict.rooms.guests}: {room.capacity}
-            </span>
-            {room.size_sqm != null && (
-              <span>
-                {dict.rooms.size}: {room.size_sqm} m²
-              </span>
-            )}
-            {room.price_per_night != null && (
-              <span className="font-semibold text-olive">
-                {dict.rooms.from} {room.price_per_night} {dict.rooms.perNight}
-              </span>
+            <p className="room-detail-copy">{description}</p>
+            {room.amenities.length > 0 && (
+              <div className="mt-8">
+                <p className="section-label">{dict.rooms.amenities}</p>
+                <ul className="mt-4 flex flex-wrap gap-2 stagger-reveal">
+                  {room.amenities.map((amenity) => (
+                    <li key={amenity} className="rounded-full border border-sand-dark bg-white px-4 py-2 text-sm text-ink-soft">
+                      {dict.amenities[amenity] ?? amenity}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
-
-          {description && (
-            <p className="mt-6 leading-relaxed text-ink-soft">{description}</p>
-          )}
-
-          {room.amenities.length > 0 && (
-            <div className="mt-8">
-              <p className="section-label">{dict.rooms.amenities}</p>
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {room.amenities.map((amenity) => (
-                  <li
-                    key={amenity}
-                    className="rounded-full border border-sand-dark bg-white px-4 py-1.5 text-sm text-ink-soft"
-                  >
-                    {dict.amenities[amenity] ?? amenity}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <aside className="room-detail-booking-card reveal-from-right">
+            <p className="section-label text-gold-soft">{lang === "el" ? "Σχεδιάστε τη διαμονή σας" : "Plan your stay"}</p>
+            <h2 className="mt-3">{lang === "el" ? "Βρείτε τις ημερομηνίες σας." : "Find your dates."}</h2>
+            <p>{lang === "el" ? "Υποβάλετε το αίτημά σας και θα επιβεβαιώσουμε διαθεσιμότητα, τιμή και τους όρους κράτησης." : "Send a request and we will confirm availability, price and the applicable booking terms."}</p>
+            <Link href={`/${lang}/booking?room=${encodeURIComponent(room.slug)}`} className="button-light mt-7 w-full">
+              {dict.room.bookThisRoom}<span aria-hidden="true">↗</span>
+            </Link>
+          </aside>
         </div>
-      </div>
-
-      <section className="mt-16 rounded-2xl border border-sand-dark bg-sand/40 p-6 sm:p-10">
-        <h2 className="font-display text-3xl font-semibold text-ink">
-          {dict.room.bookThisRoom}
-        </h2>
-        <div className="mt-8 max-w-3xl">
-          <BookingForm rooms={rooms} dict={dict} initialRoomSlug={room.slug} locale={locale} />
-        </div>
+        <section className="room-detail-booking-panel reveal-from-bottom">
+          <p className="section-label">{lang === "el" ? "Αίτημα κράτησης" : "Booking request"}</p>
+          <h2 className="mt-3 font-display text-3xl font-medium text-olive-dark sm:text-4xl">{dict.room.bookThisRoom}</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-ink-soft">{lang === "el" ? "Ελέγξτε προσεκτικά τις ημερομηνίες και περιμένετε τη γραπτή επιβεβαίωση με την τελική τιμή και τους όρους ακύρωσης." : "Please review your dates carefully and wait for written confirmation showing the final price and cancellation terms."}</p>
+          <div className="mt-8 max-w-3xl">
+            <BookingForm rooms={rooms} dict={dict} initialRoomSlug={room.slug} locale={lang} />
+          </div>
+        </section>
       </section>
     </div>
   );

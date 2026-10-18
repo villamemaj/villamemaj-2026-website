@@ -1,50 +1,58 @@
 import type { Metadata } from "next";
+import EditorialPageHero from "@/components/EditorialPageHero";
 import BookingForm from "@/components/BookingForm";
 import { getDictionary } from "@/lib/i18n";
 import { getRooms } from "@/lib/data";
 import { isLocale, type Locale } from "@/lib/site";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const dict = await getDictionary(isLocale(locale) ? (locale as Locale) : "el");
   return { title: dict.nav.booking, description: dict.booking.subtitle };
 }
 
-export default async function BookingPage({
-  params,
-  searchParams,
-}: {
+export default async function BookingPage({ params, searchParams }: {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ room?: string }>;
 }) {
   const { locale } = await params;
   const { room: roomSlug } = await searchParams;
   if (!isLocale(locale)) return null;
-  const dict = await getDictionary(locale as Locale);
-
+  const lang = locale as Locale;
+  const dict = await getDictionary(lang);
   const rooms = await getRooms();
   const initialRoom = rooms.find((room) => room.slug === roomSlug);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <p className="section-label">{dict.nav.booking}</p>
-      <h1 className="mt-3 font-display text-5xl font-semibold text-ink">
-        {dict.booking.title}
-      </h1>
-      <p className="mt-4 max-w-2xl text-ink-soft">{dict.booking.subtitle}</p>
-
-      <div className="mt-12 max-w-3xl rounded-2xl border border-sand-dark bg-sand/40 p-6 sm:p-10">
-        <BookingForm
-          rooms={rooms}
-          dict={dict}
-          initialRoomSlug={initialRoom?.slug ?? null}
-          locale={locale}
-        />
-      </div>
+    <div className="editorial-page booking-page">
+      <EditorialPageHero
+        locale={lang}
+        eyebrow={lang === "el" ? "Η διαμονή σας ξεκινά εδώ" : "Your stay starts here"}
+        title={dict.booking.title}
+        subtitle={dict.booking.subtitle}
+        imageSrc="/902234060.jpg"
+      />
+      <section className="editorial-standard-content">
+        <div className="booking-layout-premium">
+          <div className="booking-aside reveal-from-left">
+            <p className="section-label">{lang === "el" ? "Αίτημα κράτησης" : "Booking request"}</p>
+            <h2 className="mt-3 font-display text-4xl font-medium leading-tight text-olive-dark sm:text-5xl">
+              {lang === "el" ? "Μια ήρεμη διαμονή, λίγα βήματα μακριά." : "A slower stay is a few steps away."}
+            </h2>
+            <p className="mt-5 max-w-lg leading-8 text-ink-soft">
+              {lang === "el" ? "Συμπληρώστε τα στοιχεία σας. Η ομάδα μας θα ελέγξει τη διαθεσιμότητα και θα σας στείλει επιβεβαίωση με την τιμή και τους όρους της κράτησης." : "Send your details. Our team will check availability and reply with a confirmation including the price and the booking conditions."}
+            </p>
+            <ul className="mt-7 space-y-3 text-sm text-ink-soft">
+              {[lang === "el" ? "Επιλέξτε ημερομηνίες και αριθμό επισκεπτών" : "Choose dates and guest count", lang === "el" ? "Ελέγξτε την προσφορά και τους όρους ακύρωσης" : "Review the offer and cancellation terms", lang === "el" ? "Περιμένετε γραπτή επιβεβαίωση" : "Wait for written confirmation"].map((item, index) => (
+                <li key={item} className="flex items-start gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-olive text-xs font-semibold text-cream">{index + 1}</span><span className="pt-1">{item}</span></li>
+              ))}
+            </ul>
+          </div>
+          <div className="booking-form-premium reveal-from-right">
+            <BookingForm rooms={rooms} dict={dict} initialRoomSlug={initialRoom?.slug ?? null} locale={lang} />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
