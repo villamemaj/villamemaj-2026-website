@@ -1,67 +1,58 @@
 import type { Metadata } from "next";
+import EditorialPageHero from "@/components/EditorialPageHero";
 import ContactForm from "@/components/ContactForm";
 import { getDictionary } from "@/lib/i18n";
 import { isLocale, SITE_CONFIG, type Locale } from "@/lib/site";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const dict = await getDictionary(isLocale(locale) ? (locale as Locale) : "el");
   return { title: dict.nav.contact, description: dict.contact.subtitle };
 }
 
-export default async function ContactPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) return null;
-  const dict = await getDictionary(locale as Locale);
+  const lang = locale as Locale;
+  const dict = await getDictionary(lang);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <p className="section-label">{dict.nav.contact}</p>
-      <h1 className="mt-3 font-display text-5xl font-semibold text-ink">
-        {dict.contact.title}
-      </h1>
-      <p className="mt-4 max-w-2xl text-ink-soft">{dict.contact.subtitle}</p>
-
-      <div className="mt-12 grid gap-10 lg:grid-cols-5">
-        <div className="space-y-6 lg:col-span-2">
-          <div className="rounded-2xl border border-sand-dark bg-white p-6">
-            <p className="section-label">{dict.contact.phoneLabel}</p>
-            <a
-              href={`tel:${SITE_CONFIG.phone.replace(/\s/g, "")}`}
-              className="mt-2 block text-lg font-medium text-ink hover:text-olive"
-            >
-              {SITE_CONFIG.phone}
-            </a>
+    <div className="editorial-page contact-page">
+      <EditorialPageHero
+        locale={lang}
+        eyebrow={lang === "el" ? "Είμαστε εδώ για εσάς" : "We're here to help"}
+        title={dict.contact.title}
+        subtitle={dict.contact.subtitle}
+        imageSrc="/723812114.jpg"
+      />
+      <section className="editorial-standard-content">
+        <div className="contact-premium-grid">
+          <div className="contact-premium-details stagger-reveal">
+            <div className="contact-premium-card">
+              <p className="section-label">{dict.contact.phoneLabel}</p>
+              <a href={`tel:${SITE_CONFIG.phone.replace(/\s/g, "")}`} className="contact-premium-value">{SITE_CONFIG.phone}</a>
+              <p className="contact-premium-caption">{lang === "el" ? "Για επείγουσες διευκρινίσεις σχετικά με την άφιξη." : "For time-sensitive arrival questions."}</p>
+            </div>
+            <div className="contact-premium-card">
+              <p className="section-label">{dict.contact.emailLabel}</p>
+              <a href={`mailto:${SITE_CONFIG.email}`} className="contact-premium-value">{SITE_CONFIG.email}</a>
+              <p className="contact-premium-caption">{lang === "el" ? "Αναφέρετε τον κωδικό κράτησης εφόσον υπάρχει." : "Include your booking reference if you have one."}</p>
+            </div>
+            <div className="contact-premium-card">
+              <p className="section-label">{dict.contact.addressLabel}</p>
+              <p className="contact-premium-value">{SITE_CONFIG.address[lang]}</p>
+            </div>
           </div>
-          <div className="rounded-2xl border border-sand-dark bg-white p-6">
-            <p className="section-label">{dict.contact.emailLabel}</p>
-            <a
-              href={`mailto:${SITE_CONFIG.email}`}
-              className="mt-2 block text-lg font-medium text-ink hover:text-olive"
-            >
-              {SITE_CONFIG.email}
-            </a>
-          </div>
-          <div className="rounded-2xl border border-sand-dark bg-white p-6">
-            <p className="section-label">{dict.contact.addressLabel}</p>
-            <p className="mt-2 text-lg font-medium text-ink">
-              {SITE_CONFIG.address[locale]}
-            </p>
+          <div className="contact-premium-form reveal-from-right">
+            <p className="section-label">{lang === "el" ? "Στείλτε μας μήνυμα" : "Send us a message"}</p>
+            <ContactForm dict={dict} />
           </div>
         </div>
-
-        <div className="rounded-2xl border border-sand-dark bg-sand/40 p-6 sm:p-10 lg:col-span-3">
-          <ContactForm dict={dict} />
-        </div>
-      </div>
+        <p className="mt-8 text-sm leading-7 text-ink-soft reveal-from-bottom">
+          {lang === "el" ? "Για πληροφορίες σχετικά με τα προσωπικά δεδομένα, τις ακυρώσεις και τους κανόνες διαμονής, διαβάστε τις πολιτικές επισκεπτών." : "For details about personal data, cancellations and house rules, please review our guest policies."}
+          {" "}<a className="font-semibold text-olive underline underline-offset-4" href={`/${lang}/policies`}>{lang === "el" ? "Πολιτικές καταλύματος" : "Guest policies"}</a>
+        </p>
+      </section>
     </div>
   );
 }
