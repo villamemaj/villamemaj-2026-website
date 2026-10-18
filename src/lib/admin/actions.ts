@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireStaff, type StaffRole } from "@/lib/admin/auth";
 
@@ -427,6 +428,75 @@ export async function updateCancellationPolicy(formData: FormData) {
     .eq("id", id);
 
   revalidatePath("/admin/policies");
+}
+
+/* ---------------- Staff accounts ---------------- */
+
+export async function createStaff(formData: FormData) {
+  await requireStaff(["owner", "manager"]);
+  const { supabase } = await staffActor();
+
+  const { error } = await supabase.rpc("admin_create_staff", {
+    p_email: String(formData.get("email") ?? "").trim(),
+    p_password: String(formData.get("password") ?? ""),
+    p_full_name: String(formData.get("full_name") ?? "").trim(),
+    p_role: String(formData.get("role") ?? "receptionist"),
+  });
+
+  revalidatePath("/admin/staff");
+  redirect(
+    error
+      ? `/admin/staff?error=${encodeURIComponent(error.message)}`
+      : "/admin/staff?ok=created"
+  );
+}
+
+export async function setStaffRole(formData: FormData) {
+  await requireStaff(["owner", "manager"]);
+  const { supabase } = await staffActor();
+
+  const { error } = await supabase.rpc("admin_set_staff_role", {
+    p_user_id: String(formData.get("user_id") ?? ""),
+    p_role: String(formData.get("role") ?? ""),
+  });
+
+  revalidatePath("/admin/staff");
+  if (error) redirect(`/admin/staff?error=${encodeURIComponent(error.message)}`);
+}
+
+export async function setStaffActive(formData: FormData) {
+  await requireStaff(["owner", "manager"]);
+  const { supabase } = await staffActor();
+
+  const { error } = await supabase.rpc("admin_set_staff_active", {
+    p_user_id: String(formData.get("user_id") ?? ""),
+    p_active: formData.get("active") === "true",
+  });
+
+  revalidatePath("/admin/staff");
+  redirect(
+    error ? `/admin/staff?error=${encodeURIComponent(error.message)}` : "/admin/staff"
+  );
+}
+
+/* ---------------- Guests ---------------- */
+
+export async function updateGuestNotes(formData: FormData) {
+  await requireStaff(["owner", "manager", "receptionist"]);
+  const { supabase } = await staffActor();
+
+  await supabase
+    .from("guests")
+    .update({
+      notes: String(formData.get("notes") ?? "").trim() || null,
+      full_name: String(formData.get("full_name") ?? "").trim(),
+      phone: String(formData.get("phone") ?? "").trim() || null,
+      country: String(formData.get("country") ?? "").trim() || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", String(formData.get("guest_id") ?? ""));
+
+  revalidatePath("/admin/guests");
 }
 
 /* ---------------- Inventory blocks ---------------- */
