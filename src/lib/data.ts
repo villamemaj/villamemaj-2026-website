@@ -38,7 +38,7 @@ export async function getGalleryImages(): Promise<HotelGalleryImage[]> {
     const { data, error } = await supabase
       .from("hotel_gallery_images")
       .select("*")
-      .eq("visible", true)
+      .eq("active", true)
       .order("sort_order", { ascending: true });
     if (error) throw error;
     return (data ?? []) as HotelGalleryImage[];

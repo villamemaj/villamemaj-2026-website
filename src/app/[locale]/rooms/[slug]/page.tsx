@@ -121,7 +121,7 @@ export default async function RoomDetailPage({
           {dict.room.bookThisRoom}
         </h2>
         <div className="mt-8 max-w-3xl">
-          <BookingForm rooms={rooms} dict={dict} initialRoomSlug={room.slug} />
+          <BookingForm rooms={rooms} dict={dict} initialRoomSlug={room.slug} locale={locale} />
         </div>
       </section>
     </div>

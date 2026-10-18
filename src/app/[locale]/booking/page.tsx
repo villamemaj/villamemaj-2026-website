@@ -42,6 +42,7 @@ export default async function BookingPage({
           rooms={rooms}
           dict={dict}
           initialRoomSlug={initialRoom?.slug ?? null}
+          locale={locale}
         />
       </div>
     </div>
