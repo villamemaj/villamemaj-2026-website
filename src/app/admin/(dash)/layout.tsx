@@ -11,6 +11,7 @@ const ALL_ITEMS: (NavItem & { roles?: string[] })[] = [
   { href: "/admin/guests", label: "Guests", roles: ["owner", "manager", "receptionist", "accountant"] },
   { href: "/admin/payments", label: "Payments", roles: ["owner", "manager", "receptionist", "accountant"] },
   { href: "/admin/policies", label: "Policies", roles: ["owner", "manager"] },
+  { href: "/admin/notifications", label: "Notifications", roles: ["owner", "manager"] },
   { href: "/admin/staff", label: "Staff", roles: ["owner", "manager"] },
   { href: "/admin/audit", label: "Audit log", roles: ["owner", "manager"] },
   { href: "/admin/account", label: "My account" },
