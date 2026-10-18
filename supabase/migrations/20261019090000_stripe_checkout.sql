@@ -132,3 +132,18 @@ revoke all on function public.apply_stripe_checkout_event(text, text, uuid, uuid
   from public, anon, authenticated;
 grant execute on function public.apply_stripe_checkout_event(text, text, uuid, uuid, text, text, bigint, text, text, text)
   to service_role;
+
+
+-- Minimize direct table privileges. RLS remains the row-level boundary for staff access.
+revoke all on public.hotel_bookings from anon;
+grant select, insert, update on public.hotel_bookings to authenticated;
+revoke all on public.hotel_payment_transactions from anon;
+revoke delete, truncate, references, trigger on public.hotel_payment_transactions from authenticated;
+grant select, insert, update on public.hotel_payment_transactions to authenticated;
+
+-- These are server-owned queues/intake records; access them through the guarded RPCs
+-- or server-side service client, never through the public PostgREST table API.
+revoke all on public.hotel_payment_webhook_events from anon, authenticated;
+revoke all on public.email_outbox from anon, authenticated;
+revoke all on public.booking_intake_attempts from anon, authenticated;
+revoke all on public.hotel_booking_requests from anon, authenticated;
