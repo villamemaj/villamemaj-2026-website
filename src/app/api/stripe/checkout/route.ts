@@ -22,6 +22,7 @@ type BookingPayment = {
   deposit_amount: number | string | null;
   amount_paid: number | string | null;
   balance_due: number | string | null;
+  expires_at: string | null;
 };
 
 function money(value: unknown): number {
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
 
   const { data: booking, error: bookingError } = await supabase
     .from("hotel_bookings")
-    .select("id, code, status, guest_name, guest_email, check_in, check_out, total_price, currency_code, payment_status, payment_mode, payment_due, deposit_amount, amount_paid, balance_due")
+    .select("id, code, status, guest_name, guest_email, check_in, check_out, total_price, currency_code, payment_status, payment_mode, payment_due, deposit_amount, amount_paid, balance_due, expires_at")
     .eq("id", bookingId)
     .maybeSingle();
 
@@ -72,6 +73,9 @@ export async function POST(request: Request) {
   const b = booking as BookingPayment;
   if (!["confirmed", "hold"].includes(b.status)) {
     return NextResponse.json({ error: "Online payment is only available for a confirmed booking or an active payment hold." }, { status: 409 });
+  }
+  if (b.status === "hold" && b.expires_at && Date.parse(b.expires_at) <= Date.now()) {
+    return NextResponse.json({ error: "This payment hold has expired. Reconfirm availability before requesting another payment link." }, { status: 409 });
   }
   if (b.status === "hold" && b.payment_status !== "unpaid" && b.payment_status !== "partially_paid") {
     return NextResponse.json({ error: "This payment hold is no longer payable." }, { status: 409 });
@@ -123,6 +127,8 @@ export async function POST(request: Request) {
 
   const form = new URLSearchParams();
   form.set("mode", "payment");
+  const holdExpiresAt = b.status === "hold" ? Math.floor(Date.now() / 1000) + 35 * 60 : null;
+  if (holdExpiresAt) form.set("expires_at", String(holdExpiresAt));
   form.set("success_url", successUrl);
   form.set("cancel_url", cancelUrl);
   form.set("customer_email", b.guest_email);
@@ -163,6 +169,26 @@ export async function POST(request: Request) {
       notes: (session?.error?.message || "Stripe Checkout session creation failed").slice(0, 500),
     }).eq("id", transactionId);
     return NextResponse.json({ error: "Stripe could not create the checkout session. Check the Stripe configuration and booking currency." }, { status: 502 });
+  }
+
+  if (holdExpiresAt) {
+    const { data: hold, error: holdError } = await supabase
+      .from("hotel_bookings")
+      .update({ expires_at: new Date(holdExpiresAt * 1000).toISOString() })
+      .eq("id", b.id)
+      .eq("status", "hold")
+      .select("id")
+      .maybeSingle();
+    if (holdError || !hold) {
+      await fetch("https://api.stripe.com/v1/checkout/sessions/" + encodeURIComponent(session.id) + "/expire", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + secret, "Content-Type": "application/x-www-form-urlencoded" },
+        body: "",
+        cache: "no-store",
+      }).catch(() => undefined);
+      await supabase.from("hotel_payment_transactions").update({ status: "failed", failure_code: "booking_hold_expired" }).eq("id", transactionId);
+      return NextResponse.json({ error: "The booking hold expired while creating checkout. No payment link was issued." }, { status: 409 });
+    }
   }
 
   const { error: updateError } = await supabase.from("hotel_payment_transactions").update({
