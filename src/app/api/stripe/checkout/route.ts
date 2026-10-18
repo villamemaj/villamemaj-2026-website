@@ -128,6 +128,10 @@ export async function POST(request: Request) {
 
   const form = new URLSearchParams();
   form.set("mode", "payment");
+  // Villa Memaj is using standard hosted Checkout for accommodation payments.
+  // This account has Managed Payments enabled by default; disable it per-session
+  // so the line item does not require a Managed Payments product tax code.
+  form.set("managed_payments[enabled]", "false");
   const holdExpiresAt = b.status === "hold" ? Math.floor(Date.now() / 1000) + 35 * 60 : null;
   if (holdExpiresAt) form.set("expires_at", String(holdExpiresAt));
   form.set("success_url", successUrl);
