@@ -153,6 +153,11 @@ const documents: Record<string, Record<PolicyLocale, PolicyDocument>> = {
         ] },
         { heading: "10. Contact and updates", paragraphs: [
           "For privacy requests, email info@villamemaj.com and identify the reservation only by its booking reference; do not email full payment-card details. We may update this policy when practices or laws change. The date above identifies the latest publication date of this page, not a guarantee that every legal compliance task has been independently certified."
+        ] },
+        { heading: "11. Guest support chat and automated assistance", paragraphs: [
+          "Website support conversations are recorded in the private CRM inbox so staff can answer, track escalations and handle complaints. When an AI support assistant is enabled, the message and limited property information relevant to the query may be sent to the configured AI service provider to generate a reply. The assistant is not used to take payments, change reservations or decide cancellation/refund requests. Messages requiring human review may be forwarded to staff through configured notification services.",
+          "Before enabling automated assistance, the operator should identify the actual service providers, relevant international transfers, retention periods and any required data-protection assessment in the compliance records. Guest support messages may be retained for handling the request, follow-up and dispute/security purposes, then deleted or anonymised under a documented retention schedule. Do not send payment-card details, passwords, identity-document images or other sensitive data through chat.",
+          "SMS and WhatsApp reminders are sent only where the guest has explicitly selected the relevant messaging channel. This consent is optional, is separate from a booking, and may be withdrawn."
         ] }
       ]
     },
@@ -195,6 +200,11 @@ const documents: Record<string, Record<PolicyLocale, PolicyDocument>> = {
         ] },
         { heading: "10. Επικοινωνία και ενημερώσεις", paragraphs: [
           "Για αιτήματα απορρήτου, στείλτε email στο info@villamemaj.com και αναφέρετε μόνο τον κωδικό κράτησης· μην στέλνετε πλήρη στοιχεία κάρτας. Η πολιτική μπορεί να αλλάζει όταν αλλάζουν οι πρακτικές ή η νομοθεσία. Η ημερομηνία παραπάνω είναι η ημερομηνία τελευταίας δημοσίευσης, όχι εγγύηση ανεξάρτητης πιστοποίησης όλων των υποχρεώσεων."
+        ] },
+        { heading: "11. Συνομιλία υποστήριξης και αυτοματοποιημένη βοήθεια", paragraphs: [
+          "Οι συνομιλίες υποστήριξης του ιστοτόπου καταγράφονται στο ιδιωτικό inbox του CRM ώστε το προσωπικό να απαντά, να παρακολουθεί παραπομπές και να χειρίζεται παράπονα. Όταν είναι ενεργοποιημένος βοηθός τεχνητής νοημοσύνης, το μήνυμα και περιορισμένες πληροφορίες του καταλύματος που σχετίζονται με το ερώτημα μπορεί να αποστέλλονται στον ρυθμισμένο πάροχο τεχνητής νοημοσύνης για τη δημιουργία απάντησης. Ο βοηθός δεν λαμβάνει πληρωμές, δεν αλλάζει κρατήσεις και δεν αποφασίζει ακυρώσεις ή επιστροφές. Μηνύματα που χρειάζονται ανθρώπινο έλεγχο μπορούν να προωθούνται στο προσωπικό μέσω ρυθμισμένων ειδοποιήσεων.",
+          "Πριν ενεργοποιηθεί αυτοματοποιημένη βοήθεια, ο φορέας εκμετάλλευσης πρέπει να καταγράψει τους πραγματικούς παρόχους, τις σχετικές διεθνείς διαβιβάσεις, τις περιόδους διατήρησης και τυχόν απαιτούμενη αξιολόγηση προστασίας δεδομένων. Τα μηνύματα υποστήριξης μπορεί να διατηρούνται για τη διεκπεραίωση του αιτήματος, την παρακολούθηση και την ασφάλεια ή επίλυση διαφορών και στη συνέχεια να διαγράφονται ή να ανωνυμοποιούνται σύμφωνα με τεκμηριωμένο πρόγραμμα διατήρησης. Μην αποστέλλετε στοιχεία κάρτας, κωδικούς, εικόνες ταυτότητας ή άλλα ευαίσθητα στοιχεία μέσω συνομιλίας.",
+          "Υπενθυμίσεις SMS και WhatsApp αποστέλλονται μόνο όταν ο επισκέπτης έχει επιλέξει ρητά το αντίστοιχο κανάλι. Η συγκατάθεση είναι προαιρετική, χωριστή από την κράτηση και μπορεί να ανακληθεί."
         ] }
       ]
     }
