@@ -61,6 +61,8 @@ export default function GuestReviewForm({ locale, token }: { locale: Locale; tok
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+  const [consentToPublish, setConsentToPublish] = useState(false);
+  const [doneMessage, setDoneMessage] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,13 +73,14 @@ export default function GuestReviewForm({ locale, token }: { locale: Locale; tok
       const response = await fetch("/api/reviews/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, displayName, rating, title, review, locale }),
+        body: JSON.stringify({ token, displayName, rating, title, review, locale, consentToPublish }),
       });
       const data = await response.json() as { ok?: boolean; message?: string; error?: string };
       if (!response.ok || !data.ok) {
         setError(data.error === "invalid_or_expired_link" || data.error === "already_submitted" ? t.invalid : t.failed);
         return;
       }
+      setDoneMessage(data.message || (consentToPublish ? t.success : t.privateFeedback));
       setDone(true);
     } catch {
       setError(t.failed);
@@ -87,7 +90,7 @@ export default function GuestReviewForm({ locale, token }: { locale: Locale; tok
   }
 
   if (!token) return <p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-700">{t.invalid}</p>;
-  if (done) return <div role="status" className="mt-4 rounded-xl border border-olive/20 bg-cream p-5 text-sm leading-7 text-olive">{t.success}</div>;
+  if (done) return <div role="status" className="mt-4 rounded-xl border border-olive/20 bg-cream p-5 text-sm leading-7 text-olive">{doneMessage || t.success}</div>;
 
   return (
     <form onSubmit={submit} className="guest-review-form">
@@ -114,6 +117,10 @@ export default function GuestReviewForm({ locale, token }: { locale: Locale; tok
       <label className="admin-policy-field mt-5">
         <span>{t.review}</span>
         <textarea value={review} onChange={(event) => setReview(event.target.value)} required minLength={20} maxLength={3000} rows={6} />
+      </label>
+      <label className="mt-5 flex items-start gap-3 text-sm leading-6 text-ink-soft">
+        <input type="checkbox" checked={consentToPublish} onChange={(event) => setConsentToPublish(event.target.checked)} className="mt-1 h-4 w-4 accent-olive" />
+        <span>{t.consent} {t.privateFeedback}</span>
       </label>
       <p className="mt-3 text-xs leading-6 text-ink-soft">{t.privacy}</p>
       {error ? <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
