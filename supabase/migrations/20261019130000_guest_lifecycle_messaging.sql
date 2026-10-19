@@ -5,7 +5,9 @@ alter table public.hotel_house_policies
   add column if not exists arrival_instructions_en text not null default '',
   add column if not exists arrival_instructions_el text not null default '',
   add column if not exists local_guide_en text not null default '',
-  add column if not exists local_guide_el text not null default '';
+  add column if not exists local_guide_el text not null default '',
+  add column if not exists damage_deposit_currency text not null default 'EUR'
+    check (damage_deposit_currency in ('EUR','ALL'));
 
 alter table public.hotel_bookings
   add column if not exists sms_opt_in boolean not null default false,
@@ -267,7 +269,13 @@ begin
       || 'Πάρτι: ' || case when v_cfg.parties_allowed then 'Μόνο σύμφωνα με την επιβεβαίωση' else 'Δεν επιτρέπονται' end || E'\n'
       || 'Ώρες κοινής ησυχίας: ' || coalesce(nullif(v_cfg.quiet_hours, ''), 'Δεν έχουν οριστεί ειδικές ώρες') || E'\n'
       || 'Internet: ' || coalesce(nullif(v_cfg.internet_information, ''), 'Επικοινωνήστε μαζί μας') || E'\n'
-      || 'Στάθμευση: ' || coalesce(nullif(v_cfg.parking_information, ''), 'Επικοινωνήστε μαζί μας')
+      || 'Στάθμευση: ' || coalesce(nullif(v_cfg.parking_information, ''), 'Επικοινωνήστε μαζί μας') || E'\n'
+      || 'Τρόποι πληρωμής στο κατάλυμα: ' || coalesce(nullif(array_to_string(v_cfg.accepted_payment_methods, ', '), ''), 'Επιβεβαιώστε με το κατάλυμα') || E'\n'
+      || 'Φόροι: ' || case when v_cfg.taxes_included then 'Περιλαμβάνονται στην αναγραφόμενη τιμή' else 'Ελέγξτε την προσφορά για τυχόν φόρους' end
+      || case when nullif(v_cfg.tax_label, '') is not null then ' — ' || v_cfg.tax_label || case when v_cfg.tax_rate is not null then ' ' || v_cfg.tax_rate::text || '%' else '' end else '' end || E'\n'
+      || 'Πρόσθετες χρεώσεις: ' || coalesce(nullif(v_cfg.additional_fees_note, ''), 'Δεν έχουν καταχωριστεί πρόσθετες χρεώσεις') || E'\n'
+      || 'Πολιτική ζημιών: ' || coalesce(nullif(v_cfg.damage_policy, ''), 'Δεν έχει καταχωριστεί ειδική πολιτική')
+      || ' · Εγγύηση: ' || v_cfg.damage_deposit_currency || ' ' || to_char(coalesce(v_cfg.damage_deposit, 0), 'FM999999990.00')
     else
       'Check-in: ' || coalesce(v_cfg.check_in_time, 'as stated in the confirmation') || E'\n'
       || 'Check-out: ' || coalesce(v_cfg.check_out_time, 'as stated in the confirmation') || E'\n'
@@ -277,7 +285,13 @@ begin
       || 'Parties: ' || case when v_cfg.parties_allowed then 'Only as expressly confirmed' else 'Not allowed' end || E'\n'
       || 'Quiet hours: ' || coalesce(nullif(v_cfg.quiet_hours, ''), 'No specific quiet hours published') || E'\n'
       || 'Internet: ' || coalesce(nullif(v_cfg.internet_information, ''), 'Contact the property') || E'\n'
-      || 'Parking: ' || coalesce(nullif(v_cfg.parking_information, ''), 'Contact the property')
+      || 'Parking: ' || coalesce(nullif(v_cfg.parking_information, ''), 'Contact the property') || E'\n'
+      || 'Payment methods accepted by the property: ' || coalesce(nullif(array_to_string(v_cfg.accepted_payment_methods, ', '), ''), 'Please confirm with the property') || E'\n'
+      || 'Taxes: ' || case when v_cfg.taxes_included then 'Included in the displayed rate' else 'Check your offer for any applicable taxes' end
+      || case when nullif(v_cfg.tax_label, '') is not null then ' — ' || v_cfg.tax_label || case when v_cfg.tax_rate is not null then ' ' || v_cfg.tax_rate::text || '%' else '' end else '' end || E'\n'
+      || 'Additional fees: ' || coalesce(nullif(v_cfg.additional_fees_note, ''), 'No additional fees have been specified') || E'\n'
+      || 'Damage policy: ' || coalesce(nullif(v_cfg.damage_policy, ''), 'No separate damage policy has been specified')
+      || ' · Damage deposit: ' || v_cfg.damage_deposit_currency || ' ' || to_char(coalesce(v_cfg.damage_deposit, 0), 'FM999999990.00')
     end;
 
     v_arrival := case when v_lang = 'el'
