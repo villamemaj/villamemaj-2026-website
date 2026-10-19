@@ -1,7 +1,12 @@
 import { requireStaff } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, inputClass, labelClass, buttonClass, buttonSecondaryClass } from "@/components/admin/ui";
-import { savePolicies, updateCancellationPolicy, setCancellationPolicyPublished } from "@/lib/admin/actions";
+import {
+  savePolicies,
+  saveContact,
+  updateCancellationPolicy,
+  setCancellationPolicyPublished,
+} from "@/lib/admin/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +20,9 @@ export default async function PoliciesPage() {
     supabase.from("hotel_house_policies").select("*").eq("id", HOUSE_ID).maybeSingle(),
     supabase.from("hotel_cancellation_policies").select("*").order("name").order("version"),
   ]);
+  const notificationEmails = Array.isArray(house?.notification_emails)
+    ? (house?.notification_emails as string[]).join(", ")
+    : "";
 
   return (
     <div className="space-y-6">
@@ -25,6 +33,57 @@ export default async function PoliciesPage() {
           booking keeps a snapshot of the version that applied.
         </p>
       </div>
+
+      <Card title="Contact settings & notifications">
+        {!house ? (
+          <p className="text-sm text-slate-500">Policy row missing.</p>
+        ) : (
+          <form action={saveContact} className="space-y-4 text-sm">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <label className={labelClass}>Contact email (public)</label>
+                <input
+                  name="contact_email"
+                  defaultValue={house.contact_email ?? ""}
+                  className={inputClass}
+                  placeholder="info@villamemaj.com"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Contact phone (public)</label>
+                <input
+                  name="contact_phone"
+                  defaultValue={house.contact_phone ?? ""}
+                  className={inputClass}
+                  placeholder="+355 ..."
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Address (EN)</label>
+                <input name="address_en" defaultValue={house.address_en ?? ""} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Address (EL)</label>
+                <input name="address_el" defaultValue={house.address_el ?? ""} className={inputClass} />
+              </div>
+            </div>
+            <div>
+              <label className={labelClass}>Notification emails (comma-separated, private)</label>
+              <textarea
+                name="notification_emails"
+                rows={2}
+                defaultValue={notificationEmails}
+                className={inputClass}
+                placeholder="owner@example.com, manager@example.com"
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Only owner/manager can read these; the public site never reads notification_emails.
+              </p>
+            </div>
+            <button className={buttonClass}>Save contact settings</button>
+          </form>
+        )}
+      </Card>
 
       <Card title="House policies & taxes">
         {!house ? (

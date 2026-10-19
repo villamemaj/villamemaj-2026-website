@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireStaff, type StaffRole } from "@/lib/admin/auth";
@@ -393,6 +393,38 @@ export async function savePolicies(formData: FormData) {
     .eq("id", "00000000-0000-0000-0000-000000000001");
 
   revalidatePath("/admin/policies");
+  revalidatePath("/[locale]/contact");
+  revalidatePath("/[locale]", "layout");
+  revalidateTag("contact-info", "max");
+}
+
+export async function saveContact(formData: FormData) {
+  const { userId } = await requireStaff(["owner", "manager"]);
+  const { supabase } = await staffActor();
+
+  const notificationEmails = String(formData.get("notification_emails") ?? "")
+    .split(",")
+    .map((e) => e.trim())
+    .filter((e) => e.length > 0);
+
+  await supabase
+    .from("hotel_house_policies")
+    .update({
+      contact_email: String(formData.get("contact_email") ?? "").trim() || null,
+      contact_phone: String(formData.get("contact_phone") ?? "").trim() || null,
+      address_el: String(formData.get("address_el") ?? "").trim() || null,
+      address_en: String(formData.get("address_en") ?? "").trim() || null,
+      notification_emails: notificationEmails.length > 0 ? notificationEmails : [],
+      updated_at: new Date().toISOString(),
+      updated_by: userId,
+    })
+    .eq("id", "00000000-0000-0000-0000-000000000001");
+
+  revalidatePath("/admin/policies");
+  revalidatePath("/admin/notifications");
+  revalidatePath("/[locale]/contact");
+  revalidatePath("/[locale]", "layout");
+  revalidateTag("contact-info", "max");
 }
 
 export async function setCancellationPolicyPublished(formData: FormData) {

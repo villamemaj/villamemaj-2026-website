@@ -52,3 +52,11 @@ export interface ContactMessageInsert {
   subject?: string | null;
   message: string;
 }
+
+export interface ContactInfo {
+  email: string | null;
+  phone: string | null;
+  address_el: string | null;
+  address_en: string | null;
+  notification_emails?: string[] | null;
+}
