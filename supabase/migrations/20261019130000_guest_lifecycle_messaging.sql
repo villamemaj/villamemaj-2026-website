@@ -766,7 +766,7 @@ grant execute on function public.claim_guest_messages_for_booking_configured(uui
 -- validates size/rate limits and can call the AI provider; this table is not directly exposed.
 create table if not exists public.hotel_guest_support_threads (
   id uuid primary key default gen_random_uuid(),
-  public_reference text not null unique default ('SUP-' || upper(substr(encode(gen_random_bytes(8),'hex'),1,8))),
+  public_reference text not null unique default ('SUP-' || upper(substr(encode(extensions.gen_random_bytes(8),'hex'),1,8))),
   guest_name text,
   guest_email text,
   guest_phone text,
@@ -863,5 +863,6 @@ create policy guest_reviews_staff_update on public.hotel_guest_reviews
 revoke all on public.hotel_guest_reviews from anon, authenticated;
 grant select (id, guest_display_name, rating, title, review_text, locale, published_at, created_at)
   on public.hotel_guest_reviews to anon, authenticated;
-grant select, update on public.hotel_guest_reviews to authenticated;
+-- Authenticated visitors can read only public display columns. Staff moderation uses the
+-- server-only service role after requireStaff(["owner","manager"]) checks.
 grant all on public.hotel_guest_reviews to service_role;
