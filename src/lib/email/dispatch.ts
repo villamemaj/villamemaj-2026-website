@@ -30,7 +30,7 @@ const UNCONFIGURED: Pick<DispatchSummary, "sent" | "failed" | "configured"> = {
  * configured. This is called both by /api/email/dispatch (cron / manual) and on CRM
  * activity, so notifications go out without depending on a paid cron tier.
  */
-export async function dispatchQueuedEmails(limit = 25): Promise<DispatchSummary> {
+export async function dispatchQueuedEmails(limit = 25, bookingId?: string): Promise<DispatchSummary> {
   const supabase = createSupabaseServiceClient();
   if (!supabase) {
     return { ...UNCONFIGURED, reason: "SUPABASE_SERVICE_ROLE_KEY is not set" };
@@ -41,7 +41,9 @@ export async function dispatchQueuedEmails(limit = 25): Promise<DispatchSummary>
     return { ...UNCONFIGURED, reason };
   }
 
-  const { data, error } = await supabase.rpc("claim_outbox_emails", { p_limit: limit });
+  const { data, error } = bookingId
+    ? await supabase.rpc("claim_outbox_emails_for_booking", { p_booking_id: bookingId, p_limit: limit })
+    : await supabase.rpc("claim_outbox_emails", { p_limit: limit });
   if (error) {
     return { configured: true, provider: provider.name, sent: 0, failed: 0, reason: error.message };
   }
