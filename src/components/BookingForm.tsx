@@ -234,7 +234,7 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
       p_guest_phone: draft.guest_phone || null,
       p_special_requests: draft.special_requests || null,
       p_currency: draft.currency,
-      p_accepted_terms: true,
+      p_accepted_terms: termsAccepted,
       p_honeypot: draft.honeypot || null,
       p_elapsed_ms: Number(draft.elapsed_ms ?? 0),
       p_sms_opt_in: draft.sms_opt_in === true,
