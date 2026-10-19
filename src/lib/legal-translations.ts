@@ -191,8 +191,8 @@ export const legalTranslations: Partial<Record<Locale, Record<string, PolicyDocu
       { heading: "2. Betrag und Währung", paragraphs: ["Gesamtpreis, Währung, Anzahlung und Restbetrag müssen vor der verbindlichen Buchung angezeigt werden. Zahlen Sie keine Summe, die nicht mit der Bestätigung übereinstimmt; kontaktieren Sie uns zur Prüfung."] },
       { heading: "3. Sicherheit und Zahlungsbestätigung", paragraphs: ["Geben Sie Kartendaten nur auf der sicheren gehosteten Seite des benannten Zahlungsanbieters ein. Senden Sie niemals vollständige Kartennummern, Sicherheitscodes, Bankpasswörter oder Authentifizierungscodes per E-Mail oder Nachricht. Die Zahlung wird erst nach serverseitiger Verifizierung durch den Anbieter als eingegangen erfasst; eine Browser-Weiterleitung reicht nicht aus."] },
       { heading: "4. Erstattungen und Streitfälle", paragraphs: ["Erstattungen richten sich nach den Stornierungsbedingungen und geltendem Recht. Die Dauer hängt von Anbieter und Bank ab. Bewahren Sie Bestätigung und Beleg auf und kontaktieren Sie info@villamemaj.com mit Ihrer Referenz, falls eine Transaktion unkorrekt erscheint."] }
-    ])
-  ],
+    ]),
+  },
   it: {
     terms: makeDocument("Informazioni per gli ospiti", "Termini di prenotazione e soggiorno", "Informazioni chiare su prenotazioni, soggiorno, pagamenti e responsabilità condivise.", "19 ottobre 2026", [
       { heading: "1. Prenotazione e conferma", paragraphs: [
