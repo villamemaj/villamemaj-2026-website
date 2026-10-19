@@ -9,7 +9,7 @@ interface FooterProps {
   dict: Dictionary;
 }
 
-export default function Footer({ locale, dict }: FooterProps) {
+export default async function Footer({ locale, dict }: FooterProps) {
   const year = new Date().getFullYear();
   const contact = await getContactInfo();
   const phoneHref = contact.phone ? contact.phone.replace(/\s/g, "") : "";
