@@ -118,9 +118,9 @@ export default function MediaLibraryClient({
       setNotice({ kind: "error", text: "Create or select a room before adding room photos." });
       return;
     }
-    const missingAlt = queue.find((item) => item.alt_text_en.trim().length < 3);
+    const missingAlt = queue.find((item) => item.alt_text_en.trim().length < 3 || item.alt_text_el.trim().length < 3);
     if (missingAlt) {
-      setNotice({ kind: "error", text: "Each image needs descriptive English alt text before it can be uploaded." });
+      setNotice({ kind: "error", text: "Each image needs descriptive English and Greek alt text before it can be uploaded." });
       return;
     }
     setUploading(true);
@@ -264,7 +264,7 @@ export default function MediaLibraryClient({
                 <div className="media-queue-item" key={item.key}>
                   <div><strong>{item.file.name}</strong><small>{formatBytes(item.file.size)}</small></div>
                   <label><span>Alt text · English</span><input value={item.alt_text_en} maxLength={250} required onChange={(event) => updateQueue(item.key, { alt_text_en: event.target.value })} placeholder="Describe what the photo shows" /></label>
-                  <label><span>Alt text · Greek</span><input value={item.alt_text_el} maxLength={250} onChange={(event) => updateQueue(item.key, { alt_text_el: event.target.value })} placeholder="Περιγράψτε τη φωτογραφία" /></label>
+                  <label><span>Alt text · Greek *</span><input value={item.alt_text_el} maxLength={250} required onChange={(event) => updateQueue(item.key, { alt_text_el: event.target.value })} placeholder="Περιγράψτε τη φωτογραφία" /></label>
                   <div className="media-queue-caption-grid">
                     <label><span>Caption · English (optional)</span><input value={item.caption_en} maxLength={500} onChange={(event) => updateQueue(item.key, { caption_en: event.target.value })} /></label>
                     <label><span>Caption · Greek (optional)</span><input value={item.caption_el} maxLength={500} onChange={(event) => updateQueue(item.key, { caption_el: event.target.value })} /></label>

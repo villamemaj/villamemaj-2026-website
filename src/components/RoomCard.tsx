@@ -14,6 +14,15 @@ interface RoomCardProps {
 
 export default function RoomCard({ room, locale, dict }: RoomCardProps) {
   const name = locale === "el" ? room.name_el : room.name_en;
+  const cover = room.gallery_images?.find((image) => image.active && image.is_cover) ?? room.gallery_images?.find((image) => image.active) ?? null;
+  const imageAlt = (locale === "el" ? cover?.alt_text_el : cover?.alt_text_en) || name;
+  const formattedPrice = room.price_per_night == null
+    ? null
+    : new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: room.currency || "EUR",
+        maximumFractionDigits: 0,
+      }).format(Number(room.price_per_night));
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-sand-dark bg-white shadow-sm transition-shadow hover:shadow-lg">
@@ -21,7 +30,7 @@ export default function RoomCard({ room, locale, dict }: RoomCardProps) {
         {room.image_url ? (
           <Image
             src={room.image_url}
-            alt={name}
+            alt={imageAlt}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -36,9 +45,9 @@ export default function RoomCard({ room, locale, dict }: RoomCardProps) {
       <div className="space-y-3 p-5">
         <div className="flex items-start justify-between gap-3">
           <h3 className="font-display text-xl font-semibold text-ink">{name}</h3>
-          {room.price_per_night != null && (
+          {formattedPrice != null && (
             <p className="shrink-0 text-sm font-semibold text-olive">
-              {dict.rooms.from} {room.price_per_night}€
+              {dict.rooms.from} {formattedPrice}
             </p>
           )}
         </div>

@@ -5,6 +5,17 @@ import { getSupabase } from "@/lib/supabase";
 import type { Dictionary } from "@/lib/i18n";
 import type { HotelRoom } from "@/lib/types";
 
+function propertyLocalDate(): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Tirane",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return values.year + "-" + values.month + "-" + values.day;
+}
+
 const inputClass =
   "w-full rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-olive focus:ring-2 focus:ring-olive/20";
 
@@ -52,6 +63,10 @@ interface BookingFormProps {
   rooms: HotelRoom[];
   dict: Dictionary;
   initialRoomSlug?: string | null;
+  initialCheckIn?: string | null;
+  initialCheckOut?: string | null;
+  initialAdults?: number;
+  initialChildren?: number;
   locale: string;
 }
 
@@ -62,7 +77,7 @@ const STRINGS = {
     total: "Σύνολο", deposit: "Κατάθεση τώρα", balanceArrival: "Υπόλοιπο στην άφιξη", back: "Πίσω",
     confirm: "Επιβεβαίωση αιτήματος", confirming: "Αποστολή…", terms: "Έχω διαβάσει και αποδέχομαι τους όρους κράτησης και την πολιτική ακύρωσης.",
     termsLink: "Όροι κράτησης", cancellationLink: "Ακύρωση και επιστροφές", acceptRequired: "Αποδεχτείτε τους όρους κράτησης για να συνεχίσετε.",
-    notAvailable: "Μη διαθέσιμο για τις επιλεγμένες ημερομηνίες.", unavailable: "Το δωμάτιο δεν είναι διαθέσιμο για τις επιλεγμένες ημερομηνίες.",
+    chooseRoom: "Επιλέξτε ένα δωμάτιο για να ελέγξουμε τη διαθεσιμότητα και την τιμή.", capacityError: "Ο αριθμός επισκεπτών υπερβαίνει τη χωρητικότητα αυτού του δωματίου.", notAvailable: "Μη διαθέσιμο για τις επιλεγμένες ημερομηνίες.", unavailable: "Το δωμάτιο δεν είναι διαθέσιμο για τις επιλεγμένες ημερομηνίες.",
     priceError: "Δεν ήταν δυνατός ο υπολογισμός τιμής. Δοκιμάστε άλλες ημερομηνίες.",
     holdNote: "Η κράτηση κρατείται για 30 λεπτά. Θα επικοινωνήσουμε μαζί σας για την προκαταβολή και την επιβεβαίωση.",
     requestNote: "Το αίτημά σας καταχωρήθηκε. Θα το επιβεβαιώσουμε σύντομα.", code: "Κωδικός κράτησης",
@@ -75,7 +90,7 @@ const STRINGS = {
     total: "Total", deposit: "Deposit now", balanceArrival: "Balance at arrival", back: "Back",
     confirm: "Submit booking request", confirming: "Sending…", terms: "I have read and accept the booking terms and cancellation policy.",
     termsLink: "Booking terms", cancellationLink: "Cancellations & refunds", acceptRequired: "Please accept the booking terms to continue.",
-    notAvailable: "Not available for the selected dates.", unavailable: "This room is not available for the selected dates.",
+    chooseRoom: "Choose a room so we can check its availability and price.", capacityError: "The number of guests exceeds this room’s capacity.", notAvailable: "Not available for the selected dates.", unavailable: "This room is not available for the selected dates.",
     priceError: "We could not calculate a price. Please try different dates.",
     holdNote: "Your dates are held for 30 minutes. We will contact you about the deposit and confirmation.",
     requestNote: "Your request has been recorded. We will confirm shortly.", code: "Booking code",
@@ -88,7 +103,7 @@ const STRINGS = {
     total: "Total", deposit: "Acompte maintenant", balanceArrival: "Solde à l’arrivée", back: "Retour",
     confirm: "Envoyer la demande", confirming: "Envoi…", terms: "J’ai lu et j’accepte les conditions de réservation et d’annulation.",
     termsLink: "Conditions de réservation", cancellationLink: "Annulations et remboursements", acceptRequired: "Veuillez accepter les conditions pour continuer.",
-    notAvailable: "Indisponible aux dates choisies.", unavailable: "Cette chambre n’est pas disponible aux dates choisies.",
+    chooseRoom: "Choisissez une chambre afin que nous puissions vérifier sa disponibilité et son tarif.", capacityError: "Le nombre de voyageurs dépasse la capacité de cette chambre.", notAvailable: "Indisponible aux dates choisies.", unavailable: "Cette chambre n’est pas disponible aux dates choisies.",
     priceError: "Impossible de calculer le prix. Essayez d’autres dates.",
     holdNote: "Vos dates sont retenues pendant 30 minutes. Nous vous contacterons pour l’acompte et la confirmation.",
     requestNote: "Votre demande a été enregistrée. Nous vous répondrons rapidement.", code: "Référence de réservation",
@@ -100,7 +115,7 @@ const STRINGS = {
     total: "Totali", deposit: "Parapagimi tani", balanceArrival: "Pjesa e mbetur në mbërritje", back: "Kthehu",
     confirm: "Dërgo kërkesën", confirming: "Duke dërguar…", terms: "Kam lexuar dhe pranoj kushtet e rezervimit dhe politikën e anulimit.",
     termsLink: "Kushtet e rezervimit", cancellationLink: "Anulimet dhe rimbursimet", acceptRequired: "Pranoni kushtet e rezervimit për të vazhduar.",
-    notAvailable: "Nuk ka disponueshmëri për datat e zgjedhura.", unavailable: "Dhoma nuk është e disponueshme në datat e zgjedhura.",
+    chooseRoom: "Zgjidhni një dhomë që të kontrollojmë disponueshmërinë dhe çmimin.", capacityError: "Numri i vizitorëve tejkalon kapacitetin e kësaj dhome.", notAvailable: "Nuk ka disponueshmëri për datat e zgjedhura.", unavailable: "Dhoma nuk është e disponueshme në datat e zgjedhura.",
     priceError: "Nuk mund të llogaritet çmimi. Provoni data të tjera.",
     holdNote: "Datat mbahen për 30 minuta. Do t’ju kontaktojmë për parapagimin dhe konfirmimin.",
     requestNote: "Kërkesa u regjistrua. Do t’ju konfirmojmë së shpejti.", code: "Kodi i rezervimit",
@@ -112,7 +127,7 @@ const STRINGS = {
     total: "Gesamt", deposit: "Anzahlung jetzt", balanceArrival: "Restbetrag bei Anreise", back: "Zurück",
     confirm: "Buchungsanfrage senden", confirming: "Wird gesendet…", terms: "Ich habe die Buchungsbedingungen und Stornierungsregeln gelesen und akzeptiere sie.",
     termsLink: "Buchungsbedingungen", cancellationLink: "Stornierung und Erstattung", acceptRequired: "Bitte akzeptieren Sie die Buchungsbedingungen, um fortzufahren.",
-    notAvailable: "Für die ausgewählten Daten nicht verfügbar.", unavailable: "Dieses Zimmer ist für die ausgewählten Daten nicht verfügbar.",
+    chooseRoom: "Wählen Sie ein Zimmer, damit wir Verfügbarkeit und Preis prüfen können.", capacityError: "Die Gästezahl überschreitet die Kapazität dieses Zimmers.", notAvailable: "Für die ausgewählten Daten nicht verfügbar.", unavailable: "Dieses Zimmer ist für die ausgewählten Daten nicht verfügbar.",
     priceError: "Der Preis konnte nicht berechnet werden. Bitte wählen Sie andere Daten.",
     holdNote: "Die Daten werden 30 Minuten gehalten. Wir kontaktieren Sie wegen Anzahlung und Bestätigung.",
     requestNote: "Ihre Anfrage wurde gespeichert. Wir bestätigen sie in Kürze.", code: "Buchungscode",
@@ -124,7 +139,7 @@ const STRINGS = {
     total: "Totale", deposit: "Acconto ora", balanceArrival: "Saldo all’arrivo", back: "Indietro",
     confirm: "Invia richiesta", confirming: "Invio…", terms: "Ho letto e accetto le condizioni di prenotazione e la politica di cancellazione.",
     termsLink: "Termini di prenotazione", cancellationLink: "Cancellazioni e rimborsi", acceptRequired: "Accetta le condizioni per continuare.",
-    notAvailable: "Non disponibile per le date selezionate.", unavailable: "La camera non è disponibile per le date selezionate.",
+    chooseRoom: "Scegli una camera per verificarne la disponibilità e il prezzo.", capacityError: "Il numero di ospiti supera la capienza di questa camera.", notAvailable: "Non disponibile per le date selezionate.", unavailable: "La camera non è disponibile per le date selezionate.",
     priceError: "Non è stato possibile calcolare il prezzo. Prova altre date.",
     holdNote: "Le date sono trattenute per 30 minuti. Ti contatteremo per acconto e conferma.",
     requestNote: "La richiesta è stata registrata. Confermeremo a breve.", code: "Codice di prenotazione",
@@ -132,7 +147,7 @@ const STRINGS = {
   },
 } as const;
 
-export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: BookingFormProps) {
+export default function BookingForm({ rooms, dict, initialRoomSlug, initialCheckIn, initialCheckOut, initialAdults, initialChildren, locale }: BookingFormProps) {
   const t = locale in STRINGS ? STRINGS[locale as keyof typeof STRINGS] : STRINGS.en;
   const money = (value: number, currency: string) =>
     new Intl.NumberFormat(currency === "EUR" ? "en-IE" : "sq-AL", {
@@ -149,6 +164,11 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
   const [result, setResult] = useState<BookingResult | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [draft, setDraft] = useState<Record<string, string | number> | null>(null);
+  const today = propertyLocalDate();
+  const [checkInDate, setCheckInDate] = useState(initialCheckIn ?? "");
+  const [checkOutDate, setCheckOutDate] = useState(initialCheckOut ?? "");
+  const [adultCount, setAdultCount] = useState(String(Math.min(12, Math.max(1, initialAdults ?? 2))));
+  const [childCount, setChildCount] = useState(String(Math.min(12, Math.max(0, initialChildren ?? 0))));
   const startRef = useRef(0);
 
   useEffect(() => {
@@ -176,12 +196,25 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
     const currency = String(fd.get("currency") ?? "EUR");
     const ratePlanId = String(fd.get("rate_plan_id") ?? "");
 
-    if (!room || !ratePlanId || !checkIn || !checkOut) {
+    if (!room) {
+      setError(t.chooseRoom);
+      return;
+    }
+    if (!ratePlanId || !checkIn || !checkOut) {
       setError(t.unavailable);
       return;
     }
-    if (checkOut <= checkIn) {
+    if ((today && checkIn < today) || checkOut <= checkIn) {
       setError(dict.booking.errorText);
+      return;
+    }
+    if (!Number.isInteger(adults) || adults < 1 || adults > 12 ||
+        !Number.isInteger(children) || children < 0 || children > 12) {
+      setError(t.unavailable);
+      return;
+    }
+    if (adults + children > room.capacity) {
+      setError(t.capacityError);
       return;
     }
 
@@ -447,7 +480,8 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
               type="number"
               min={1}
               max={12}
-              defaultValue={2}
+              value={adultCount}
+              onChange={(event) => setAdultCount(event.target.value)}
               className={inputClass}
             />
             <input
@@ -456,7 +490,8 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
               type="number"
               min={0}
               max={12}
-              defaultValue={0}
+              value={childCount}
+              onChange={(event) => setChildCount(event.target.value)}
               className={inputClass}
             />
           </div>
@@ -489,13 +524,40 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
           <label htmlFor="check_in" className="mb-1 block text-sm font-medium text-ink">
             {dict.booking.checkIn} *
           </label>
-          <input id="check_in" name="check_in" type="date" required className={inputClass} />
+          <input
+            id="check_in"
+            name="check_in"
+            type="date"
+            required
+            min={today || undefined}
+            value={checkInDate}
+            onChange={(event) => {
+              const value = event.target.value;
+              setCheckInDate(value);
+              if (value && checkOutDate && checkOutDate <= value) {
+                const [year, month, day] = value.split("-").map(Number);
+                const next = new Date(year, month - 1, day, 12);
+                next.setDate(next.getDate() + 1);
+                setCheckOutDate(next.getFullYear() + "-" + String(next.getMonth() + 1).padStart(2, "0") + "-" + String(next.getDate()).padStart(2, "0"));
+              }
+            }}
+            className={inputClass}
+          />
         </div>
         <div>
           <label htmlFor="check_out" className="mb-1 block text-sm font-medium text-ink">
             {dict.booking.checkOut} *
           </label>
-          <input id="check_out" name="check_out" type="date" required className={inputClass} />
+          <input
+            id="check_out"
+            name="check_out"
+            type="date"
+            required
+            min={checkInDate || today || undefined}
+            value={checkOutDate}
+            onChange={(event) => setCheckOutDate(event.target.value)}
+            className={inputClass}
+          />
         </div>
       </div>
 

@@ -8,6 +8,8 @@ export const SITE_MEDIA_SLOTS = [
   { key: "home_moment_coast", label: "Homepage · coastal moment", group: "Homepage", defaultImage: "/902233984.jpg", description: "The coastal view story card." },
   { key: "home_quote", label: "Homepage · quote backdrop", group: "Homepage", defaultImage: "/723815742.jpg", description: "The subtle background image behind the closing quote." },
   { key: "rooms_hero", label: "Rooms page · hero", group: "Page banners", defaultImage: "/902234060.jpg", description: "Banner image shown above the full room list." },
+  { key: "booking_hero", label: "Booking page · hero", group: "Page banners", defaultImage: "/902234060.jpg", description: "Banner image shown above the reservation form." },
+  { key: "flights_hero", label: "Flights page · hero", group: "Page banners", defaultImage: "/723812114.jpg", description: "Banner image on the guest-facing flight search page." },
   { key: "gallery_hero", label: "Gallery page · hero", group: "Page banners", defaultImage: "/723812114.jpg", description: "Banner image shown above the public image gallery." },
   { key: "travel_hero", label: "Travel page · hero", group: "Page banners", defaultImage: "/902234060.jpg", description: "Banner image on the travel-planning page." },
   { key: "contact_hero", label: "Contact page · hero", group: "Page banners", defaultImage: "/723812114.jpg", description: "Banner image above contact details and the contact form." },

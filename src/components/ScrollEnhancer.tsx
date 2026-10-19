@@ -13,9 +13,15 @@ export default function ScrollEnhancer() {
         ".reveal-from-left, .reveal-from-right, .reveal-from-bottom, .reveal-from-top, .scale-reveal, .stagger-reveal"
       )
     );
-    const parallax = Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
-    const scrubLayers = Array.from(document.querySelectorAll<HTMLElement>("[data-scroll-scrub]"));
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const enhancedMotion = !reducedMotion &&
+      window.matchMedia("(min-width: 768px) and (hover: hover)").matches;
+    const parallax = enhancedMotion
+      ? Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"))
+      : [];
+    const scrubLayers = enhancedMotion
+      ? Array.from(document.querySelectorAll<HTMLElement>("[data-scroll-scrub]"))
+      : [];
 
     if (reducedMotion) {
       reveals.forEach((element) => element.classList.add("is-visible"));

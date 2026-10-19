@@ -9,6 +9,10 @@ export interface Dictionary {
     booking: string;
     contact: string;
     travel: string;
+    menu: string;
+    closeMenu: string;
+    language: string;
+    mainNavigation: string;
   };
   hero: {
     title: string;
@@ -29,6 +33,56 @@ export interface Dictionary {
     ctaTitle: string;
     ctaText: string;
     ctaBook: string;
+  };
+  editorialHome: {
+    heroKicker: string;
+    heroNote: string;
+    heroPhotoCaption: string;
+    spacesLabel: string;
+    spacesCaption: string;
+    madeWithCare: string;
+    scroll: string;
+    location: string;
+    introMeta: string;
+    momentOneLabel: string;
+    momentOneTitle: string;
+    momentTwoLabel: string;
+    momentTwoTitle: string;
+    momentThreeLabel: string;
+    momentThreeTitle: string;
+    roomsFootnote: string;
+    galleryCaptionFallback: string;
+    galleryFooter: string;
+    introKicker: string;
+    introTitle: string;
+    introBody: string;
+    introLink: string;
+    momentsKicker: string;
+    momentsTitle: string;
+    momentsBody: string;
+    roomsKicker: string;
+    galleryKicker: string;
+    galleryTitle: string;
+    galleryBody: string;
+    quote: string;
+    quoteNote: string;
+    ctaKicker: string;
+    ctaTitle: string;
+    sizeLabel: string;
+    capacityLabel: string;
+    amenitiesLabel: string;
+    bookingSearch: {
+      title: string;
+      arrival: string;
+      departure: string;
+      guests: string;
+      adults: string;
+      children: string;
+      action: string;
+      note: string;
+      invalidDates: string;
+      invalidGuests: string;
+    };
   };
   rooms: {
     title: string;
@@ -88,6 +142,10 @@ export interface Dictionary {
     title: string;
     subtitle: string;
     empty: string;
+    openImage: string;
+    closeImage: string;
+    previousImage: string;
+    nextImage: string;
   };
   footer: {
     tagline: string;

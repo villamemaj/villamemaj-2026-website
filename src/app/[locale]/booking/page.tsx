@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import BookingForm from "@/components/BookingForm";
 import { getDictionary } from "@/lib/i18n";
-import { getRooms } from "@/lib/data";
+import { getRooms, getSiteMediaImages } from "@/lib/data";
 import { isLocale, type Locale } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -13,15 +13,28 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function BookingPage({ params, searchParams }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ room?: string }>;
+  searchParams: Promise<{ room?: string; checkIn?: string; checkOut?: string; adults?: string; children?: string }>;
 }) {
   const { locale } = await params;
-  const { room: roomSlug } = await searchParams;
+  const { room: roomSlug, checkIn, checkOut, adults, children } = await searchParams;
   if (!isLocale(locale)) return null;
   const lang = locale as Locale;
   const dict = await getDictionary(lang);
-  const rooms = await getRooms();
+  const [rooms, siteMedia] = await Promise.all([getRooms(), getSiteMediaImages(["booking_hero"])]);
   const initialRoom = rooms.find((room) => room.slug === roomSlug);
+  const isValidDate = (value?: string) => {
+    if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const parsed = new Date(value + "T00:00:00Z");
+    return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+  };
+  const initialCheckIn = isValidDate(checkIn) ? checkIn! : null;
+  const initialCheckOut = isValidDate(checkOut) && (!initialCheckIn || checkOut! > initialCheckIn) ? checkOut! : null;
+  const parseGuestCount = (value: string | undefined, fallback: number, min: number) => {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed >= min && parsed <= 12 ? parsed : fallback;
+  };
+  const initialAdults = parseGuestCount(adults, 2, 1);
+  const initialChildren = parseGuestCount(children, 0, 0);
 
   return (
     <div className="editorial-page booking-page">
@@ -30,7 +43,8 @@ export default async function BookingPage({ params, searchParams }: {
         eyebrow={lang === "el" ? "Η διαμονή σας ξεκινά εδώ" : "Your stay starts here"}
         title={dict.booking.title}
         subtitle={dict.booking.subtitle}
-        imageSrc="/902234060.jpg"
+        imageSrc={siteMedia.booking_hero?.image_url ?? "/902234060.jpg"}
+        imageAlt={(lang === "el" ? siteMedia.booking_hero?.alt_text_el : siteMedia.booking_hero?.alt_text_en) || dict.booking.title}
       />
       <section className="editorial-standard-content">
         <div className="booking-layout-premium">
@@ -49,7 +63,16 @@ export default async function BookingPage({ params, searchParams }: {
             </ul>
           </div>
           <div className="booking-form-premium reveal-from-right">
-            <BookingForm rooms={rooms} dict={dict} initialRoomSlug={initialRoom?.slug ?? null} locale={lang} />
+            <BookingForm
+              rooms={rooms}
+              dict={dict}
+              initialRoomSlug={initialRoom?.slug ?? null}
+              initialCheckIn={initialCheckIn}
+              initialCheckOut={initialCheckOut}
+              initialAdults={initialAdults}
+              initialChildren={initialChildren}
+              locale={lang}
+            />
           </div>
         </div>
       </section>

@@ -1,9 +1,54 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import RoomCard from "@/components/RoomCard";
+import BookingSearchPanel from "@/components/BookingSearchPanel";
 import { getDictionary } from "@/lib/i18n";
 import { getGalleryImages, getRooms, getSiteMediaImages } from "@/lib/data";
-import { isLocale, SITE_CONFIG, type Locale } from "@/lib/site";
+import { isLocale, LOCALES, SITE_CONFIG, type Locale } from "@/lib/site";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: rawLocale } = await params;
+  const locale: Locale = isLocale(rawLocale) ? rawLocale : "el";
+  const dict = await getDictionary(locale);
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || SITE_CONFIG.url).replace(/\/+$/, "");
+  const ogLocale: Record<Locale, string> = {
+    el: "el_AL",
+    en: "en_GB",
+    fr: "fr_FR",
+    sq: "sq_AL",
+    de: "de_DE",
+    it: "it_IT",
+  };
+  const localizedRoutes = Object.fromEntries(LOCALES.map((code) => [code, siteUrl + "/" + code]));
+  return {
+    title: dict.hero.title,
+    description: dict.hero.subtitle,
+    alternates: {
+      canonical: siteUrl + "/" + locale,
+      languages: localizedRoutes,
+    },
+    openGraph: {
+      type: "website",
+      siteName: SITE_CONFIG.name,
+      title: SITE_CONFIG.name + " — " + dict.hero.title,
+      description: dict.hero.subtitle,
+      url: siteUrl + "/" + locale,
+      locale: ogLocale[locale],
+      images: [{ url: "/723811999.jpg", alt: SITE_CONFIG.name + " exterior" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_CONFIG.name + " — " + dict.hero.title,
+      description: dict.hero.subtitle,
+      images: ["/723811999.jpg"],
+    },
+  };
+}
 
 function WaveTransition({ tone = "cream" }: { tone?: "cream" | "sand" | "olive" }) {
   return (
@@ -26,49 +71,7 @@ export default async function HomePage({
   const dict = await getDictionary(locale as Locale);
   const greek = locale === "el";
 
-  const copy = greek
-    ? {
-        heroKicker: "Η φιλοξενία συναντά τη θάλασσα",
-        heroNote: "Ένα ήρεμο καταφύγιο στην ακτή της Αυλώνας",
-        scroll: "Συνεχίστε για να ανακαλύψετε",
-        introKicker: "Η φιλοσοφία μας",
-        introTitle: "Η πολυτέλεια βρίσκεται στον χρόνο που παίρνετε πίσω.",
-        introBody:
-          "Απαλοί ρυθμοί, ζεστή φιλοξενία και χώρος για να νιώσετε σαν στο σπίτι σας. Σχεδιάσαμε κάθε διαμονή γύρω από τις μικρές στιγμές που κάνουν ένα ταξίδι αξέχαστο.",
-        introLink: "Γνωρίστε τη φιλοξενία μας",
-        momentsKicker: "Μια διαμονή, πολλές στιγμές",
-        momentsTitle: "Απολαύστε τον χώρο με τον δικό σας ρυθμό.",
-        momentsBody: "Από ένα ήσυχο πρωινό στο μπαλκόνι μέχρι τις βραδιές με θέα, κάθε λεπτομέρεια προσκαλεί σε χαλάρωση.",
-        roomsKicker: "Επιλεγμένοι χώροι",
-        galleryKicker: "Μια ματιά στη διαμονή σας",
-        galleryTitle: "Φως, υφή και μικρές λεπτομέρειες.",
-        galleryBody: "Ανακαλύψτε τους χώρους και τις γωνιές που θα γίνουν κομμάτι της απόδρασής σας.",
-        quote: "Φτάστε ως επισκέπτες. Φύγετε με την αίσθηση ότι ανήκετε εδώ.",
-        quoteNote: "Η δική σας στιγμή στην ακτή",
-        ctaKicker: "Η επόμενη απόδραση ξεκινά εδώ",
-        ctaTitle: "Αφήστε χώρο για κάτι όμορφο.",
-      }
-    : {
-        heroKicker: "Where thoughtful stays meet the sea",
-        heroNote: "A slower kind of escape on the Vlore coast",
-        scroll: "Scroll to discover",
-        introKicker: "The art of staying",
-        introTitle: "Luxury is having the time to slow down.",
-        introBody:
-          "Gentle rhythms, thoughtful hospitality and room to feel at home. We shape every stay around the little moments that make a journey unforgettable.",
-        introLink: "Discover our hospitality",
-        momentsKicker: "One stay, many moments",
-        momentsTitle: "Make space for your own kind of escape.",
-        momentsBody: "From a quiet morning on the balcony to evenings with a view, every detail invites you to settle in.",
-        roomsKicker: "Considered spaces",
-        galleryKicker: "A glimpse of your stay",
-        galleryTitle: "Light, texture and thoughtful details.",
-        galleryBody: "Explore the rooms and corners that may become part of your next escape.",
-        quote: "Arrive as a guest. Leave with the feeling that you belong here.",
-        quoteNote: "Your moment on the coast",
-        ctaKicker: "Your next escape starts here",
-        ctaTitle: "Make room for something beautiful.",
-      };
+  const copy = dict.editorialHome;
 
   const [rooms, gallery, siteMedia] = await Promise.all([
     getRooms(),
@@ -87,9 +90,43 @@ export default async function HomePage({
   ];
   const galleryItems = previewGallery.length > 0 ? previewGallery : galleryFallback;
 
+  const roomSizes = rooms.map((room) => room.size_sqm).filter((value): value is number => typeof value === "number" && value > 0);
+  const roomCapacities = rooms.map((room) => room.capacity).filter((value) => Number.isFinite(value) && value > 0);
+  const sizeSummary = roomSizes.length
+    ? Math.min(...roomSizes) === Math.max(...roomSizes)
+      ? Math.min(...roomSizes) + " m²"
+      : Math.min(...roomSizes) + "–" + Math.max(...roomSizes) + " m²"
+    : null;
+  const capacitySummary = roomCapacities.length
+    ? Math.min(...roomCapacities) === Math.max(...roomCapacities)
+      ? String(Math.min(...roomCapacities))
+      : Math.min(...roomCapacities) + "–" + Math.max(...roomCapacities)
+    : null;
+  const sharedAmenities = (["wifi", "ac", "balcony"] as const)
+    .filter((amenity) => rooms.length > 0 && rooms.every((room) => room.amenities.includes(amenity)));
+
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || SITE_CONFIG.url).replace(/\/+$/, "");
+  const roomPrices = rooms.map((room) => Number(room.price_per_night)).filter((price) => Number.isFinite(price) && price > 0);
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    name: SITE_CONFIG.name,
+    url: siteUrl,
+    description: dict.hero.subtitle,
+    image: siteMedia.home_hero?.image_url || siteUrl + "/723811999.jpg",
+    email: SITE_CONFIG.email,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Vlorë",
+      addressCountry: "AL",
+    },
+    ...(roomPrices.length ? { priceRange: "EUR " + Math.min(...roomPrices) + "–" + Math.max(...roomPrices) + " per night" } : {}),
+  };
+
   return (
     <div className="premium-home overflow-clip">
-      <section className="premium-hero relative isolate flex min-h-[calc(100svh-4rem)] items-center overflow-hidden text-cream">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
+      <section className="premium-hero relative isolate flex min-h-[calc(100svh-4.5rem)] items-center overflow-hidden text-cream">
         <Image
           src={siteMedia.home_hero?.image_url ?? "/723811999.jpg"}
           alt={(greek ? siteMedia.home_hero?.alt_text_el : siteMedia.home_hero?.alt_text_en) || (greek ? "Εξωτερική όψη της βίλας" : "Villa exterior at the coast")}
@@ -130,19 +167,19 @@ export default async function HomePage({
             <div className="hero-ring hero-ring-one" aria-hidden="true" />
             <div className="hero-ring hero-ring-two" aria-hidden="true" />
             <div className="hero-photo-frame" data-scroll-scrub="hero-frame">
-              <Image src={siteMedia.home_hero_detail?.image_url ?? "/902234060.jpg"} alt={(greek ? siteMedia.home_hero_detail?.alt_text_el : siteMedia.home_hero_detail?.alt_text_en) || (greek ? "Λεπτομέρεια από τους χώρους φιλοξενίας" : "A detail of the guest interiors")} fill priority sizes="(max-width: 1024px) 88vw, 42vw" className="object-cover" />
+              <Image src={siteMedia.home_hero_detail?.image_url ?? "/902234060.jpg"} alt={(greek ? siteMedia.home_hero_detail?.alt_text_el : siteMedia.home_hero_detail?.alt_text_en) || (greek ? "Λεπτομέρεια από τους χώρους φιλοξενίας" : "A detail of the guest interiors")} fill sizes="(max-width: 1024px) 88vw, 42vw" className="object-cover" />
               <div className="hero-photo-overlay" />
               <div className="hero-photo-caption">
                 <span className="photo-caption-mark">✳</span>
-                <span>{greek ? "Μια πιο προσωπική απόδραση" : "A more personal escape"}</span>
+                <span>{copy.heroPhotoCaption}</span>
               </div>
             </div>
             <div className="hero-floating-card scroll-float">
-              <span className="floating-card-kicker">{greek ? "Οι χώροι μας" : "Our spaces"}</span>
+              <span className="floating-card-kicker">{copy.spacesLabel}</span>
               <strong>20—60 <small>m²</small></strong>
-              <span className="floating-card-bottom">{greek ? "Σχεδιασμένοι για να νιώθετε άνετα" : "Space to settle in and feel at ease"}</span>
+              <span className="floating-card-bottom">{copy.spacesCaption}</span>
             </div>
-            <div className="hero-side-note">{greek ? "ΑΥΛΩΝΑ · ΑΛΒΑΝΙΑ" : "VLORE · ALBANIA"}</div>
+            <div className="hero-side-note">{copy.location}</div>
           </div>
         </div>
 
@@ -151,6 +188,29 @@ export default async function HomePage({
           <span>{copy.scroll}</span>
         </div>
         <WaveTransition tone="cream" />
+      </section>
+
+      <BookingSearchPanel locale={locale as Locale} copy={copy.bookingSearch} />
+
+      <section className="home-benefits-strip" aria-label={copy.amenitiesLabel}>
+        {sizeSummary ? (
+          <article className="home-benefit">
+            <strong>{sizeSummary}</strong>
+            <span>{copy.sizeLabel}</span>
+          </article>
+        ) : null}
+        {capacitySummary ? (
+          <article className="home-benefit">
+            <strong>{capacitySummary}</strong>
+            <span>{copy.capacityLabel}</span>
+          </article>
+        ) : null}
+        {sharedAmenities.length ? (
+          <article className="home-benefit home-benefit-comfort">
+            <strong>{sharedAmenities.map((amenity) => dict.amenities[amenity]).join(" · ")}</strong>
+            <span>{copy.amenitiesLabel}</span>
+          </article>
+        ) : null}
       </section>
 
       <section className="intro-section relative bg-cream">
@@ -162,7 +222,7 @@ export default async function HomePage({
             <div className="intro-image-small image-parallax" data-parallax="18">
               <Image src={siteMedia.home_intro_kitchen?.image_url ?? "/723812074.jpg"} alt={(greek ? siteMedia.home_intro_kitchen?.alt_text_el : siteMedia.home_intro_kitchen?.alt_text_en) || (greek ? "Λεπτομέρεια κουζίνας" : "Kitchen detail")} fill sizes="(max-width: 1024px) 42vw, 20vw" className="object-cover" />
             </div>
-            <div className="intro-stamp scroll-float"><span>J&M</span><span>{greek ? "ΜΕ ΦΡΟΝΤΙΔΑ" : "MADE WITH CARE"}</span></div>
+            <div className="intro-stamp scroll-float"><span>J&amp;M</span><span>{copy.madeWithCare}</span></div>
           </div>
           <div className="intro-copy">
             <p className="section-label reveal-from-bottom">{copy.introKicker}</p>
@@ -171,7 +231,7 @@ export default async function HomePage({
             <Link href={`/${locale}/rooms`} className="text-link reveal-from-bottom">{copy.introLink}<span aria-hidden="true"> ↗</span></Link>
             <div className="intro-meta reveal-from-bottom">
               <span className="meta-number">01</span>
-              <span>{greek ? "Προσωπική φιλοξενία, ήρεμη ατμόσφαιρα" : "Personal hospitality, unhurried atmosphere"}</span>
+              <span>{copy.introMeta}</span>
             </div>
           </div>
         </div>
@@ -196,15 +256,15 @@ export default async function HomePage({
           <div className="moments-grid stagger-reveal">
             <article className="moment-card moment-card-large">
               <div className="moment-image"><Image src={siteMedia.home_moment_terrace?.image_url ?? "/769092652.jpg"} alt={(greek ? siteMedia.home_moment_terrace?.alt_text_el : siteMedia.home_moment_terrace?.alt_text_en) || (greek ? "Εξωτερική βεράντα" : "Outdoor terrace")} fill sizes="(max-width: 768px) 100vw, 55vw" className="object-cover image-parallax" data-parallax="22" /></div>
-              <div className="moment-card-copy"><span>01 / {greek ? "ΑΝΑΠΝΟΗ" : "BREATHE"}</span><h3>{greek ? "Αργά πρωινά, καθαρός αέρας." : "Slow mornings, open air."}</h3></div>
+              <div className="moment-card-copy"><span>01 / {copy.momentOneLabel}</span><h3>{copy.momentOneTitle}</h3></div>
             </article>
             <article className="moment-card moment-card-offset">
               <div className="moment-image"><Image src={siteMedia.home_moment_bedroom?.image_url ?? "/723812029.jpg"} alt={(greek ? siteMedia.home_moment_bedroom?.alt_text_el : siteMedia.home_moment_bedroom?.alt_text_en) || (greek ? "Άνετο υπνοδωμάτιο" : "Comfortable bedroom")} fill sizes="(max-width: 768px) 100vw, 35vw" className="object-cover image-parallax" data-parallax="18" /></div>
-              <div className="moment-card-copy"><span>02 / {greek ? "ΞΕΚΟΥΡΑΣΗ" : "REST"}</span><h3>{greek ? "Ο δικός σας χώρος, ο δικός σας ρυθμός." : "Your own space, your own rhythm."}</h3></div>
+              <div className="moment-card-copy"><span>02 / {copy.momentTwoLabel}</span><h3>{copy.momentTwoTitle}</h3></div>
             </article>
             <article className="moment-card moment-card-wide">
               <div className="moment-image"><Image src={siteMedia.home_moment_coast?.image_url ?? "/902233984.jpg"} alt={(greek ? siteMedia.home_moment_coast?.alt_text_el : siteMedia.home_moment_coast?.alt_text_en) || (greek ? "Θέα προς την ακτή" : "View towards the coast")} fill sizes="(max-width: 768px) 100vw, 55vw" className="object-cover image-parallax" data-parallax="20" /></div>
-              <div className="moment-card-copy"><span>03 / {greek ? "ΑΝΑΚΑΛΥΨΗ" : "DISCOVER"}</span><h3>{greek ? "Αναμνήσεις που συνεχίζονται μετά το ταξίδι." : "Memories that stay long after the journey."}</h3></div>
+              <div className="moment-card-copy"><span>03 / {copy.momentThreeLabel}</span><h3>{copy.momentThreeTitle}</h3></div>
             </article>
           </div>
         </div>
@@ -234,7 +294,7 @@ export default async function HomePage({
           ) : (
             <p className="mt-10 rounded-2xl border border-white/20 bg-white/5 p-8 text-center text-cream/75">{dict.rooms.empty}</p>
           )}
-          <div className="rooms-footnote reveal-from-bottom"><span>✳</span>{greek ? "Τρεις διαφορετικοί τρόποι να νιώσετε σαν στο σπίτι σας." : "Three thoughtful ways to feel at home."}</div>
+          <div className="rooms-footnote reveal-from-bottom"><span aria-hidden="true">✳</span>{copy.roomsFootnote}</div>
         </div>
         <WaveTransition tone="cream" />
       </section>
@@ -251,15 +311,15 @@ export default async function HomePage({
           <div className="gallery-mosaic stagger-reveal">
             {galleryItems.slice(0, 6).map((image, index) => (
               <figure key={image.id} className={"gallery-tile gallery-tile-" + (index + 1)}>
-                <div className="gallery-tile-image">
+                <Link href={`/${locale}/gallery`} aria-label={(greek ? image.caption_el : image.caption_en) || copy.galleryTitle} className="gallery-tile-image block">
                   <Image src={image.image_url} alt={(greek ? image.caption_el : image.caption_en) ?? SITE_CONFIG.name} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover image-parallax" data-parallax={index % 2 === 0 ? "18" : "26"} />
-                </div>
-                <figcaption><span>0{index + 1}</span>{(greek ? image.caption_el : image.caption_en) ?? (greek ? "Στιγμές φιλοξενίας" : "Moments of hospitality")}</figcaption>
+                </Link>
+                <figcaption><span>0{index + 1}</span>{(greek ? image.caption_el : image.caption_en) ?? copy.galleryCaptionFallback}</figcaption>
               </figure>
             ))}
           </div>
           <div className="gallery-link-row reveal-from-bottom">
-            <span>{greek ? "Μικρές λεπτομέρειες. Μεγάλη διαφορά." : "Small details. A meaningful difference."}</span>
+            <span>{copy.galleryFooter}</span>
             <Link href={`/${locale}/gallery`} className="text-link">{dict.nav.gallery}<span aria-hidden="true"> ↗</span></Link>
           </div>
         </div>
