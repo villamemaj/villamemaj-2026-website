@@ -97,3 +97,28 @@ drop policy if exists guest_testimonials_public_published on public.guest_testim
 create policy guest_testimonials_public_published
   on public.guest_testimonials for select to anon, authenticated
   using (is_published = true and consent_to_publish = true);
+
+grant select, update on public.guest_support_conversations to authenticated;
+grant select, insert on public.guest_support_messages to authenticated;
+create policy guest_support_staff_read_conversations
+  on public.guest_support_conversations for select to authenticated
+  using (private.has_hotel_role(array['owner','manager','receptionist']));
+create policy guest_support_staff_update_conversations
+  on public.guest_support_conversations for update to authenticated
+  using (private.has_hotel_role(array['owner','manager']))
+  with check (private.has_hotel_role(array['owner','manager']));
+create policy guest_support_staff_read_messages
+  on public.guest_support_messages for select to authenticated
+  using (private.has_hotel_role(array['owner','manager','receptionist']));
+create policy guest_support_staff_insert_messages
+  on public.guest_support_messages for insert to authenticated
+  with check (private.has_hotel_role(array['owner','manager','receptionist']) and role = 'staff');
+
+grant select, update on public.guest_testimonials to authenticated;
+create policy guest_testimonials_staff_read
+  on public.guest_testimonials for select to authenticated
+  using (private.has_hotel_role(array['owner','manager']));
+create policy guest_testimonials_staff_update
+  on public.guest_testimonials for update to authenticated
+  using (private.has_hotel_role(array['owner','manager']))
+  with check (private.has_hotel_role(array['owner','manager']));
