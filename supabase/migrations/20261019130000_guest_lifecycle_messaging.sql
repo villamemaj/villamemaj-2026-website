@@ -613,3 +613,45 @@ $function$;
 
 revoke all on function public.submit_booking_request_with_preferences(uuid, uuid, date, date, integer, integer, text, text, text, text, character, boolean, text, integer, boolean, boolean, text) from public;
 grant execute on function public.submit_booking_request_with_preferences(uuid, uuid, date, date, integer, integer, text, text, text, text, character, boolean, text, integer, boolean, boolean, text) to anon, authenticated, service_role;
+
+
+-- A just-submitted booking may flush only its own fresh, due email rows. This enables prompt
+-- confirmation/owner notifications without exposing a public endpoint that drains the whole queue.
+create or replace function public.claim_outbox_emails_for_booking(p_booking_id uuid, p_limit integer default 10)
+returns setof public.email_outbox
+language plpgsql
+security definer
+set search_path = public
+as $function$
+begin
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'service_role required' using errcode = '42501';
+  end if;
+
+  update public.email_outbox
+  set status = 'pending'
+  where booking_id = p_booking_id and status = 'sending'
+    and claimed_at < now() - interval '10 minutes';
+
+  return query
+  with batch as (
+    select e.id
+    from public.email_outbox e
+    where e.booking_id = p_booking_id
+      and e.status = 'pending'
+      and e.scheduled_for <= now()
+      and e.created_at > now() - interval '15 minutes'
+    order by e.scheduled_for
+    limit greatest(1, least(coalesce(p_limit, 10), 20))
+    for update skip locked
+  )
+  update public.email_outbox e
+  set status = 'sending', attempts = e.attempts + 1, claimed_at = now()
+  from batch b
+  where e.id = b.id
+  returning e.*;
+end
+$function$;
+
+revoke all on function public.claim_outbox_emails_for_booking(uuid, integer) from public, anon, authenticated;
+grant execute on function public.claim_outbox_emails_for_booking(uuid, integer) to service_role;
