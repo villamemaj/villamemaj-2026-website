@@ -18,7 +18,8 @@ alter table public.hotel_house_policies
   add column if not exists monthly_stays_allowed boolean not null default true,
   add column if not exists max_stay_nights integer not null default 90 check (max_stay_nights between 1 and 365);
 
--- Align the central settings to the current property information supplied by the owner.
+-- Align the singleton property-settings record to the current information supplied by the owner.
+-- This table is the single property configuration row, so no generated row ID is assumed.
 -- This is an intentional property-policy data change, kept inside the reviewed migration.
 update public.hotel_house_policies
 set
@@ -46,7 +47,7 @@ set
   house_rules_en = '',
   house_rules_el = '',
   updated_at = now()
-where id = '00000000-0000-0000-0000-000000000001';
+;
 
 -- The new policy fields describe property-facing settings. Do not add private guest,
 -- payment credential or staff-only notes to this publicly readable row.
