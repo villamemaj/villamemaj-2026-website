@@ -28,6 +28,7 @@ export default async function ReviewPage({
     fr: { eyebrow: "Avis client", title: "Comment s’est passé votre séjour ?", subtitle: "Votre avis nous aide à améliorer l’expérience de nos futurs voyageurs." },
     sq: { eyebrow: "Përshtypjet e mysafirit", title: "Si ishte qëndrimi juaj?", subtitle: "Përshtypjet tuaja na ndihmojnë të përmirësojmë përvojën e mysafirëve." },
     de: { eyebrow: "Gästebewertung", title: "Wie war Ihr Aufenthalt?", subtitle: "Ihr Feedback hilft uns, das Erlebnis für zukünftige Gäste zu verbessern." },
+    it: { eyebrow: "Feedback degli ospiti", title: "Com’è stato il tuo soggiorno?", subtitle: "Il tuo feedback ci aiuta a migliorare l’esperienza dei futuri ospiti." },
   }[lang];
 
   return (
