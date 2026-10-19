@@ -1,5 +1,34 @@
 import { getSupabase } from "./supabase";
-import type { HotelGalleryImage, HotelRoom } from "./types";
+import type { HotelGalleryImage, HotelRoom, HotelRoomGalleryImage } from "./types";
+
+
+async function attachRoomGallery(rooms: HotelRoom[]): Promise<HotelRoom[]> {
+  if (rooms.length === 0) return rooms;
+  try {
+    const ids = rooms.map((room) => room.id);
+    const { data, error } = await getSupabase()
+      .from("hotel_room_gallery_images")
+      .select("id,room_id,image_url,storage_path,alt_text_en,alt_text_el,caption_en,caption_el,sort_order,is_cover,active,created_at,updated_at")
+      .in("room_id", ids)
+      .eq("active", true)
+      .order("sort_order", { ascending: true });
+    if (error || !data) return rooms;
+
+    const photosByRoom = new Map<string, HotelRoomGalleryImage[]>();
+    for (const photo of data as HotelRoomGalleryImage[]) {
+      const group = photosByRoom.get(photo.room_id) ?? [];
+      group.push(photo);
+      photosByRoom.set(photo.room_id, group);
+    }
+    return rooms.map((room) => {
+      const gallery_images = photosByRoom.get(room.id) ?? [];
+      const cover = gallery_images.find((photo) => photo.is_cover) ?? gallery_images[0];
+      return { ...room, gallery_images, image_url: cover?.image_url ?? room.image_url };
+    });
+  } catch {
+    return rooms;
+  }
+}
 
 export async function getRooms(): Promise<HotelRoom[]> {
   try {
@@ -10,7 +39,7 @@ export async function getRooms(): Promise<HotelRoom[]> {
       .eq("active", true)
       .order("sort_order", { ascending: true });
     if (error) throw error;
-    return (data ?? []) as HotelRoom[];
+    return attachRoomGallery((data ?? []) as HotelRoom[]);
   } catch {
     return [];
   }
@@ -26,7 +55,8 @@ export async function getRoomBySlug(slug: string): Promise<HotelRoom | null> {
       .eq("active", true)
       .maybeSingle();
     if (error) throw error;
-    return (data ?? null) as HotelRoom | null;
+    if (!data) return null;
+    return (await attachRoomGallery([data as HotelRoom]))[0] ?? null;
   } catch {
     return null;
   }
