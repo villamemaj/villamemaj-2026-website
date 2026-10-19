@@ -50,6 +50,15 @@ const COPY: Record<Locale, Copy> = {
     failed: "Ihre Bewertung konnte nicht gesendet werden. Versuchen Sie es erneut oder kontaktieren Sie uns.", privacy: "Bitte keine Buchungsreferenzen, Adressen, Telefonnummern oder andere private Informationen veröffentlichen.",
     stars: (n) => n === 1 ? "1 Stern" : n + " Sterne",
   },
+  it: {
+    title: "Condividi il tuo soggiorno", intro: "Grazie per aver soggiornato a Villa Memaj. Il nostro team controllerà la recensione prima che venga pubblicata sul sito.",
+    name: "Nome visualizzato (facoltativo)", rating: "La tua valutazione", reviewTitle: "Titolo della recensione", review: "La tua esperienza",
+    submit: "Invia recensione", sending: "Invio…", invalid: "Questo link non è valido o è scaduto, oppure è già stata inviata una recensione.",
+    success: "Grazie. La tua recensione è stata ricevuta ed è in attesa di moderazione.",
+    failed: "Non è stato possibile inviare la recensione. Riprova o contattaci.", privacy: "Non includere riferimenti alla prenotazione, indirizzi, numeri di telefono o altri dati privati nella recensione pubblica.",
+    stars: (n) => n === 1 ? "1 stella" : n + " stelle",
+  },
+
 };
 
 export default function GuestReviewForm({ locale, token }: { locale: Locale; token: string }) {
