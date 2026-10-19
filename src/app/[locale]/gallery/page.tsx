@@ -40,7 +40,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ locale
               <figure key={image.id} className={`editorial-gallery-tile editorial-gallery-tile-${(index % 6) + 1} relative overflow-hidden rounded-[22px] bg-sand`}>
                 <Image
                   src={image.image_url}
-                  alt={(lang === "el" ? image.caption_el : image.caption_en) ?? `${SITE_CONFIG.name} ${index + 1}`}
+                  alt={(lang === "el" ? image.alt_text_el || image.caption_el : image.alt_text_en || image.caption_en) || `${SITE_CONFIG.name} ${index + 1}`}
                   fill
                   sizes="(max-width: 768px) 50vw, 33vw"
                   className="object-cover transition-transform duration-700 hover:scale-105"

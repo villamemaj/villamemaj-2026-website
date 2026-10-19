@@ -8,6 +8,7 @@ const modules = [
   { category: "Rates & availability", name: "Rates & promotions", description: "Manage rate plans, seasonal rates and discounts.", href: "/admin/rate-plans", mark: "€" },
   { category: "Reservations", name: "Reservations", description: "Review booking requests, confirmed stays and guest records.", href: "/admin/reservations", mark: "▤" },
   { category: "Property", name: "Rooms & facilities", description: "Update room information, capacity and amenities.", href: "/admin/rooms", mark: "⌂" },
+  { category: "Property", name: "Media library", description: "Manage room galleries, website photos, image order and publishing.", href: "/admin/media", mark: "▧" },
   { category: "Property", name: "Property policies", description: "Centralise check-in, children, house rules, parking and guest information.", href: "/admin/extranet/property-policies", mark: "✓" },
   { category: "Guest experience", name: "Guest reviews", description: "Review the authorized Booking.com API integration status and reply workflow.", href: "/admin/reviews", mark: "☆" },
   { category: "Guest experience", name: "Inbox & notifications", description: "Check queued guest communications and delivery status.", href: "/admin/notifications", mark: "✉" },
