@@ -19,8 +19,21 @@ export const metadata: Metadata = {
     default: "Villa Memaj",
     template: "%s | Villa Memaj",
   },
-  description: "A peaceful stay with warm hospitality and rooms designed for relaxation.",
+  description: "Ησυχία, φως και θάλασσα σε ένα μέρος. Ζεστή φιλοξενία και δωμάτια σχεδιασμένα για ξεκούραση.",
   applicationName: "Villa Memaj",
+  openGraph: {
+    type: "website",
+    siteName: "Villa Memaj",
+    title: "Villa Memaj — Η φιλοξενία συναντά τη θάλασσα",
+    description: "Ησυχία, φως και θάλασσα σε ένα μέρος. Ζεστή φιλοξενία και δωμάτια σχεδιασμένα για ξεκούραση.",
+    images: [{ url: "/723811999.jpg", alt: "Villa Memaj exterior" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Villa Memaj — Η φιλοξενία συναντά τη θάλασσα",
+    description: "Ησυχία, φως και θάλασσα σε ένα μέρος.",
+    images: ["/723811999.jpg"],
+  },
   referrer: "strict-origin-when-cross-origin",
   robots: {
     index: true,
@@ -30,7 +43,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={geistSans.variable + " " + displayFont.variable + " h-full antialiased"}>
+    <html lang="el" className={geistSans.variable + " " + displayFont.variable + " h-full antialiased"}>
       <body className="flex min-h-full flex-col">
         {children}
       </body>
