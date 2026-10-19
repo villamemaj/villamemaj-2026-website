@@ -584,3 +584,37 @@ img { height: auto; }
   .admin-policy-actions { align-items:stretch; }
   .admin-policy-actions button { justify-content:center; }
 }
+
+
+/* Guest support inbox and website-review moderation. */
+.admin-support-thread-list { display:grid; gap:18px; }
+.admin-support-thread { min-width:0; border:1px solid #dfe7e2; border-radius:18px; padding:22px; background:#fff; }
+.admin-support-thread-header { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:16px; border-bottom:1px solid #edf1ee; padding-bottom:17px; }
+.admin-support-thread-header h2 { margin-top:6px; color:#203e31; font-family:var(--font-display); font-size:1.55rem; font-weight:500; line-height:1.25; }
+.admin-support-thread-header p:not(.admin-eyebrow) { margin-top:6px; color:#7c8a81; font-size:.75rem; overflow-wrap:anywhere; }
+.admin-support-thread-state { display:grid; justify-items:end; gap:7px; }
+.admin-support-thread-state small { color:#8b978f; font-size:.67rem; }
+.admin-support-message-list { display:grid; gap:12px; padding:20px 0; }
+.admin-support-message { border:1px solid #e2e8e4; border-radius:12px; padding:14px 16px; background:#fbfcfb; }
+.admin-support-message.guest { border-left:3px solid #7c9d87; }
+.admin-support-message.assistant { border-left:3px solid #92a5c4; background:#f7f9fc; }
+.admin-support-message.staff { border-left:3px solid #3d7554; }
+.admin-support-message>div { display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.admin-support-message strong { color:#345141; font-size:.76rem; text-transform:capitalize; }
+.admin-support-message time { color:#8a978f; font-size:.66rem; }
+.admin-support-message p { white-space:pre-wrap; overflow-wrap:anywhere; color:#536459; font-size:.79rem; line-height:1.8; }
+.admin-support-thread-actions { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px; border-top:1px solid #edf1ee; padding-top:18px; }
+.admin-support-reply-form { display:grid; flex:1; min-width:min(100%,300px); gap:12px; }
+.admin-support-reply-form small { color:#8a978f; font-size:.68rem; line-height:1.65; }
+.guest-review-form { display:block; }
+.guest-review-form .admin-policy-field input,.guest-review-form .admin-policy-field textarea { width:100%; min-width:0; border:1px solid #d7e0d9; border-radius:10px; padding:12px 13px; background:#fff; color:#243a2d; font-size:.9rem; outline:0; }
+.guest-review-form .admin-policy-field input:focus,.guest-review-form .admin-policy-field textarea:focus { border-color:#739a80; box-shadow:0 0 0 3px rgb(58 119 79 / 10%); }
+@media(max-width:560px) {
+  .admin-support-thread { padding:16px; }
+  .admin-support-thread-state { justify-items:start; }
+  .admin-support-thread-actions { display:grid; }
+  .admin-support-message { padding:12px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .admin-module-card { transition:none; }
+}
