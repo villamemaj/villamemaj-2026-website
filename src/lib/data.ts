@@ -115,3 +115,43 @@ export async function getPublicHousePolicySettings(): Promise<PublicHousePolicyS
     return null;
   }
 }
+
+
+
+/** Public contact data only. The database grants anon SELECT on these columns only;
+ * never select notification_emails or other staff-only fields here.
+ */
+export type PublicContactInfo = {
+  email: string | null;
+  phone: string | null;
+  address_el: string | null;
+  address_en: string | null;
+};
+
+export async function getContactInfo(): Promise<PublicContactInfo> {
+  const empty: PublicContactInfo = {
+    email: null,
+    phone: null,
+    address_el: null,
+    address_en: null,
+  };
+
+  try {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from("hotel_house_policies")
+      .select("contact_email,contact_phone,address_el,address_en")
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return empty;
+    return {
+      email: data.contact_email ?? null,
+      phone: data.contact_phone ?? null,
+      address_el: data.address_el ?? null,
+      address_en: data.address_en ?? null,
+    };
+  } catch {
+    return empty;
+  }
+}
