@@ -4,7 +4,7 @@ import { requireStaff } from "@/lib/admin/auth";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import MediaLibraryClient, { type MediaAsset, type MediaRoom } from "@/components/admin/MediaLibraryClient";
 import SiteImagePlacements from "@/components/admin/SiteImagePlacements";
-import { SITE_MEDIA_SLOTS, type SiteMediaAssignment } from "@/lib/site-media-slots";
+import type { SiteMediaAssignment } from "@/lib/site-media-slots";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -48,7 +48,7 @@ export default async function MediaLibraryPage() {
       <div className="media-role-note"><span className="media-status-dot" /> Editing access · {role}</div>
       {schemaError ? <div role="alert" className="admin-portal-alert warning">The media schema is not ready yet. Apply the room-gallery/media-library migration, then reload this page. Existing room and website images have not been changed.</div> : null}
       {roomsResult.error ? <div role="alert" className="admin-portal-alert warning">Room details could not be loaded.</div> : null}
-      <SiteImagePlacements slots={SITE_MEDIA_SLOTS} assignments={siteAssignments} siteImages={siteImages} />
+      <SiteImagePlacements assignments={siteAssignments} siteImages={siteImages} />
       <MediaLibraryClient rooms={rooms} initialRoomImages={roomImages} initialSiteImages={siteImages} />
       <p className="admin-data-note">Tip: use landscape photos with a consistent style, add descriptive alt text, choose one cover per room, and publish only images approved for the website.</p>
     </div>
