@@ -61,7 +61,7 @@ export default function Navbar({ locale, dict }: NavbarProps) {
   function LanguagePicker({ compact = false }: { compact?: boolean }) {
     return (
       <details className={compact ? "site-language-picker site-language-picker-mobile" : "site-language-picker"}>
-        <summary aria-label={dict.nav.language}>
+        <summary aria-label={dict.nav.mainNavigation}>
           <span>{locale.toUpperCase()}</span>
           <svg aria-hidden="true" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
             <path d="m4 6 4 4 4-4" />
@@ -97,7 +97,7 @@ export default function Navbar({ locale, dict }: NavbarProps) {
           </svg>
           <span className="site-brand-copy">
             <strong>{SITE_CONFIG.name}</strong>
-            <span>{locale === "el" ? "Φιλοξενία με φροντίδα" : "A more personal stay"}</span>
+            <span>{SITE_CONFIG.tagline[locale]}</span>
           </span>
         </Link>
 
