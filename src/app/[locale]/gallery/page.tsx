@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import EditorialPageHero from "@/components/EditorialPageHero";
+import PublicGalleryGrid from "@/components/PublicGalleryGrid";
 import { getDictionary } from "@/lib/i18n";
 import { getGalleryImages, getSiteMediaImages } from "@/lib/data";
 import { isLocale, SITE_CONFIG, type Locale } from "@/lib/site";
@@ -36,25 +36,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ locale
           </h2>
         </div>
         {images.length > 0 ? (
-          <div className="gallery-mosaic editorial-gallery-grid stagger-reveal">
-            {images.map((image, index) => (
-              <figure key={image.id} className={`editorial-gallery-tile editorial-gallery-tile-${(index % 6) + 1} relative overflow-hidden rounded-[22px] bg-sand`}>
-                <Image
-                  src={image.image_url}
-                  alt={(lang === "el" ? image.alt_text_el || image.caption_el : image.alt_text_en || image.caption_en) || `${SITE_CONFIG.name} ${index + 1}`}
-                  fill
-                  sizes="(max-width: 768px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-700 hover:scale-105"
-                  style={{ objectPosition: "center" }}
-                />
-                {(image.caption_el || image.caption_en) && (
-                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent p-5 pt-16 text-sm text-white">
-                    {lang === "el" ? image.caption_el : image.caption_en}
-                  </figcaption>
-                )}
-              </figure>
-            ))}
-          </div>
+          <PublicGalleryGrid images={images} locale={lang} siteName={SITE_CONFIG.name} copy={dict.gallery} />
         ) : (
           <p className="rounded-2xl border border-sand-dark bg-white p-10 text-center text-ink-soft">{dict.gallery.empty}</p>
         )}
