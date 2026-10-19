@@ -18,6 +18,25 @@ const modules = [
   { category: "More", name: "Audit log", description: "Review recorded changes to bookings, rates, rooms and payments.", href: "/admin/audit", mark: "◷" },
 ];
 
+type BookingSummary = {
+  id: string;
+  status: string;
+  payment_status: string;
+  total_price: number | string | null;
+  amount_paid: number | string | null;
+  currency_code: string;
+  check_in: string;
+  check_out: string;
+};
+
+function getDateBounds() {
+  const current = new Date();
+  const today = current.toISOString().slice(0, 10);
+  const next = new Date(current);
+  next.setDate(next.getDate() + 7);
+  return { today, nextWeek: next.toISOString().slice(0, 10) };
+}
+
 function currency(value: number, unit: string) {
   try { return new Intl.NumberFormat("en-GB", { style: "currency", currency: unit }).format(value); }
   catch { return value.toFixed(2) + " " + unit; }
@@ -30,16 +49,14 @@ export default async function ExtranetHomePage() {
     .select("id,status,payment_status,total_price,amount_paid,currency_code,check_in,check_out")
     .order("created_at", { ascending: false })
     .limit(500);
-  const bookings = rows ?? [];
-  const today = new Date().toISOString().slice(0, 10);
-  const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
-  const waiting = bookings.filter((b: any) => ["request", "hold"].includes(b.status)).length;
-  const arrivals = bookings.filter((b: any) => b.status === "confirmed" && b.check_in >= today && b.check_in <= nextWeek).length;
-  const stayCount = bookings.filter((b: any) => ["confirmed", "checked_in"].includes(b.status)).length;
+  const bookings = (rows ?? []) as BookingSummary[];
+  const { today, nextWeek } = getDateBounds();
+  const waiting = bookings.filter((booking) => ["request", "hold"].includes(booking.status)).length;
+  const arrivals = bookings.filter((booking) => booking.status === "confirmed" && booking.check_in >= today && booking.check_in <= nextWeek).length;
+  const stayCount = bookings.filter((booking) => ["confirmed", "checked_in"].includes(booking.status)).length;
   const canSeeFinance = ["owner", "manager", "accountant"].includes(role);
-  const paidEUR = bookings.filter((b: any) => b.currency_code === "EUR").reduce((total: number, b: any) => total + Number(b.amount_paid || 0), 0);
-  const paidALL = bookings.filter((b: any) => b.currency_code === "ALL").reduce((total: number, b: any) => total + Number(b.amount_paid || 0), 0);
-  const byCategory = ["Rates & availability", "Reservations", "Property", "Guest experience", "Finance", "Performance", "More"];
+  const paidEUR = bookings.filter((booking) => booking.currency_code === "EUR").reduce((total, booking) => total + Number(booking.amount_paid || 0), 0);
+  const paidALL = bookings.filter((booking) => booking.currency_code === "ALL").reduce((total, booking) => total + Number(booking.amount_paid || 0), 0);
 
   return (
     <div className="admin-extranet-page">
