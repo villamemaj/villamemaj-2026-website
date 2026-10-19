@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SITE_CONFIG, type Locale } from "@/lib/site";
 import { getContactInfo } from "@/lib/data";
 import type { Dictionary } from "@/lib/i18n";
-import CookieSettingsButton from "@/components/CookieSettingsButton";
+import CookieSettingsLink from "@/components/CookieSettingsLink";
 
 interface FooterProps {
   locale: Locale;
@@ -13,25 +13,26 @@ export default async function Footer({ locale, dict }: FooterProps) {
   const year = new Date().getFullYear();
   const contact = await getContactInfo();
   const phoneHref = contact.phone ? contact.phone.replace(/\s/g, "") : "";
-  const address = locale === "el" ? contact.address_el : contact.address_en;
+  const address = locale === "el" ? (contact.address_el ?? SITE_CONFIG.address.el) : (contact.address_en ?? SITE_CONFIG.address[locale]);
 
   const links = [
     { href: `/${locale}/rooms`, label: dict.nav.rooms },
     { href: `/${locale}/gallery`, label: dict.nav.gallery },
     { href: `/${locale}/booking`, label: dict.nav.booking },
-    { href: `/${locale}/travel`, label: dict.nav.travel },
     { href: `/${locale}/contact`, label: dict.nav.contact },
+    { href: `/${locale}/flights`, label: locale === "el" ? "Πτήσεις" : locale === "fr" ? "Vols" : locale === "sq" ? "Fluturime" : locale === "de" ? "Flüge" : locale === "it" ? "Voli" : "Flights" },
+    { href: `/${locale}/reviews`, label: locale === "el" ? "Κριτικές επισκεπτών" : locale === "fr" ? "Avis voyageurs" : locale === "sq" ? "Vlerësimet" : locale === "de" ? "Gästebewertungen" : locale === "it" ? "Recensioni" : "Guest reviews" },
   ];
-  const policyLinks = [
-    { href: `/${locale}/policies`, label: locale === "el" ? "Πληροφορίες & πολιτικές" : "Guest information" },
-    { href: `/${locale}/faq`, label: locale === "el" ? "Συχνές ερωτήσεις" : "FAQ" },
-    { href: `/${locale}/terms`, label: locale === "el" ? "Όροι κράτησης" : "Terms & conditions" },
-    { href: `/${locale}/cancellation`, label: locale === "el" ? "Ακύρωση & επιστροφές" : "Cancellations & refunds" },
-    { href: `/${locale}/privacy`, label: locale === "el" ? "Πολιτική απορρήτου" : "Privacy policy" },
-    { href: `/${locale}/house-rules`, label: locale === "el" ? "Κανόνες καταλύματος" : "House rules" },
-    { href: `/${locale}/payments`, label: locale === "el" ? "Επιλογές πληρωμής" : "Payment options" },
-    { href: `/${locale}/cookies`, label: locale === "el" ? "Πολιτική cookies" : locale === "fr" ? "Politique des cookies" : locale === "sq" ? "Politika e cookies" : locale === "de" ? "Cookie-Richtlinie" : "Cookie policy" },
-  ];
+  const guestLabels: Record<Locale, string[]> = {
+    el: ["Πληροφορίες & πολιτικές", "Συχνές ερωτήσεις", "Όροι κράτησης", "Ακύρωση & επιστροφές", "Πολιτική απορρήτου", "Κανόνες καταλύματος", "Επιλογές πληρωμής"],
+    en: ["Guest information", "FAQ", "Terms & conditions", "Cancellations & refunds", "Privacy policy", "House rules", "Payment options"],
+    fr: ["Informations voyageurs", "FAQ", "Conditions de réservation", "Annulations et remboursements", "Confidentialité", "Règles du logement", "Paiements"],
+    sq: ["Informacion për vizitorët", "Pyetje të shpeshta", "Kushtet e rezervimit", "Anulime dhe rimbursime", "Privatësia", "Rregullat e akomodimit", "Pagesat"],
+    de: ["Gästeinformationen", "FAQ", "Buchungsbedingungen", "Stornierung & Erstattung", "Datenschutz", "Hausordnung", "Zahlungsoptionen"],
+    it: ["Informazioni per gli ospiti", "FAQ", "Termini e condizioni", "Cancellazioni e rimborsi", "Privacy", "Regole della struttura", "Pagamenti"],
+  };
+  const policyPaths = ["/policies", "/faq", "/terms", "/cancellation", "/privacy", "/house-rules", "/payments"];
+  const policyLinks = policyPaths.map((path, index) => ({ href: `/${locale}${path}`, label: guestLabels[locale][index] }));
 
   return (
     <footer className="mt-auto bg-olive-dark text-cream/90">
@@ -59,34 +60,30 @@ export default async function Footer({ locale, dict }: FooterProps) {
         </div>
 
         <div>
-          <p className="section-label text-gold-soft">{locale === "el" ? "Πληροφορίες επισκεπτών" : "Guest information"}</p>
+          <p className="section-label text-gold-soft">{guestLabels[locale][0]}</p>
           <ul className="mt-4 space-y-2 text-sm">
             {policyLinks.map((link) => (
               <li key={link.href}><Link href={link.href} className="text-cream/80 hover:text-cream">{link.label}</Link></li>
             ))}
           </ul>
-          <div className="mt-4"><CookieSettingsButton locale={locale} /></div>
         </div>
         <div>
           <p className="section-label text-gold-soft">{dict.footer.contact}</p>
           <ul className="mt-4 space-y-2 text-sm text-cream/80">
-            {contact.phone ? (
-              <li>
-                <a href={`tel:${phoneHref}`}>{contact.phone}</a>
-              </li>
-            ) : null}
-            {contact.email ? (
-              <li>
-                <a href={`mailto:${contact.email}`}>{contact.email}</a>
-              </li>
-            ) : null}
+            <li>
+              {contact.phone ? <a href={`tel:${phoneHref}`}>{contact.phone}</a> : null}
+            </li>
+            <li>
+              {contact.email ? <a href={`mailto:${contact.email}`}>{contact.email}</a> : null}
+            </li>
             {address ? <li>{address}</li> : null}
           </ul>
         </div>
       </div>
 
-      <div className="border-t border-cream/10 py-5 text-center text-xs text-cream/50">
-        © {year} {SITE_CONFIG.name}. {dict.footer.rights}
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-cream/10 px-4 py-5 text-center text-xs text-cream/50">
+        <span>© {year} {SITE_CONFIG.name}. {dict.footer.rights}</span>
+        <CookieSettingsLink locale={locale} />
       </div>
     </footer>
   );

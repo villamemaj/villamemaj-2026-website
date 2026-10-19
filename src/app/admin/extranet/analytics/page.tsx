@@ -3,9 +3,9 @@ import { requireStaff } from "@/lib/admin/auth";
 
 export const dynamic = "force-dynamic";
 
-type BookingAnalyticsRow = {
+type BookingAnalytics = {
   status: string;
-  payment_status: string | null;
+  payment_status: string;
   total_price: number | string | null;
   amount_paid: number | string | null;
   currency_code: string;
@@ -13,8 +13,7 @@ type BookingAnalyticsRow = {
   check_out: string;
   created_at: string;
 };
-
-type PaymentAnalyticsRow = {
+type PaymentAnalytics = {
   status: string;
   kind: string;
   amount: number | string | null;
@@ -33,8 +32,8 @@ export default async function ExtranetAnalyticsPage() {
     supabase.from("hotel_rooms").select("id", { count: "exact", head: true }).eq("active", true),
     supabase.from("hotel_payment_transactions").select("status,kind,amount,currency_code").eq("status", "succeeded").eq("kind", "charge").limit(1000),
   ]);
-  const bookings = (bookingResult.data ?? []) as BookingAnalyticsRow[];
-  const payments = (paymentsResult.data ?? []) as PaymentAnalyticsRow[];
+  const bookings = (bookingResult.data ?? []) as BookingAnalytics[];
+  const payments = (paymentsResult.data ?? []) as PaymentAnalytics[];
   const confirmed = bookings.filter((booking) => ["confirmed", "checked_in", "checked_out"].includes(booking.status));
   const pending = bookings.filter((booking) => ["request", "hold"].includes(booking.status));
   const paidEUR = bookings.filter((booking) => booking.currency_code === "EUR").reduce((sum, booking) => sum + Number(booking.amount_paid || 0), 0);

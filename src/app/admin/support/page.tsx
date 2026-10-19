@@ -1,141 +1,73 @@
 import Link from "next/link";
 import { requireStaff } from "@/lib/admin/auth";
-import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { closeSupportThread, replyToSupportThread } from "./actions";
+import { replyToSupportConversation, resolveSupportConversation } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-type ThreadRow = {
+type Conversation = {
   id: string;
-  public_reference: string;
-  guest_name: string | null;
-  guest_email: string | null;
-  guest_phone: string | null;
   locale: string;
-  subject: string;
   status: string;
-  source: string;
+  ai_provider: string | null;
+  guest_contact_email: string | null;
+  requested_human: boolean;
+  created_at: string;
   last_message_at: string;
-  created_at: string;
 };
+type Message = { id: string; conversation_id: string; role: string; message: string; created_at: string; needs_staff: boolean };
 
-type MessageRow = {
-  id: string;
-  thread_id: string;
-  sender_role: string;
-  content: string;
-  delivery_channel: string;
-  created_at: string;
-};
-
-function date(value: string) {
-  return new Date(value).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Tirane" });
-}
-
-export default async function SupportInboxPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ sent?: string; closed?: string; error?: string }>;
-}) {
-  await requireStaff(["owner", "manager", "receptionist"]);
+export default async function SupportInboxPage({ searchParams }: { searchParams: Promise<{ error?: string; replied?: string; resolved?: string }> }) {
+  const { supabase, role } = await requireStaff(["owner", "manager", "receptionist"]);
   const params = await searchParams;
-  const service = createSupabaseServiceClient();
-  if (!service) {
-    return <div className="admin-extranet-page"><h1>Support inbox</h1><p>Private support storage is not configured.</p></div>;
-  }
-
-  const { data, error } = await service
-    .from("hotel_guest_support_threads")
-    .select("id,public_reference,guest_name,guest_email,guest_phone,locale,subject,status,source,last_message_at,created_at")
-    .order("last_message_at", { ascending: false })
-    .limit(100);
-  const threads = (data ?? []) as ThreadRow[];
-  const ids = threads.map((thread) => thread.id);
-  let messages: MessageRow[] = [];
-  if (ids.length) {
-    const { data: rows } = await service
-      .from("hotel_guest_support_messages")
-      .select("id,thread_id,sender_role,content,delivery_channel,created_at")
-      .in("thread_id", ids)
-      .order("created_at", { ascending: true })
-      .limit(600);
-    messages = (rows ?? []) as MessageRow[];
-  }
-  const grouped = new Map<string, MessageRow[]>();
-  for (const message of messages) grouped.set(message.thread_id, [...(grouped.get(message.thread_id) ?? []), message]);
+  const { data, error } = await supabase.from("guest_support_conversations").select("id,locale,status,ai_provider,guest_contact_email,requested_human,created_at,last_message_at").order("last_message_at", { ascending: false }).limit(100);
+  const conversations = (data ?? []) as Conversation[];
+  const ids = conversations.map((item) => item.id);
+  const msgResult = ids.length
+    ? await supabase.from("guest_support_messages").select("id,conversation_id,role,message,created_at,needs_staff").in("conversation_id", ids).order("created_at", { ascending: true }).limit(1000)
+    : { data: [], error: null };
+  const messages = (msgResult.data ?? []) as Message[];
 
   return (
     <div className="admin-extranet-page">
       <div className="admin-extranet-page-header">
-        <div>
-          <p className="admin-eyebrow">Guest experience · Private inbox</p>
-          <h1>Support inbox</h1>
-          <p className="admin-page-intro">Website chat questions, AI replies and staff follow-up. The AI can answer routine property questions; anything uncertain should remain with a human team member.</p>
-        </div>
+        <div><p className="admin-eyebrow">Guest experience</p><h1>Support inbox</h1><p className="admin-page-intro">Review chat conversations and send staff replies. The AI assistant cannot access private booking records.</p></div>
         <Link href="/admin/extranet" className="admin-back-link">← Extranet home</Link>
       </div>
-
-      {params.sent === "1" ? <p role="status" className="admin-portal-alert success">Reply queued for delivery. Check the Notifications outbox for its status.</p> : null}
-      {params.closed === "1" ? <p role="status" className="admin-portal-alert success">Support thread closed.</p> : null}
-      {params.error ? <p role="alert" className="admin-portal-alert warning">Action could not be completed ({params.error}). Check the thread and notification settings.</p> : null}
-      {error ? <p role="alert" className="admin-portal-alert warning">Support threads could not be loaded.</p> : null}
-
-      <div className="admin-extranet-metrics">
-        <article><span>Threads shown</span><strong>{threads.length}</strong><small>Latest 100 threads</small></article>
-        <article><span>Needs staff</span><strong>{threads.filter((thread) => thread.status === "waiting_for_staff" || thread.status === "open").length}</strong><small>New or handed off</small></article>
-        <article><span>Waiting for guest</span><strong>{threads.filter((thread) => thread.status === "waiting_for_guest").length}</strong><small>Reply sent / awaiting guest</small></article>
-        <article><span>Closed</span><strong>{threads.filter((thread) => thread.status === "closed" || thread.status === "resolved").length}</strong><small>Completed threads</small></article>
-      </div>
-
-      <div className="admin-support-thread-list">
-        {threads.map((thread) => {
-          const threadMessages = grouped.get(thread.id) ?? [];
-          return (
-            <section key={thread.id} className="admin-support-thread">
-              <header className="admin-support-thread-header">
-                <div>
-                  <p className="admin-eyebrow">{thread.public_reference} · {thread.source} · {thread.locale.toUpperCase()}</p>
-                  <h2>{thread.subject}</h2>
-                  <p>{thread.guest_name || "Guest"}{thread.guest_email ? " · " + thread.guest_email : ""}{thread.guest_phone ? " · " + thread.guest_phone : ""}</p>
-                </div>
-                <div className="admin-support-thread-state">
-                  <span className="admin-role-pill">{thread.status.replaceAll("_", " ")}</span>
-                  <small>{date(thread.last_message_at)}</small>
-                </div>
-              </header>
-              <div className="admin-support-message-list">
-                {threadMessages.map((message) => (
-                  <article key={message.id} className={"admin-support-message " + (message.sender_role === "guest" ? "guest" : message.sender_role === "assistant" ? "assistant" : "staff")}>
-                    <div><strong>{message.sender_role === "guest" ? "Guest" : message.sender_role === "assistant" ? "AI assistant" : message.sender_role === "system" ? "System / handoff" : "Staff"}</strong><time>{date(message.created_at)}</time></div>
-                    <p>{message.content}</p>
-                  </article>
+      {params.replied ? <div role="status" className="admin-portal-alert success">Your reply was saved to the conversation and queued for email where the guest provided an address.</div> : null}
+      {params.resolved ? <div role="status" className="admin-portal-alert success">Conversation resolved.</div> : null}
+      {params.error || error || msgResult.error ? <div role="alert" className="admin-portal-alert warning">The requested action could not be completed. Check staff permissions and database policies.</div> : null}
+      {conversations.length === 0 ? <div className="admin-panel"><h2>No support conversations yet</h2><p className="admin-panel-copy">Guest chat questions will appear here. Configure Slack or WhatsApp credentials to receive owner alerts for escalated requests.</p></div> : (
+        <div className="admin-support-list">
+          {conversations.map((conversation) => (
+            <article key={conversation.id} className="admin-panel admin-support-card">
+              <div className="admin-section-heading">
+                <div><p className="admin-eyebrow">Conversation · {conversation.locale.toUpperCase()}</p><h2>{conversation.status === "waiting_staff" ? "Needs staff response" : conversation.status.replaceAll("_", " ")}</h2></div>
+                <span className={conversation.requested_human ? "admin-role-pill warning" : "admin-role-pill"}>{conversation.requested_human ? "Escalated" : (conversation.ai_provider || "Support")}</span>
+              </div>
+              <p className="admin-support-meta">Started {new Date(conversation.created_at).toLocaleString("en-GB")} · Last message {new Date(conversation.last_message_at).toLocaleString("en-GB")}</p>
+              {conversation.guest_contact_email ? <p className="admin-support-meta">Guest contact: <a className="underline" href={"mailto:" + conversation.guest_contact_email}>{conversation.guest_contact_email}</a></p> : <p className="admin-support-meta">No follow-up email was provided.</p>}
+              <div className="admin-support-messages">
+                {messages.filter((message) => message.conversation_id === conversation.id).map((message) => (
+                  <div key={message.id} className={"admin-support-message " + message.role}>
+                    <div><strong>{message.role === "guest" ? "Guest" : message.role === "assistant" ? "Assistant" : message.role === "staff" ? "Staff" : "System"}</strong><time>{new Date(message.created_at).toLocaleString("en-GB")}</time></div>
+                    <p>{message.message}</p>
+                  </div>
                 ))}
               </div>
-              {thread.status === "closed" ? (
-                <p className="text-sm text-ink-soft">Thread closed.</p>
-              ) : (
-                <div className="admin-support-thread-actions">
-                  <form action={replyToSupportThread} className="admin-support-reply-form">
-                    <input type="hidden" name="thread_id" value={thread.id} />
-                    <label className="admin-policy-field">
-                      <span>Reply to guest by email</span>
-                      <textarea name="reply" required minLength={2} maxLength={4000} rows={3} placeholder="Write a human-reviewed response. Replies are queued in the email outbox." />
-                    </label>
-                    <button type="submit" disabled={!thread.guest_email} className="admin-primary-link disabled:opacity-50">Queue email reply</button>
-                    {!thread.guest_email ? <small>This guest did not provide an email address. Reply by another approved channel outside this form.</small> : null}
+              {conversation.status !== "resolved" && conversation.status !== "closed" ? (
+                <div className="admin-support-actions">
+                  <form action={replyToSupportConversation} className="admin-support-reply">
+                    <input type="hidden" name="conversationId" value={conversation.id} />
+                    <label><span>Staff reply</span><textarea name="reply" minLength={2} maxLength={5000} required rows={3} placeholder="Write a clear, helpful reply…" /></label>
+                    <button type="submit" className="admin-primary-link">Save reply{conversation.guest_contact_email ? " and queue email" : ""}</button>
                   </form>
-                  <form action={closeSupportThread}>
-                    <input type="hidden" name="thread_id" value={thread.id} />
-                    <button type="submit" className="admin-back-link">Close thread</button>
-                  </form>
+                  {role !== "receptionist" ? <form action={resolveSupportConversation}><input type="hidden" name="conversationId" value={conversation.id} /><button type="submit" className="admin-secondary-link">Mark resolved</button></form> : null}
                 </div>
-              )}
-            </section>
-          );
-        })}
-        {!threads.length ? <div className="admin-panel"><p>No support messages have arrived yet.</p></div> : null}
-      </div>
-      <p className="admin-data-note">Access is limited to owner, manager and receptionist staff roles. Never paste payment-card numbers, banking codes or passwords into support notes.</p>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

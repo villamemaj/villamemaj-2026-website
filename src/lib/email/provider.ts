@@ -1,4 +1,3 @@
-import "server-only";
 export interface EmailMessage {
   id: string;
   to: string;
@@ -19,30 +18,6 @@ export interface EmailProvider {
   send(message: EmailMessage): Promise<SendResult>;
 }
 
-function escapeHtml(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-
-function renderBrandedEmail(body: string): string {
-  const safeBody = escapeHtml(body);
-  return `<!doctype html>
-<html><body style="margin:0;background:#f4f5f1;font-family:Arial,Helvetica,sans-serif;color:#24352b">
-  <div style="max-width:640px;margin:24px auto;background:#fff;border:1px solid #e2e6df;border-radius:14px;overflow:hidden">
-    <div style="background:#214e3a;padding:22px 28px;color:#fff">
-      <div style="font-size:20px;font-weight:700;letter-spacing:.02em">Villa Memaj</div>
-      <div style="font-size:12px;opacity:.85;margin-top:5px">Hospitality with care</div>
-    </div>
-    <div style="padding:26px 28px;line-height:1.7;font-size:14px">
-      <pre style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font-family:Arial,Helvetica,sans-serif;line-height:1.75">${safeBody}</pre>
-    </div>
-    <div style="border-top:1px solid #e9ece7;padding:16px 28px;color:#69776c;font-size:12px;line-height:1.6">
-      Villa Memaj · Please reply to this email or use the contact details on your reservation.
-      <br>Never send full payment-card details by email or chat.
-    </div>
-  </div>
-</body></html>`;
-}
-
 const resendProvider = (apiKey: string, from: string): EmailProvider => ({
   name: "resend",
   async send(message) {
@@ -52,18 +27,13 @@ const resendProvider = (apiKey: string, from: string): EmailProvider => ({
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "Idempotency-Key": message.id,
         },
         body: JSON.stringify({
           from,
           to: [message.to],
           subject: message.subject,
           text: message.body,
-          html: renderBrandedEmail(message.body),
         }),
-        // Resend supports request idempotency, preventing duplicate email delivery after
-        // a network timeout when the database worker retries the same outbox row.
-      
       });
 
       if (!response.ok) {
@@ -82,20 +52,6 @@ const resendProvider = (apiKey: string, from: string): EmailProvider => ({
     }
   },
 });
-
-/**
- * Dry-run provider: logs instead of sending. Lets the whole pipeline be exercised and
- * verified, and lets staff see the exact wording, before any provider key exists.
- */
-const logProvider: EmailProvider = {
-  name: "log",
-  async send(message) {
-    console.log(
-      `[email:log] to=${message.to} subject=${JSON.stringify(message.subject)}\n${message.body}`
-    );
-    return { ok: true, provider: "log" };
-  },
-};
 
 export interface ProviderResolution {
   provider: EmailProvider | null;
@@ -117,18 +73,18 @@ export function getEmailProvider(): ProviderResolution {
       return { provider: null, configured: false, reason: "RESEND_API_KEY is not set" };
     }
     if (!from) {
-      return { provider: null, configured: false, reason: "EMAIL_FROM is not set to a sender on a verified domain" };
+      return { provider: null, configured: false, reason: "EMAIL_FROM must be set to a sender address verified with the email provider" };
     }
     return { provider: resendProvider(apiKey, from), configured: true };
   }
 
   if (name === "log") {
-    return { provider: logProvider, configured: true };
+    return { provider: null, configured: false, reason: "Dry-run logging is disabled in the delivery worker to avoid exposing guest data in logs or marking undelivered messages as sent." };
   }
 
   return {
     provider: null,
     configured: false,
-    reason: "EMAIL_PROVIDER is not set (use EMAIL_PROVIDER=resend with RESEND_API_KEY and EMAIL_FROM on a verified domain, or EMAIL_PROVIDER=log)",
+    reason: "EMAIL_PROVIDER is not set (configure EMAIL_PROVIDER=resend with RESEND_API_KEY and a verified EMAIL_FROM sender)",
   };
 }

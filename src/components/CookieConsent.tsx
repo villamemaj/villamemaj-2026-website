@@ -58,6 +58,15 @@ const COPY: Record<Locale, {
     accept: "Alle akzeptieren", reject: "Optionale ablehnen", save: "Auswahl speichern",
     settings: "Cookie-Einstellungen", close: "Schließen", privacy: "Datenschutzerklärung", cookies: "Cookie-Richtlinie",
   },
+  it: {
+    title: "Le tue scelte sulla privacy",
+    body: "Utilizziamo tecnologie strettamente necessarie per far funzionare il sito e ricordare la tua scelta. Le tecnologie facoltative di analisi e marketing restano disattivate finché non acconsenti.",
+    necessary: "Strettamente necessari", necessaryText: "Sicurezza, funzionalità essenziali, prenotazioni e memorizzazione della scelta di consenso. Non possono essere disattivati.",
+    analytics: "Statistiche", analyticsText: "Misurazione facoltativa delle visite. Al momento questa scelta non attiva strumenti di analisi.",
+    marketing: "Marketing e servizi di terze parti", marketingText: "Tecnologie facoltative di marketing e servizi integrati di terze parti. La ricerca voli Skyscanner viene caricata solo dopo che attivi questa categoria e scegli di aprirla. Skyscanner può ricevere i dati di ricerca e dati tecnici di connessione.",
+    accept: "Accetta tutto", reject: "Rifiuta gli opzionali", save: "Salva le preferenze",
+    settings: "Impostazioni cookie", close: "Chiudi", privacy: "Informativa sulla privacy", cookies: "Informativa sui cookie",
+  },
 };
 
 function readConsent(): Consent | null {

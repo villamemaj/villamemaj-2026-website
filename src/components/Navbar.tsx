@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { LOCALE_NATIVE_NAMES, LOCALES, SITE_CONFIG, type Locale } from "@/lib/site";
+import { SITE_CONFIG, type Locale } from "@/lib/site";
 import type { Dictionary } from "@/lib/i18n";
 
 interface NavbarProps {
@@ -13,29 +13,31 @@ interface NavbarProps {
 
 export default function Navbar({ locale, dict }: NavbarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  function localeHref(nextLocale: Locale) {
+  const supportedLocales: { code: Locale; label: string }[] = [
+    { code: "el", label: "Ελληνικά" },
+    { code: "en", label: "English" },
+    { code: "fr", label: "Français" },
+    { code: "sq", label: "Shqip" },
+    { code: "de", label: "Deutsch" },
+    { code: "it", label: "Italiano" },
+  ];
+  const localeHref = (code: Locale) => {
     const segments = pathname.split("/");
-    segments[1] = nextLocale;
-    return segments.join("/") || `/${nextLocale}`;
-  }
-
-  function changeLocale(nextLocale: string) {
-    if (!LOCALES.includes(nextLocale as Locale)) return;
-    setOpen(false);
-    router.push(localeHref(nextLocale as Locale));
-  }
+    segments[1] = code;
+    return segments.join("/") || `/${code}`;
+  };
 
   const links = [
     { href: `/${locale}`, label: dict.nav.home },
     { href: `/${locale}/rooms`, label: dict.nav.rooms },
     { href: `/${locale}/gallery`, label: dict.nav.gallery },
     { href: `/${locale}/booking`, label: dict.nav.booking },
-    { href: `/${locale}/travel`, label: dict.nav.travel },
     { href: `/${locale}/contact`, label: dict.nav.contact },
-    { href: `/${locale}/faq`, label: locale === "el" ? "Συχνές ερωτήσεις" : "FAQ" },
+    { href: `/${locale}/faq`, label: locale === "el" ? "Συχνές ερωτήσεις" : locale === "fr" ? "FAQ" : locale === "sq" ? "Pyetje" : locale === "de" ? "FAQ" : locale === "it" ? "FAQ" : "FAQ" },
+    { href: `/${locale}/flights`, label: locale === "el" ? "Πτήσεις" : locale === "fr" ? "Vols" : locale === "sq" ? "Fluturime" : locale === "de" ? "Flüge" : locale === "it" ? "Voli" : "Flights" },
+    { href: `/${locale}/reviews`, label: locale === "el" ? "Κριτικές" : locale === "fr" ? "Avis" : locale === "sq" ? "Vlerësime" : locale === "de" ? "Bewertungen" : locale === "it" ? "Recensioni" : "Reviews" },
   ];
 
   return (
@@ -58,16 +60,14 @@ export default function Navbar({ locale, dict }: NavbarProps) {
               {link.label}
             </Link>
           ))}
-          <label className="sr-only" htmlFor="site-language-desktop">Language</label>
-          <select
-            id="site-language-desktop"
-            value={locale}
-            onChange={(event) => changeLocale(event.target.value)}
-            aria-label="Choose language"
-            className="rounded-full border border-olive/30 bg-cream px-3 py-2 text-xs font-semibold text-olive outline-none focus:ring-2 focus:ring-olive/25"
-          >
-            {LOCALES.map((code) => <option key={code} value={code}>{LOCALE_NATIVE_NAMES[code]}</option>)}
-          </select>
+          <div className="flex items-center gap-2" aria-label="Language">
+            {supportedLocales.map((item) => (
+              <Link key={item.code} href={localeHref(item.code)} hrefLang={item.code} aria-current={locale === item.code ? "page" : undefined}
+                className={locale === item.code ? "rounded-full bg-olive px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-cream" : "rounded-full border border-olive/30 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-olive transition-colors hover:bg-olive hover:text-cream"}>
+                {item.code.toUpperCase()}
+              </Link>
+            ))}
+          </div>
         </nav>
 
         <button
@@ -100,16 +100,15 @@ export default function Navbar({ locale, dict }: NavbarProps) {
               {link.label}
             </Link>
           ))}
-          <label htmlFor="site-language-mobile" className="mt-3 block text-xs font-semibold text-olive">Language / Idioma</label>
-          <select
-            id="site-language-mobile"
-            value={locale}
-            onChange={(event) => changeLocale(event.target.value)}
-            aria-label="Choose language"
-            className="mt-2 w-full rounded-xl border border-olive/30 bg-white px-3 py-2 text-sm text-olive"
-          >
-            {LOCALES.map((code) => <option key={code} value={code}>{LOCALE_NATIVE_NAMES[code]}</option>)}
-          </select>
+          <div className="mt-4 flex flex-wrap gap-2" aria-label="Language">
+            {supportedLocales.map((item) => (
+              <Link key={item.code} href={localeHref(item.code)} hrefLang={item.code} onClick={() => setOpen(false)}
+                aria-current={locale === item.code ? "page" : undefined}
+                className={locale === item.code ? "rounded-full bg-olive px-3 py-1.5 text-xs font-semibold uppercase text-cream" : "rounded-full border border-olive/30 px-3 py-1.5 text-xs font-semibold uppercase text-olive"}>
+                {item.code.toUpperCase()}
+              </Link>
+            ))}
+          </div>
         </nav>
       )}
     </header>

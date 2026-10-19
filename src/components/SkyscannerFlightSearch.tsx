@@ -56,6 +56,16 @@ const COPY: Record<Locale, {
     consentNeeded: "Aktivieren Sie optionale Marketing-/Drittanbieterdienste in den Cookie-Einstellungen, um die eingebettete Suche zu laden. Sie können jederzeit den direkten Skyscanner-Link unten nutzen.",
     loadError: "Die eingebettete Suche konnte nicht geladen werden. Verwenden Sie bitte den direkten Skyscanner-Link unten.",
   },
+  it: {
+    title: "Trova un volo adatto al tuo viaggio",
+    open: "Apri la ricerca voli",
+    loading: "Preparazione della ricerca voli Skyscanner…",
+    privacy: "Informativa sulla privacy di Skyscanner",
+    disclaimer: "La ricerca dei voli è fornita da Skyscanner. Le ricerche, i risultati, i prezzi, le regole delle compagnie aeree e l'acquisto dei biglietti sono gestiti da Skyscanner e dai suoi partner di viaggio, non da Villa Memaj.",
+    fallback: "La ricerca integrata viene caricata solo dopo aver acconsentito ai servizi facoltativi di terze parti. In alternativa, puoi aprire direttamente Skyscanner.",
+    consentNeeded: "Abilita i servizi facoltativi di marketing/terze parti nelle impostazioni cookie per caricare la ricerca integrata. In alternativa, usa il link diretto a Skyscanner qui sotto.",
+    loadError: "Non è stato possibile caricare la ricerca integrata. Usa il link diretto a Skyscanner qui sotto.",
+  },
 };
 
 function widgetLocale(locale: Locale): string {
