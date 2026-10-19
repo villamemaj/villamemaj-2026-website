@@ -17,13 +17,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 type PublicReview = {
   id: string;
-  guest_display_name: string;
+  display_name: string;
   rating: number;
   title: string;
-  review_text: string;
+  body: string;
   locale: string;
-  published_at: string | null;
-  created_at: string;
+  approved_at: string | null;
+  submitted_at: string;
 };
 
 const UI = {
@@ -42,10 +42,12 @@ export default async function PublicReviewsPage({ params }: { params: Promise<{ 
   let reviews: PublicReview[] = [];
   try {
     const { data, error } = await getSupabase()
-      .from("hotel_guest_reviews")
-      .select("id,guest_display_name,rating,title,review_text,locale,published_at,created_at")
-      .eq("status", "published")
-      .order("published_at", { ascending: false })
+      .from("guest_testimonials")
+      .select("id,display_name,rating,title,body,locale,approved_at,submitted_at")
+      .eq("is_published", true)
+      .eq("consent_to_publish", true)
+      .eq("moderation_status", "published")
+      .order("approved_at", { ascending: false })
       .limit(30);
     if (!error) reviews = (data ?? []) as PublicReview[];
   } catch {
@@ -62,8 +64,8 @@ export default async function PublicReviewsPage({ params }: { params: Promise<{ 
               <article key={review.id} className="rounded-2xl border border-sand-dark bg-white p-6 sm:p-8">
                 <p aria-label={review.rating + " out of 5 stars"} className="text-lg tracking-widest text-olive">{"★".repeat(review.rating)}{"☆".repeat(5-review.rating)}</p>
                 <h2 className="mt-4 font-display text-2xl font-medium text-olive-dark">{review.title}</h2>
-                <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-ink-soft">{review.review_text}</p>
-                <p className="mt-6 border-t border-sand-dark pt-4 text-xs font-semibold text-olive">{review.guest_display_name} · {review.locale.toUpperCase()}</p>
+                <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-ink-soft">{review.body}</p>
+                <p className="mt-6 border-t border-sand-dark pt-4 text-xs font-semibold text-olive">{review.display_name} · {review.locale.toUpperCase()}</p>
               </article>
             ))}
           </div>
