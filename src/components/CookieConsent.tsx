@@ -82,13 +82,17 @@ export default function CookieConsent({ locale }: { locale: Locale }) {
   const [marketing, setMarketing] = useState(false);
 
   useEffect(() => {
-    const current = readConsent();
-    if (current) {
-      setAnalytics(current.analytics);
-      setMarketing(current.marketing);
-    } else {
-      setVisible(true);
-    }
+    // Defer browser-storage hydration to the next frame to avoid a synchronous
+    // cascading render from the effect. The banner remains hidden until this check.
+    const frame = window.requestAnimationFrame(() => {
+      const current = readConsent();
+      if (current) {
+        setAnalytics(current.analytics);
+        setMarketing(current.marketing);
+      } else {
+        setVisible(true);
+      }
+    });
     const openSettings = () => {
       const stored = readConsent();
       setAnalytics(stored?.analytics ?? false);
@@ -97,7 +101,10 @@ export default function CookieConsent({ locale }: { locale: Locale }) {
       setVisible(true);
     };
     window.addEventListener("open-cookie-settings", openSettings);
-    return () => window.removeEventListener("open-cookie-settings", openSettings);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("open-cookie-settings", openSettings);
+    };
   }, []);
 
   const persist = useCallback((allowAnalytics: boolean, allowMarketing: boolean) => {
