@@ -36,6 +36,13 @@ export default function CookieConsent({ locale }: { locale: string }) {
     } catch {
       setVisible(true);
     }
+
+    const openSettings = () => {
+      setVisible(true);
+      setPreferences(true);
+    };
+    window.addEventListener("villa-memaj:open-cookie-settings", openSettings);
+    return () => window.removeEventListener("villa-memaj:open-cookie-settings", openSettings);
   }, []);
 
   function save(allowAnalytics: boolean, allowMarketing: boolean) {
@@ -64,7 +71,7 @@ export default function CookieConsent({ locale }: { locale: string }) {
       ) : null}
       <div className="cookie-consent-actions">
         <button type="button" onClick={() => save(false, false)} className="cookie-button cookie-button-quiet">{copy.only}</button>
-        <button type="button" onClick={() => setPreferences((value) => !value)} className="cookie-button cookie-button-quiet">{preferences ? copy.manage : copy.manage}</button>
+        <button type="button" onClick={() => setPreferences((value) => !value)} className="cookie-button cookie-button-quiet">{preferences ? (locale === "el" ? "Κλείσιμο" : locale === "fr" ? "Fermer" : locale === "sq" ? "Mbyll" : locale === "de" ? "Schließen" : locale === "it" ? "Chiudi" : "Close preferences") : copy.manage}</button>
         <button type="button" onClick={() => save(analytics, marketing)} className="cookie-button cookie-button-primary">{copy.accept}</button>
       </div>
     </aside>
