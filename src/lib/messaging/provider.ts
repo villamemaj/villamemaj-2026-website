@@ -1,3 +1,4 @@
+import "server-only";
 export type GuestMessageChannel = "sms" | "whatsapp";
 
 export interface GuestMessage {
