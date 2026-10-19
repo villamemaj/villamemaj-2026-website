@@ -16,7 +16,7 @@ function propertyLocalDate(): string {
   return values.year + "-" + values.month + "-" + values.day;
 }
 
-const inputClass =const inputClass =
+const inputClass =
   "w-full rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-olive focus:ring-2 focus:ring-olive/20";
 
 interface RatePlan {
