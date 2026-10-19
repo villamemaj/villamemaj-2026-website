@@ -20,7 +20,10 @@ function followingDay(value: string): string {
   const [year, month, day] = value.split("-").map(Number);
   const next = new Date(year, month - 1, day, 12);
   next.setDate(next.getDate() + 1);
-  return localDate(next);
+  const nextYear = next.getFullYear();
+  const nextMonth = String(next.getMonth() + 1).padStart(2, "0");
+  const nextDay = String(next.getDate()).padStart(2, "0");
+  return nextYear + "-" + nextMonth + "-" + nextDay;
 }
 
 export default function BookingSearchPanel({
