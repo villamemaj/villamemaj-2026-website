@@ -35,6 +35,7 @@ type PolicyRow = {
   max_stay_nights: number;
   house_rules_en: string;
   house_rules_el: string;
+  public_review_url: string;
   taxes_included: boolean;
   tax_label: string | null;
   tax_rate: number | null;
@@ -175,6 +176,7 @@ export default async function PropertyPoliciesPage({
             <div className="admin-policy-fields mt-5">
               <Field label="Tax label" name="tax_label" defaultValue={row.tax_label} hint="Optional; verify with the accountant before publishing." />
               <Field label="Tax rate (%)" name="tax_rate" type="number" defaultValue={row.tax_rate} hint="Optional. Leave blank if not applicable or unknown." />
+              <Field label="Public guest review URL" name="public_review_url" defaultValue={row.public_review_url} hint="Official HTTPS public listing URL only. Booking.com API review text is not copied to the public site." />
               <Field label="Damage deposit amount" name="damage_deposit" type="number" defaultValue={row.damage_deposit} hint="Use 0 if no deposit is collected." />
             </div>
           </section>
