@@ -5,9 +5,10 @@ import { useState } from "react";
 import type { Locale } from "@/lib/site";
 
 const COPY: Record<Locale, {
-  open: string; loading: string; privacy: string; disclaimer: string; fallback: string;
+  title: string; open: string; loading: string; privacy: string; disclaimer: string; fallback: string;
 }> = {
   en: {
+    title: "Find a flight that fits your journey",
     open: "Open flight search",
     loading: "Preparing Skyscanner flight search…",
     privacy: "Skyscanner privacy policy",
@@ -15,6 +16,7 @@ const COPY: Record<Locale, {
     fallback: "If the search widget does not load, open Skyscanner in a new tab.",
   },
   el: {
+    title: "Βρείτε πτήση που ταιριάζει στο ταξίδι σας",
     open: "Άνοιγμα αναζήτησης πτήσεων",
     loading: "Φόρτωση αναζήτησης Skyscanner…",
     privacy: "Πολιτική απορρήτου Skyscanner",
@@ -22,6 +24,7 @@ const COPY: Record<Locale, {
     fallback: "Αν δεν φορτωθεί το widget, ανοίξτε το Skyscanner σε νέα καρτέλα.",
   },
   fr: {
+    title: "Trouvez le vol adapté à votre voyage",
     open: "Ouvrir la recherche de vols",
     loading: "Préparation de la recherche Skyscanner…",
     privacy: "Politique de confidentialité de Skyscanner",
@@ -29,6 +32,7 @@ const COPY: Record<Locale, {
     fallback: "Si le widget ne se charge pas, ouvrez Skyscanner dans un nouvel onglet.",
   },
   sq: {
+    title: "Gjeni fluturimin e duhur për udhëtimin tuaj",
     open: "Hap kërkimin e fluturimeve",
     loading: "Po përgatitet kërkimi në Skyscanner…",
     privacy: "Politika e privatësisë e Skyscanner",
@@ -36,6 +40,7 @@ const COPY: Record<Locale, {
     fallback: "Nëse widget-i nuk ngarkohet, hapni Skyscanner në një skedë të re.",
   },
   de: {
+    title: "Finden Sie den passenden Flug für Ihre Reise",
     open: "Flugsuche öffnen",
     loading: "Skyscanner-Flugsuche wird vorbereitet…",
     privacy: "Datenschutzerklärung von Skyscanner",
@@ -64,7 +69,7 @@ export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
     <section className="travel-flight-widget" aria-labelledby="travel-flight-search-title">
       <div className="travel-flight-widget-heading">
         <span className="travel-flight-kicker">Skyscanner</span>
-        <h2 id="travel-flight-search-title" className="font-display">Find a flight that fits your journey</h2>
+        <h2 id="travel-flight-search-title" className="font-display">{t.title}</h2>
         <p>{t.disclaimer}</p>
       </div>
       {!activated ? (
