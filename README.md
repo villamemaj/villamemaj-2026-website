@@ -3,10 +3,9 @@
 Next.js 16 (App Router), Tailwind CSS 4 and Supabase. The repo holds both halves of the
 product: the bilingual public website and the staff CRM used to run the property.
 
-- Public site: bilingual **Greek (EL)** default + **English (EN)** — `/el/...`, `/en/...`
-- Pages: Home (auto-rotating hero), Rooms (+ per-room detail), Gallery, Booking request, Contact
-- CRM: `/admin` — dashboard, reservations, calendar, rooms & rates, rate plans, guests,
-  payments, policies, notifications, staff, audit log, my account
+- Public site: Greek (EL), English (EN), French (FR), Albanian (SQ), German (DE) and Italian (IT) — `/el/...`, `/en/...`, `/fr/...`, `/sq/...`, `/de/...`, `/it/...` (legal source text is currently fully authored in English/Greek; additional-language legal routes must be professionally reviewed before launch).
+- Pages: cinematic home, room listings/details, gallery, booking, contact, flights, guest reviews, FAQ, guest policies, booking terms, privacy, cancellation/refunds, house rules and payment information. Public pages share the same responsive visual system, reduced-motion-aware scroll effects, cookie preferences and guest support chat.
+- CRM: `/admin` — searchable Extranet-style navigation, reservations, calendar, rooms & rates, rate plans, guests, payment ledger, property-policy editor, guest support inbox, direct-testimonial moderation, notifications, staff, audit log and account/MFA.
 - All content lives in Supabase; both forms submit through hardened database functions
 
 ## Local development
@@ -125,3 +124,30 @@ Update the hotel's real **phone, email and address** in `src/lib/site.ts`.
 Push to GitHub; Vercel auto-detects Next.js. Add the environment variables above, then
 deploy. Migrations are applied separately with the Supabase CLI (they are not run by the
 build).
+
+
+## Messaging automations, guest support and reviews
+
+The database queues booking-request acknowledgements and owner alerts, then queues confirmation/cancellation/no-show email + SMS when the booking status changes. A daily Vercel Cron at `/api/email/dispatch` creates 14-day, 7-day and 1-day reminders, a one-day welcome message and a post-checkout thank-you. Queues are service-role-only and idempotent per booking/kind. A queued message is not proof of successful delivery.
+
+Required for real email delivery:
+- `EMAIL_PROVIDER=resend`
+- `RESEND_API_KEY`
+- `EMAIL_FROM` from a verified sender/domain
+- `CRON_SECRET` and `SUPABASE_SERVICE_ROLE_KEY`
+
+Optional channels:
+- SMS to the guest: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`.
+- Owner alerts: `SLACK_WEBHOOK_URL`, or Twilio WhatsApp with `TWILIO_WHATSAPP_FROM` and `OWNER_WHATSAPP_TO`.
+- AI-backed support chat: server-only `OPENAI_API_KEY` or `GEMINI_API_KEY`. Without one, the chat uses the published FAQ/policy fallback and can queue human escalation. It does not access private booking records.
+- Flight-search affiliate tracking: `SKYSCANNER_MEDIA_PARTNER_ID` must be Villa Memaj's own approved partner ID. The connected ChatGPT Skyscanner app is not a website API key or partner approval.
+- Review link: set the official public listing URL in CRM Property Policies. Booking.com Guest Review API data is not copied to the public website; direct testimonials require publication consent and staff approval.
+
+## Security checks and remaining owner/legal tasks
+
+- Public row access to `hotel_house_policies` is limited to explicit guest-facing columns. Contact email, owner notification recipients and internal update metadata remain unavailable to the anonymous public API. Support and delivery queues have no anonymous table access.
+- Public booking functions remain callable because the booking widget requires them; they validate the requested dates, rate and booking limits. Admin SECURITY DEFINER RPCs enforce a staff-role check. Review Supabase Security Advisor findings after every migration.
+- Cookies: only necessary behavior is active by default; optional analytics/marketing remain off unless consent is granted. No non-essential tracker is currently included by the consent component.
+- Legal text is a structured operational draft, not a legal opinion. Before full launch, add the operator's registered legal name, NUIS/NIPT/tax details and official postal address; have Albanian accommodation/consumer counsel review booking/cancellation/tax/privacy wording and professional translators review French, Albanian, German and Italian legal copies.
+- Before taking live payments, test all checkout/webhook/refund paths in Stripe test mode, enable MFA for all staff, enable Supabase leaked-password protection, configure sender-domain authentication, configure backup/retention/incident-response procedures and complete an independent penetration test. Live charging is explicitly gated off by default.
+- Apply `supabase/migrations` in order and verify the Vercel build + database advisor after each migration. A deployed preview is necessary but not a substitute for a manual authenticated end-to-end booking test.
