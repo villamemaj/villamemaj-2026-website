@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE_CONFIG, type Locale } from "@/lib/site";
 import type { Dictionary } from "@/lib/i18n";
+import CookieSettingsLink from "@/components/CookieSettingsLink";
 
 interface FooterProps {
   locale: Locale;
@@ -78,8 +79,9 @@ export default function Footer({ locale, dict }: FooterProps) {
         </div>
       </div>
 
-      <div className="border-t border-cream/10 py-5 text-center text-xs text-cream/50">
-        © {year} {SITE_CONFIG.name}. {dict.footer.rights}
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-cream/10 px-4 py-5 text-center text-xs text-cream/50">
+        <span>© {year} {SITE_CONFIG.name}. {dict.footer.rights}</span>
+        <CookieSettingsLink locale={locale} />
       </div>
     </footer>
   );
