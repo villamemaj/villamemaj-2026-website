@@ -1,8 +1,8 @@
 import type { Dictionary } from "../i18n";
 
 const dictionary: Dictionary = {
-  nav: { home: "Kryefaqja", rooms: "Dhomat", gallery: "Galeria", booking: "Rezervimi", contact: "Kontakt" , travel: "Udhëtimi"},
-  hero: { title: "Villa Memaj", subtitle: "Një strehë e qetë, mikpritje e ngrohtë dhe hapësira të krijuara për çlodhjen tuaj.", ctaRooms: "Shikoni dhomat", ctaBook: "Rezervoni tani" },
+  nav: { home: "Kryefaqja", rooms: "Dhomat", gallery: "Galeria", booking: "Rezervimi", contact: "Kontakt" , travel: "Udhëtimi", menu: "Hap menunë", closeMenu: "Mbyll menunë", language: "Zgjidhni gjuhën" },
+  hero: { title: "Mikpritja takon detin", subtitle: "Një strehë e qetë me pamje, mikpritje të ngrohtë dhe dhoma të krijuara për pushimin tuaj.", ctaRooms: "Shikoni dhomat", ctaBook: "Rezervoni tani" },
   home: {
     welcomeLabel: "Mirë se vini", welcomeTitle: "Mikpritje me zemër",
     welcomeText: "Në Villa Memaj çdo çast gjen qetësinë e vet. Hapësira të kuruara, dritë natyrale dhe atmosferë e rehatshme për t’u ndier si në shtëpi.",
@@ -13,13 +13,48 @@ const dictionary: Dictionary = {
     ],
     roomsTitle: "Dhomat tona", roomsText: "Zgjidhni hapësirën që ju përshtatet.", viewAll: "Shikoni të gjitha dhomat",
     galleryTitle: "Çaste nga Villa Memaj", galleryText: "Një pamje e hapësirave dhe atmosferës që ju pret.",
-    ctaTitle: "Gati për pushime?", ctaText: "Dërgoni një kërkesë rezervimi dhe do t’ju përgjigjemi sa më shpejt.", ctaBook: "Kërkesë rezervimi"
+    ctaTitle: "Lini vend për diçka të bukur.", ctaText: "Dërgoni një kërkesë rezervimi dhe do t’ju përgjigjemi sa më shpejt.", ctaBook: "Kërkesë rezervimi"
+  },
+  editorialHome: {
+    heroKicker: "VILLA MEMAJ",
+    heroNote: "Një arratisje më personale në bregdetin e Vlorës.",
+    scroll: "Zbritni për të zbuluar",
+    introKicker: "Arti i qëndrimit",
+    introTitle: "Luksi është të kesh kohë për të ngadalësuar ritmin.",
+    introBody: "Ritëm i qetë, mikpritje e kujdesshme dhe hapësirë për t’u ndier si në shtëpi. Çdo qëndrim ndërtohet rreth çasteve të vogla që e bëjnë udhëtimin të paharrueshëm.",
+    introLink: "Zbuloni mikpritjen tonë",
+    momentsKicker: "Një qëndrim, shumë çaste",
+    momentsTitle: "Shijoni hapësirën sipas ritmit tuaj.",
+    momentsBody: "Nga një mëngjes i qetë në ballkon te mbrëmjet me pamje, çdo hollësi fton për çlodhje.",
+    roomsKicker: "Hapësira të zgjedhura me kujdes",
+    galleryKicker: "Një vështrim mbi qëndrimin tuaj",
+    galleryTitle: "Dritë, teksturë dhe detaje të kujdesshme.",
+    galleryBody: "Zbuloni dhomat dhe këndet që mund të bëhen pjesë e arratisjes suaj të ardhshme.",
+    quote: "Mbërrini si mysafirë. Largohuni me ndjesinë se jeni në shtëpi.",
+    quoteNote: "Çasti juaj në bregdet",
+    ctaKicker: "Arratisja juaj e radhës nis këtu",
+    ctaTitle: "Lini vend për diçka të bukur.",
+    sizeLabel: "Sipërfaqja e dhomave",
+    capacityLabel: "Vizitorë për dhomë",
+    amenitiesLabel: "Rehati në çdo qëndrim",
+    bookingSearch: {
+      title: "Planifikoni qëndrimin",
+      arrival: "Mbërritja",
+      departure: "Nisja",
+      guests: "Vizitorë",
+      adults: "Të rritur",
+      children: "Fëmijë",
+      action: "Shihni disponueshmërinë",
+      note: "Zgjidhni datat dhe numrin e vizitorëve. Disponueshmërinë dhe çmimin përfundimtar do t’i konfirmojmë para rezervimit.",
+      invalidDates: "Nisja duhet të jetë pas mbërritjes dhe datat nuk mund të jenë në të kaluarën.",
+      invalidGuests: "Zgjidhni të paktën një të rritur.",
+    },
   },
   rooms: { title: "Dhoma dhe suita", subtitle: "Hapësira të krijuara për rehati, qetësi dhe çlodhje.", from: "nga", perNight: "€ / natë", guests: "Vizitorë", size: "Sipërfaqe", viewDetails: "Detaje", book: "Rezervo", amenities: "Pajisjet", empty: "Dhomat do të shfaqen së shpejti. Na kontaktoni për disponueshmërinë." },
   room: { backToRooms: "Kthehu te dhomat", bookThisRoom: "Rezervo këtë dhomë", notFound: "Dhoma nuk u gjet." },
   booking: { title: "Kërkesë rezervimi", subtitle: "Plotësoni të dhënat dhe do t’ju kontaktojmë për të konfirmuar disponueshmërinë.", roomLabel: "Dhoma", anyRoom: "Çdo dhomë e disponueshme", name: "Emri i plotë", email: "E-mail", phone: "Telefoni", checkIn: "Regjistrimi", checkOut: "Çregjistrimi", guests: "Numri i vizitorëve", message: "Mesazh (opsional)", messagePlaceholder: "Kërkesa ose pyetje të veçanta…", submit: "Dërgo kërkesën", sending: "Duke dërguar…", successTitle: "Kërkesa juaj u mor!", successText: "Faleminderit. Do t’ju kontaktojmë së shpejti për konfirmimin.", errorText: "Ndodhi një gabim. Provoni sërish ose na kontaktoni drejtpërdrejt.", newRequest: "Kërkesë e re" },
   contact: { title: "Kontakt", subtitle: "Jemi këtu për pyetjet tuaja dhe për t’ju ndihmuar me rezervimin.", name: "Emri i plotë", email: "E-mail", subject: "Subjekti", message: "Mesazhi", submit: "Dërgo mesazhin", sending: "Duke dërguar…", successTitle: "Mesazhi u dërgua!", successText: "Faleminderit. Do t’ju përgjigjemi së shpejti.", errorText: "Ndodhi një gabim. Ju lutemi provoni sërish.", phoneLabel: "Telefoni", emailLabel: "E-mail", addressLabel: "Adresa", newMessage: "Mesazh i ri" },
-  gallery: { title: "Galeria e fotove", subtitle: "Hapësira, detaje dhe çaste nga Villa Memaj.", empty: "Fotot do të shfaqen së shpejti." },
+  gallery: { title: "Galeria e fotove", subtitle: "Hapësira, detaje dhe çaste nga Villa Memaj.", empty: "Fotot do të shfaqen së shpejti.", openImage: "Hap foton", closeImage: "Mbyll foton", previousImage: "Fotoja e mëparshme", nextImage: "Fotoja tjetër" },
   footer: { tagline: "Streha juaj e qetë për pushim dhe përvoja të reja.", quickLinks: "Lidhje të shpejta", contact: "Kontakt", rights: "Të gjitha të drejtat e rezervuara." },
   amenities: { wifi: "Wi-Fi falas", ac: "Kondicioner", tv: "Televizor", minibar: "Minibar", balcony: "Ballkon", sea_view: "Pamje nga deti", kitchen: "Kuzhinë", breakfast: "Mëngjes", parking: "Parkim", workspace: "Hapësirë pune" }
 };
