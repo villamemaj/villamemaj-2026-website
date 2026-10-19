@@ -45,6 +45,17 @@ grant select (
   public_review_url, arrival_instructions_en, arrival_instructions_el, local_guide_en, local_guide_el
 ) on public.hotel_house_policies to anon;
 
+-- Only public display columns may be selected by public roles. The booking link,
+-- consent/moderation metadata and internal notes never leave the server.
+revoke all on public.guest_testimonials from anon, authenticated;
+grant select (id, display_name, rating, title, body, locale, source, consent_to_publish, is_published, submitted_at, approved_at)
+  on public.guest_testimonials to anon, authenticated;
+
+-- All support conversations are served only through the rate-limited server API and
+-- staff pages that authenticate a CRM role before using the service client.
+revoke all on public.guest_support_conversations from anon, authenticated;
+revoke all on public.guest_support_messages from anon, authenticated;
+
 -- Public policies are row-filtered by the existing RLS policy; server-only email
 -- and SMS outboxes remain inaccessible to anon/authenticated roles.
 
