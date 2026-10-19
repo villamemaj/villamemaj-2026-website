@@ -10,7 +10,7 @@ export default async function GuestReviewsPage() {
     <div className="admin-extranet-page">
       <div className="admin-extranet-page-header">
         <div><p className="admin-eyebrow">Guest experience</p><h1>Guest reviews</h1><p className="admin-page-intro">A private workspace for checking review performance and preparing replies.</p></div>
-        <Link href="/admin/extranet" className="admin-back-link">← Extranet home</Link>
+        <div className="flex flex-wrap gap-2"><Link href="/admin/reviews/testimonials" className="admin-primary-link">Moderate website testimonials ↗</Link><Link href="/admin/extranet" className="admin-back-link">← Extranet home</Link></div>
       </div>
       <div className={configured ? "admin-integration-status ready" : "admin-integration-status pending"}>
         <span className="admin-status-dot" aria-hidden="true" />
@@ -33,7 +33,7 @@ export default async function GuestReviewsPage() {
           <h2>Continue in Booking.com</h2>
           <p className="admin-panel-copy">Until the property authorises an API connection, use the official Extranet to read reviews and submit replies. This CRM page intentionally does not scrape the logged-in Extranet.</p>
           <a className="admin-primary-link" href="https://admin.booking.com/" target="_blank" rel="noreferrer">Open Booking.com Extranet ↗</a>
-          <div className="admin-warning-note"><strong>Public website note</strong><p>Booking.com’s Review API documentation states that reviews obtained through this API are for internal use and may not be rendered on the public property page. For the public website, use a link to the property's Booking.com listing, or publish independently collected testimonials with a lawful basis and appropriate permission.</p></div>
+          <div className="admin-warning-note"><strong>Public website note</strong><p>Booking.com’s Review API documentation states that reviews obtained through this API are for internal use and may not be rendered on the public property page. For the public website, use a link to the property&apos;s Booking.com listing, or publish independently collected testimonials with a lawful basis and appropriate permission.</p></div>
         </section>
       </div>
       <p className="admin-data-note">Signed in with the {role} role. Review text, reviewer names, reservation references and reply data will only appear here after an authorised integration is configured and tested.</p>
