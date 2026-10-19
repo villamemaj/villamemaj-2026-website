@@ -4,7 +4,8 @@ import { policyLinks, type PolicyDocument } from "@/lib/legal-content";
 import type { Locale } from "@/lib/site";
 
 export default function PolicyDocumentPage({ locale, document }: { locale: Locale; document: PolicyDocument }) {
-  const links = policyLinks[locale];
+  const links = policyLinks[locale === "el" ? "el" : "en"];
+  const fallbackNotice = !["el", "en"].includes(locale);
   return (
     <div className="legal-page">
       <EditorialPageHero locale={locale} eyebrow={document.label} title={document.title} subtitle={document.subtitle} />
@@ -21,6 +22,7 @@ export default function PolicyDocumentPage({ locale, document }: { locale: Local
           <p className="legal-updated">{locale === "el" ? "Τελευταία ενημέρωση" : "Last updated"}: {document.updated}</p>
         </aside>
         <article className="legal-article">
+          {fallbackNotice ? <p role="note" className="mb-6 rounded-xl border border-sand-dark bg-sand/40 p-4 text-sm leading-6 text-ink-soft">This policy is currently published in English for this language version. The Greek and English copies are the reference texts until a reviewed translation is available.</p> : null}
           {document.sections.map((section, index) => (
             <section key={section.heading} id={`section-${index + 1}`} className="legal-section reveal-from-bottom">
               <h2>{section.heading}</h2>

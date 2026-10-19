@@ -1,0 +1,45 @@
+name: Quality checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - main
+      - feat/guest-lifecycle-support-multilingual
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-build:
+    name: Lint and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Public placeholder configuration lets the app compile without granting CI any
+      # production database, payment, email or AI credentials.
+      NEXT_PUBLIC_SUPABASE_URL: https://mnrlpifaurqntjidbjmn.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      NEXT_PUBLIC_SITE_URL: https://example.invalid
+      STRIPE_LIVE_PAYMENTS_ENABLED: "false"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build

@@ -15,6 +15,7 @@ export default async function PolicyHubPage({ params }: { params: Promise<{ loca
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const lang = locale as Locale;
+  const policyLocale = lang === "el" ? "el" : "en";
   return (
     <div className="editorial-page policy-hub">
       <EditorialPageHero
@@ -31,7 +32,7 @@ export default async function PolicyHubPage({ params }: { params: Promise<{ loca
           <p>{lang === "el" ? "Οι ειδικοί όροι που εμφανίζονται στην επιλεγμένη τιμή και στην επιβεβαίωσή σας ισχύουν για τη συγκεκριμένη κράτηση." : "The specific terms shown for your selected rate and repeated in your confirmation apply to that reservation."}</p>
         </div>
         <div className="policy-card-grid stagger-reveal">
-          {policyLinks[lang].map((item, index) => (
+          {policyLinks[policyLocale].map((item, index) => (
             <Link key={item.href} href={`/${lang}${item.href}`} className="policy-card">
               <span className="policy-card-number">{String(index + 1).padStart(2, "0")}</span>
               <h3>{item.label}</h3>

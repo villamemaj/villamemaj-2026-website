@@ -7,7 +7,7 @@ import { isLocale, type Locale } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
-const methodLabels: Record<string, Record<Locale, string>> = {
+const methodLabels: Record<string, Partial<Record<Locale, string>>> = {
   cash: { en: "Cash at the property", el: "Μετρητά στο κατάλυμα" },
   online_card: { en: "Online card payment through secure Stripe Checkout", el: "Ηλεκτρονική πληρωμή με κάρτα μέσω ασφαλούς Stripe Checkout" },
   bank_transfer: { en: "Bank transfer, when stated in the offer", el: "Τραπεζική μεταφορά, όταν αναφέρεται στην προσφορά" },
@@ -24,6 +24,7 @@ export default async function PaymentsPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const lang = locale as Locale;
+  const policyLocale = lang === "el" ? "el" : "en";
   const document = getPolicyDocument("payments", lang);
   if (!document) notFound();
 
@@ -31,7 +32,7 @@ export default async function PaymentsPage({ params }: { params: Promise<{ local
   const livePaymentsEnabled = process.env.STRIPE_LIVE_PAYMENTS_ENABLED === "true";
   const configured = settings?.accepted_payment_methods ?? ["cash"];
   const available = configured.filter((method) => method !== "online_card" || livePaymentsEnabled);
-  const accepted = available.map((method) => methodLabels[method]?.[lang]).filter(Boolean);
+  const accepted = available.map((method) => methodLabels[method]?.[policyLocale]).filter(Boolean);
   const paragraphs = [
     lang === "el"
       ? accepted.length ? `Οι μέθοδοι απευθείας πληρωμής που έχουν ρυθμιστεί είναι: ${accepted.join(", ")}.` : "Δεν έχει ρυθμιστεί ενεργή μέθοδος απευθείας πληρωμής. Επικοινωνήστε μαζί μας πριν από την κράτηση."

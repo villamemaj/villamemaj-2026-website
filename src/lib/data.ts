@@ -81,6 +81,11 @@ export type PublicHousePolicySettings = {
   tax_label: string | null;
   tax_rate: number | null;
   damage_deposit: number;
+  damage_deposit_currency: "EUR" | "ALL";
+  arrival_instructions_en: string;
+  arrival_instructions_el: string;
+  local_guide_en: string;
+  local_guide_el: string;
 };
 
 export async function getPublicHousePolicySettings(): Promise<PublicHousePolicySettings | null> {
@@ -96,7 +101,8 @@ export async function getPublicHousePolicySettings(): Promise<PublicHousePolicyS
         "curfew", "internet_information", "parking_information", "damage_policy",
         "additional_fees_note", "accepted_payment_methods", "monthly_stays_allowed",
         "max_stay_nights", "house_rules_en", "house_rules_el", "terms_en", "terms_el",
-        "privacy_en", "privacy_el", "taxes_included", "tax_label", "tax_rate", "damage_deposit"
+        "privacy_en", "privacy_el", "taxes_included", "tax_label", "tax_rate", "damage_deposit", "damage_deposit_currency",
+        "arrival_instructions_en", "arrival_instructions_el", "local_guide_en", "local_guide_el"
       ].join(", "))
       .limit(1)
       .maybeSingle();

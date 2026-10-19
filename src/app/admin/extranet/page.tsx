@@ -3,13 +3,26 @@ import { requireStaff } from "@/lib/admin/auth";
 
 export const dynamic = "force-dynamic";
 
+type BookingSummaryRow = {
+  id: string;
+  status: string;
+  payment_status: string | null;
+  total_price: number | string | null;
+  amount_paid: number | string | null;
+  currency_code: string;
+  check_in: string;
+  check_out: string;
+};
+
 const modules = [
   { category: "Rates & availability", name: "Calendar", description: "Review arrivals, departures, room availability and blocked dates.", href: "/admin/calendar", mark: "▦" },
   { category: "Rates & availability", name: "Rates & promotions", description: "Manage rate plans, seasonal rates and discounts.", href: "/admin/rate-plans", mark: "€" },
   { category: "Reservations", name: "Reservations", description: "Review booking requests, confirmed stays and guest records.", href: "/admin/reservations", mark: "▤" },
   { category: "Property", name: "Rooms & facilities", description: "Update room information, capacity and amenities.", href: "/admin/rooms", mark: "⌂" },
   { category: "Property", name: "Property policies", description: "Centralise check-in, children, house rules, parking and guest information.", href: "/admin/extranet/property-policies", mark: "✓" },
-  { category: "Guest experience", name: "Guest reviews", description: "Review the authorized Booking.com API integration status and reply workflow.", href: "/admin/reviews", mark: "☆" },
+  { category: "Guest experience", name: "Support inbox", description: "Manage web chat requests, AI handoffs and staff follow-up.", href: "/admin/support", mark: "✦" },
+  { category: "Guest experience", name: "Website review moderation", description: "Review verified-stay testimonials and approve them before publication.", href: "/admin/guest-reviews", mark: "★" },
+  { category: "Integrations", name: "Booking.com reviews", description: "Review the authorized Booking.com API integration and reply workflow.", href: "/admin/reviews", mark: "☆" },
   { category: "Guest experience", name: "Inbox & notifications", description: "Check queued guest communications and delivery status.", href: "/admin/notifications", mark: "✉" },
   { category: "Finance", name: "Payments & ledger", description: "Review recorded payments, balances and transaction history.", href: "/admin/payments", mark: "↗" },
   { category: "Performance", name: "Analytics", description: "Monitor reservation mix, payments and basic occupancy indicators.", href: "/admin/extranet/analytics", mark: "▥" },
@@ -30,16 +43,18 @@ export default async function ExtranetHomePage() {
     .select("id,status,payment_status,total_price,amount_paid,currency_code,check_in,check_out")
     .order("created_at", { ascending: false })
     .limit(500);
-  const bookings = rows ?? [];
-  const today = new Date().toISOString().slice(0, 10);
-  const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
-  const waiting = bookings.filter((b: any) => ["request", "hold"].includes(b.status)).length;
-  const arrivals = bookings.filter((b: any) => b.status === "confirmed" && b.check_in >= today && b.check_in <= nextWeek).length;
-  const stayCount = bookings.filter((b: any) => ["confirmed", "checked_in"].includes(b.status)).length;
+  const bookings = (rows ?? []) as BookingSummaryRow[];
+  const todayDate = new Date();
+  const today = todayDate.toISOString().slice(0, 10);
+  const nextWeekDate = new Date(todayDate);
+  nextWeekDate.setDate(nextWeekDate.getDate() + 7);
+  const nextWeek = nextWeekDate.toISOString().slice(0, 10);
+  const waiting = bookings.filter((booking) => ["request", "hold"].includes(booking.status)).length;
+  const arrivals = bookings.filter((booking) => booking.status === "confirmed" && booking.check_in >= today && booking.check_in <= nextWeek).length;
+  const stayCount = bookings.filter((booking) => ["confirmed", "checked_in"].includes(booking.status)).length;
   const canSeeFinance = ["owner", "manager", "accountant"].includes(role);
-  const paidEUR = bookings.filter((b: any) => b.currency_code === "EUR").reduce((total: number, b: any) => total + Number(b.amount_paid || 0), 0);
-  const paidALL = bookings.filter((b: any) => b.currency_code === "ALL").reduce((total: number, b: any) => total + Number(b.amount_paid || 0), 0);
-  const byCategory = ["Rates & availability", "Reservations", "Property", "Guest experience", "Finance", "Performance", "More"];
+  const paidEUR = bookings.filter((booking) => booking.currency_code === "EUR").reduce((total, booking) => total + Number(booking.amount_paid || 0), 0);
+  const paidALL = bookings.filter((booking) => booking.currency_code === "ALL").reduce((total, booking) => total + Number(booking.amount_paid || 0), 0);
 
   return (
     <div className="admin-extranet-page">
