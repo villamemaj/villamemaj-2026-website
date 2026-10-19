@@ -100,6 +100,10 @@ export interface Dictionary {
 const dictionaries: Record<Locale, () => Promise<{ default: Dictionary }>> = {
   el: () => import("./dictionaries/el"),
   en: () => import("./dictionaries/en"),
+  fr: () => import("./dictionaries/fr"),
+  sq: () => import("./dictionaries/sq"),
+  de: () => import("./dictionaries/de"),
+  it: () => import("./dictionaries/it"),
 };
 
 export async function getDictionary(locale: Locale): Promise<Dictionary> {
