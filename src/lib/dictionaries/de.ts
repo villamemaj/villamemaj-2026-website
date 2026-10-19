@@ -18,6 +18,10 @@ const dictionary: Dictionary = {
   editorialHome: {
     heroKicker: "VILLA MEMAJ",
     heroNote: "Eine persönlichere Auszeit an der Küste von Vlorë.",
+    heroPhotoCaption: "Eine persönlichere Auszeit",
+    spacesLabel: "Unsere Räume",
+    spacesCaption: "Zum Ankommen und Wohlfühlen gestaltet",
+    madeWithCare: "MIT SORGFALT",
     scroll: "Weiter entdecken",
     location: "VLORË · ALBANIEN",
     introMeta: "Persönliche Gastfreundschaft, entspannte Atmosphäre",
