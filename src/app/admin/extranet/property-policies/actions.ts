@@ -24,6 +24,7 @@ export async function savePropertyPolicies(formData: FormData) {
   const taxRate = taxRateRaw === "" ? null : Number(taxRateRaw);
   const damageDepositRaw = readText(formData, "damage_deposit", 12) || "0";
   const damageDeposit = Number(damageDepositRaw);
+  const publicReviewUrl = readText(formData, "public_review_url", 1000);
 
   if (!checkIn || !checkOut || !Number.isInteger(maxNights) || maxNights < 1 || maxNights > 365) {
     redirect("/admin/extranet/property-policies?error=validation");
@@ -36,6 +37,16 @@ export async function savePropertyPolicies(formData: FormData) {
   }
   if (!Number.isFinite(damageDeposit) || damageDeposit < 0 || damageDeposit > 1000000) {
     redirect("/admin/extranet/property-policies?error=validation");
+  }
+  if (publicReviewUrl) {
+    try {
+      const parsed = new URL(publicReviewUrl);
+      if (parsed.protocol !== "https:" || !["booking.com", "www.booking.com"].includes(parsed.hostname)) {
+        redirect("/admin/extranet/property-policies?error=validation");
+      }
+    } catch {
+      redirect("/admin/extranet/property-policies?error=validation");
+    }
   }
 
   const allowedMethods = new Set(["cash", "online_card", "bank_transfer"]);
@@ -86,6 +97,7 @@ export async function savePropertyPolicies(formData: FormData) {
     max_stay_nights: maxNights,
     house_rules_en: readText(formData, "house_rules_en", 2000),
     house_rules_el: readText(formData, "house_rules_el", 2000),
+    public_review_url: publicReviewUrl,
     updated_by: userId,
     updated_at: new Date().toISOString(),
   };
@@ -104,5 +116,11 @@ export async function savePropertyPolicies(formData: FormData) {
   revalidatePath("/el/house-rules");
   revalidatePath("/en/payments");
   revalidatePath("/el/payments");
+  revalidatePath("/en/reviews");
+  revalidatePath("/el/reviews");
+  revalidatePath("/fr/reviews");
+  revalidatePath("/sq/reviews");
+  revalidatePath("/de/reviews");
+  revalidatePath("/it/reviews");
   redirect("/admin/extranet/property-policies?saved=1");
 }
