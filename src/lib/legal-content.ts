@@ -317,7 +317,7 @@ export function getPolicyDocument(slug: string, locale: Locale): PolicyDocument 
   return documents[slug]?.[locale] ?? documents[slug]?.en ?? documents[slug]?.el ?? null;
 }
 
-export const policyLinks: Record<Locale, { href: string; label: string; description: string }[]> = {
+export const policyLinks: Partial<Record<Locale, { href: string; label: string; description: string }[]>> = {
   en: [
     { href: "/terms", label: "Terms & conditions", description: "Reservation terms, guest responsibilities and applicable consumer rights." },
     { href: "/privacy", label: "Privacy policy", description: "What booking information is handled and why." },
@@ -333,8 +333,44 @@ export const policyLinks: Record<Locale, { href: string; label: string; descript
     { href: "/house-rules", label: "Κανόνες καταλύματος", description: "Ώρες άφιξης, παιδιά, κάπνισμα, κατοικίδια και στάθμευση." },
     { href: "/payments", label: "Επιλογές πληρωμής", description: "Μέθοδοι πληρωμής, ασφαλές checkout και επιβεβαιώσεις." },
     { href: "/faq", label: "Συχνές ερωτήσεις", description: "Σύντομες απαντήσεις πριν και κατά τη διαμονή." }
+  ],
+  fr: [
+    { href: "/terms", label: "Conditions de réservation", description: "Conditions de réservation, responsabilités et droits des consommateurs." },
+    { href: "/privacy", label: "Politique de confidentialité", description: "Données de réservation traitées et raisons." },
+    { href: "/cancellation", label: "Annulation et remboursements", description: "Délais, annulations et remboursements selon le tarif." },
+    { href: "/house-rules", label: "Règles du logement", description: "Arrivée, enfants, tabac, animaux et stationnement." },
+    { href: "/payments", label: "Options de paiement", description: "Méthodes disponibles et paiement sécurisé." },
+    { href: "/faq", label: "Questions fréquentes", description: "Réponses avant et pendant le séjour." }
+  ],
+  sq: [
+    { href: "/terms", label: "Kushtet e rezervimit", description: "Kushtet, përgjegjësitë dhe të drejtat e konsumatorit." },
+    { href: "/privacy", label: "Politika e privatësisë", description: "Të dhënat që përpunohen dhe arsyet." },
+    { href: "/cancellation", label: "Anulimet dhe rimbursimet", description: "Afatet dhe kushtet e anulimit sipas tarifës." },
+    { href: "/house-rules", label: "Rregullat e akomodimit", description: "Regjistrimi, fëmijët, duhani, kafshët dhe parkimi." },
+    { href: "/payments", label: "Mënyrat e pagesës", description: "Mënyrat e pranueshme dhe pagesa e sigurt." },
+    { href: "/faq", label: "Pyetje të shpeshta", description: "Përgjigje para dhe gjatë qëndrimit." }
+  ],
+  de: [
+    { href: "/terms", label: "Buchungsbedingungen", description: "Buchungsbedingungen, Pflichten und Verbraucherrechte." },
+    { href: "/privacy", label: "Datenschutzerklärung", description: "Welche Buchungsdaten verarbeitet werden und warum." },
+    { href: "/cancellation", label: "Stornierung und Rückerstattung", description: "Fristen und Erstattungen je nach Tarif." },
+    { href: "/house-rules", label: "Hausordnung", description: "Anreise, Kinder, Rauchen, Haustiere und Parken." },
+    { href: "/payments", label: "Zahlungsoptionen", description: "Verfügbare Methoden und sichere Zahlung." },
+    { href: "/faq", label: "Häufige Fragen", description: "Antworten vor und während des Aufenthalts." }
+  ],
+  it: [
+    { href: "/terms", label: "Termini e condizioni", description: "Condizioni di prenotazione, responsabilità e diritti dei consumatori." },
+    { href: "/privacy", label: "Informativa sulla privacy", description: "Quali dati di prenotazione vengono trattati e perché." },
+    { href: "/cancellation", label: "Cancellazioni e rimborsi", description: "Scadenze e condizioni di cancellazione per tariffa." },
+    { href: "/house-rules", label: "Regole della struttura", description: "Arrivo, bambini, fumo, animali e parcheggio." },
+    { href: "/payments", label: "Opzioni di pagamento", description: "Metodi disponibili e pagamento sicuro." },
+    { href: "/faq", label: "Domande frequenti", description: "Risposte prima e durante il soggiorno." }
   ]
 };
+
+export function getPolicyLinks(locale: Locale) {
+  return policyLinks[locale] ?? policyLinks.en ?? [];
+}
 
 export type FAQItem = { q: string; a: string };
 export const faq: Partial<Record<Locale, FAQItem[]>> = {
