@@ -31,6 +31,7 @@ interface Quote {
 }
 
 interface BookingResult {
+  booking_id: string;
   code: string;
   status: string;
   total_price: number;
@@ -56,61 +57,83 @@ interface BookingFormProps {
 
 const STRINGS = {
   el: {
-    ratePlan: "Ταρίφα",
-    currency: "Νόμισμα",
-    adults: "Ενήλικες",
-    children: "Παιδιά",
-    check: "Έλεγχος διαθεσιμότητας & τιμής",
-    checking: "Έλεγχος…",
-    review: "Σύνοψη κράτησης",
-    nights: "Νύχτες",
-    total: "Σύνολο",
-    deposit: "Κατάθεση τώρα",
-    balanceArrival: "Υπόλοιπο στην άφιξη",
-    back: "Πίσω",
-    confirm: "Επιβεβαίωση αιτήματος",
-    confirming: "Αποστολή…",
-    terms: "Αποδέχομαι τους όρους κράτησης και την πολιτική ακύρωσης.",
-    notAvailable: "Μη διαθέσιμο για τις επιλεγμένες ημερομηνίες.",
-    unavailable: "Το δωμάτιο δεν είναι διαθέσιμο για τις επιλεγμένες ημερομηνίες.",
+    ratePlan: "Ταρίφα", currency: "Νόμισμα", adults: "Ενήλικες", children: "Παιδιά",
+    check: "Έλεγχος διαθεσιμότητας & τιμής", checking: "Έλεγχος…", review: "Σύνοψη κράτησης", nights: "Νύχτες",
+    total: "Σύνολο", deposit: "Κατάθεση τώρα", balanceArrival: "Υπόλοιπο στην άφιξη", back: "Πίσω",
+    confirm: "Επιβεβαίωση αιτήματος", confirming: "Αποστολή…", terms: "Έχω διαβάσει και αποδέχομαι τους όρους κράτησης και την πολιτική ακύρωσης.",
+    termsLink: "Όροι κράτησης", cancellationLink: "Ακύρωση και επιστροφές", acceptRequired: "Αποδεχτείτε τους όρους κράτησης για να συνεχίσετε.",
+    notAvailable: "Μη διαθέσιμο για τις επιλεγμένες ημερομηνίες.", unavailable: "Το δωμάτιο δεν είναι διαθέσιμο για τις επιλεγμένες ημερομηνίες.",
     priceError: "Δεν ήταν δυνατός ο υπολογισμός τιμής. Δοκιμάστε άλλες ημερομηνίες.",
-    holdNote:
-      "Η κράτηση κρατείται για 30 λεπτά. Θα επικοινωνήσουμε μαζί σας για την κατάθεση και την επιβεβαίωση.",
-    requestNote: "Το αίτημά σας καταχωρήθηκε. Θα το επιβεβαιώσουμε σύντομα.",
-    code: "Κωδικός κράτησης",
+    holdNote: "Η κράτηση κρατείται για 30 λεπτά. Θα επικοινωνήσουμε μαζί σας για την προκαταβολή και την επιβεβαίωση.",
+    requestNote: "Το αίτημά σας καταχωρήθηκε. Θα το επιβεβαιώσουμε σύντομα.", code: "Κωδικός κράτησης",
     rateLimited: "Πολλές προσπάθειες σε σύντομο διάστημα. Δοκιμάστε ξανά σε λίγα λεπτά ή επικοινωνήστε μαζί μας.",
     rejected: "Δεν ήταν δυνατή η υποβολή του αιτήματος. Παρακαλούμε δοκιμάστε ξανά.",
   },
   en: {
-    ratePlan: "Rate plan",
-    currency: "Currency",
-    adults: "Adults",
-    children: "Children",
-    check: "Check availability & price",
-    checking: "Checking…",
-    review: "Booking summary",
-    nights: "Nights",
-    total: "Total",
-    deposit: "Deposit now",
-    balanceArrival: "Balance at arrival",
-    back: "Back",
-    confirm: "Submit booking request",
-    confirming: "Sending…",
-    terms: "I accept the booking terms and the cancellation policy.",
-    notAvailable: "Not available for the selected dates.",
-    unavailable: "This room is not available for the selected dates.",
+    ratePlan: "Rate plan", currency: "Currency", adults: "Adults", children: "Children",
+    check: "Check availability & price", checking: "Checking…", review: "Booking summary", nights: "Nights",
+    total: "Total", deposit: "Deposit now", balanceArrival: "Balance at arrival", back: "Back",
+    confirm: "Submit booking request", confirming: "Sending…", terms: "I have read and accept the booking terms and cancellation policy.",
+    termsLink: "Booking terms", cancellationLink: "Cancellations & refunds", acceptRequired: "Please accept the booking terms to continue.",
+    notAvailable: "Not available for the selected dates.", unavailable: "This room is not available for the selected dates.",
     priceError: "We could not calculate a price. Please try different dates.",
-    holdNote:
-      "Your dates are held for 30 minutes. We will contact you about the deposit and confirmation.",
-    requestNote: "Your request has been recorded. We will confirm shortly.",
-    code: "Booking code",
+    holdNote: "Your dates are held for 30 minutes. We will contact you about the deposit and confirmation.",
+    requestNote: "Your request has been recorded. We will confirm shortly.", code: "Booking code",
     rateLimited: "Too many attempts in a short time. Please try again in a few minutes or contact us directly.",
     rejected: "We could not submit your request. Please try again.",
+  },
+  fr: {
+    ratePlan: "Tarif", currency: "Devise", adults: "Adultes", children: "Enfants",
+    check: "Vérifier la disponibilité et le prix", checking: "Vérification…", review: "Résumé de réservation", nights: "Nuits",
+    total: "Total", deposit: "Acompte maintenant", balanceArrival: "Solde à l’arrivée", back: "Retour",
+    confirm: "Envoyer la demande", confirming: "Envoi…", terms: "J’ai lu et j’accepte les conditions de réservation et d’annulation.",
+    termsLink: "Conditions de réservation", cancellationLink: "Annulations et remboursements", acceptRequired: "Veuillez accepter les conditions pour continuer.",
+    notAvailable: "Indisponible aux dates choisies.", unavailable: "Cette chambre n’est pas disponible aux dates choisies.",
+    priceError: "Impossible de calculer le prix. Essayez d’autres dates.",
+    holdNote: "Vos dates sont retenues pendant 30 minutes. Nous vous contacterons pour l’acompte et la confirmation.",
+    requestNote: "Votre demande a été enregistrée. Nous vous répondrons rapidement.", code: "Référence de réservation",
+    rateLimited: "Trop de tentatives. Réessayez dans quelques minutes ou contactez-nous.", rejected: "Impossible d’envoyer la demande. Veuillez réessayer.",
+  },
+  sq: {
+    ratePlan: "Tarifa", currency: "Monedha", adults: "Të rritur", children: "Fëmijë",
+    check: "Kontrollo disponueshmërinë dhe çmimin", checking: "Duke kontrolluar…", review: "Përmbledhja e rezervimit", nights: "Netë",
+    total: "Totali", deposit: "Parapagimi tani", balanceArrival: "Pjesa e mbetur në mbërritje", back: "Kthehu",
+    confirm: "Dërgo kërkesën", confirming: "Duke dërguar…", terms: "Kam lexuar dhe pranoj kushtet e rezervimit dhe politikën e anulimit.",
+    termsLink: "Kushtet e rezervimit", cancellationLink: "Anulimet dhe rimbursimet", acceptRequired: "Pranoni kushtet e rezervimit për të vazhduar.",
+    notAvailable: "Nuk ka disponueshmëri për datat e zgjedhura.", unavailable: "Dhoma nuk është e disponueshme në datat e zgjedhura.",
+    priceError: "Nuk mund të llogaritet çmimi. Provoni data të tjera.",
+    holdNote: "Datat mbahen për 30 minuta. Do t’ju kontaktojmë për parapagimin dhe konfirmimin.",
+    requestNote: "Kërkesa u regjistrua. Do t’ju konfirmojmë së shpejti.", code: "Kodi i rezervimit",
+    rateLimited: "Shumë tentativa. Provoni sërish pas pak ose na kontaktoni.", rejected: "Kërkesa nuk u dërgua. Ju lutemi provoni sërish.",
+  },
+  de: {
+    ratePlan: "Tarif", currency: "Währung", adults: "Erwachsene", children: "Kinder",
+    check: "Verfügbarkeit und Preis prüfen", checking: "Wird geprüft…", review: "Buchungsübersicht", nights: "Nächte",
+    total: "Gesamt", deposit: "Anzahlung jetzt", balanceArrival: "Restbetrag bei Anreise", back: "Zurück",
+    confirm: "Buchungsanfrage senden", confirming: "Wird gesendet…", terms: "Ich habe die Buchungsbedingungen und Stornierungsregeln gelesen und akzeptiere sie.",
+    termsLink: "Buchungsbedingungen", cancellationLink: "Stornierung und Erstattung", acceptRequired: "Bitte akzeptieren Sie die Buchungsbedingungen, um fortzufahren.",
+    notAvailable: "Für die ausgewählten Daten nicht verfügbar.", unavailable: "Dieses Zimmer ist für die ausgewählten Daten nicht verfügbar.",
+    priceError: "Der Preis konnte nicht berechnet werden. Bitte wählen Sie andere Daten.",
+    holdNote: "Die Daten werden 30 Minuten gehalten. Wir kontaktieren Sie wegen Anzahlung und Bestätigung.",
+    requestNote: "Ihre Anfrage wurde gespeichert. Wir bestätigen sie in Kürze.", code: "Buchungscode",
+    rateLimited: "Zu viele Versuche. Bitte versuchen Sie es später erneut oder kontaktieren Sie uns.", rejected: "Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+  },
+  it: {
+    ratePlan: "Tariffa", currency: "Valuta", adults: "Adulti", children: "Bambini",
+    check: "Verifica disponibilità e prezzo", checking: "Verifica…", review: "Riepilogo prenotazione", nights: "Notti",
+    total: "Totale", deposit: "Acconto ora", balanceArrival: "Saldo all’arrivo", back: "Indietro",
+    confirm: "Invia richiesta", confirming: "Invio…", terms: "Ho letto e accetto le condizioni di prenotazione e la politica di cancellazione.",
+    termsLink: "Termini di prenotazione", cancellationLink: "Cancellazioni e rimborsi", acceptRequired: "Accetta le condizioni per continuare.",
+    notAvailable: "Non disponibile per le date selezionate.", unavailable: "La camera non è disponibile per le date selezionate.",
+    priceError: "Non è stato possibile calcolare il prezzo. Prova altre date.",
+    holdNote: "Le date sono trattenute per 30 minuti. Ti contatteremo per acconto e conferma.",
+    requestNote: "La richiesta è stata registrata. Confermeremo a breve.", code: "Codice di prenotazione",
+    rateLimited: "Troppi tentativi. Riprova tra qualche minuto o contattaci.", rejected: "Impossibile inviare la richiesta. Riprova.",
   },
 } as const;
 
 export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: BookingFormProps) {
-  const t = locale === "en" ? STRINGS.en : STRINGS.el;
+  const t = locale in STRINGS ? STRINGS[locale as keyof typeof STRINGS] : STRINGS.en;
   const money = (value: number, currency: string) =>
     new Intl.NumberFormat(currency === "EUR" ? "en-IE" : "sq-AL", {
       style: "currency",
@@ -124,6 +147,7 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
   const [error, setError] = useState("");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [result, setResult] = useState<BookingResult | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [draft, setDraft] = useState<Record<string, string | number> | null>(null);
   const startRef = useRef(0);
 
@@ -198,6 +222,7 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
       setError(q.error ?? t.notAvailable);
       return;
     }
+    setAcceptedTerms(false);
     setQuote(q);
     setDraft(payload);
     setStep("review");
@@ -205,6 +230,7 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
 
   async function handleConfirm() {
     if (!draft) return;
+    if (!acceptedTerms) { setError(t.acceptRequired); return; }
     setError("");
     setBusy(true);
     const { data, error: rpcError } = await getSupabase().rpc("submit_booking_request", {
@@ -219,7 +245,7 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
       p_guest_phone: draft.guest_phone || null,
       p_special_requests: draft.special_requests || null,
       p_currency: draft.currency,
-      p_accepted_terms: true,
+      p_accepted_terms: acceptedTerms,
       p_honeypot: draft.honeypot || null,
       p_elapsed_ms: Number(draft.elapsed_ms ?? 0),
     });
@@ -244,6 +270,18 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
 
     setResult(response.booking);
     setStep("success");
+
+    // The booking trigger has already committed the guest acknowledgement and owner
+    // notification to the outbox. Dispatch only this booking's records immediately.
+    void fetch("/api/notifications/dispatch-booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookingId: response.booking.booking_id,
+        bookingCode: response.booking.code,
+        guestEmail: String(draft.guest_email || ""),
+      }),
+    }).catch(() => undefined);
   }
 
   if (step === "success" && result) {
@@ -331,7 +369,7 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
           )}
         </dl>
 
-        <p className="text-xs text-ink-soft">{t.terms}</p>
+        <div className="booking-terms-acceptance"><label><input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} required /><span>{t.terms}</span></label><div><a href={"/" + locale + "/terms"} target="_blank" rel="noreferrer">{t.termsLink}</a><span aria-hidden="true"> · </span><a href={"/" + locale + "/cancellation"} target="_blank" rel="noreferrer">{t.cancellationLink}</a></div></div>
 
         {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
