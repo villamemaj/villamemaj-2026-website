@@ -8,6 +8,7 @@ export interface Dictionary {
     gallery: string;
     booking: string;
     contact: string;
+    travel: string;
   };
   hero: {
     title: string;
