@@ -81,6 +81,12 @@ export type PublicHousePolicySettings = {
   tax_label: string | null;
   tax_rate: number | null;
   damage_deposit: number;
+  damage_deposit_currency: "EUR" | "ALL";
+  arrival_instructions_en: string;
+  arrival_instructions_el: string;
+  local_guide_en: string;
+  local_guide_el: string;
+  public_review_url: string | null;
 };
 
 export async function getPublicHousePolicySettings(): Promise<PublicHousePolicySettings | null> {
@@ -96,7 +102,9 @@ export async function getPublicHousePolicySettings(): Promise<PublicHousePolicyS
         "curfew", "internet_information", "parking_information", "damage_policy",
         "additional_fees_note", "accepted_payment_methods", "monthly_stays_allowed",
         "max_stay_nights", "house_rules_en", "house_rules_el", "terms_en", "terms_el",
-        "privacy_en", "privacy_el", "taxes_included", "tax_label", "tax_rate", "damage_deposit"
+        "privacy_en", "privacy_el", "taxes_included", "tax_label", "tax_rate", "damage_deposit",
+        "damage_deposit_currency", "arrival_instructions_en", "arrival_instructions_el",
+        "local_guide_en", "local_guide_el", "public_review_url"
       ].join(", "))
       .limit(1)
       .maybeSingle();
@@ -107,5 +115,34 @@ export async function getPublicHousePolicySettings(): Promise<PublicHousePolicyS
     // The existing static legal copy remains as a fallback during deployment or
     // when the database is temporarily unavailable.
     return null;
+  }
+}
+
+
+export type PublicContactInfo = {
+  phone: string | null;
+  email: string | null;
+  address_en: string | null;
+  address_el: string | null;
+};
+
+/** Only reads the four explicitly public contact fields; private notification recipients are never selected. */
+export async function getContactInfo(): Promise<PublicContactInfo> {
+  try {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from("hotel_house_policies")
+      .select("contact_phone,contact_email,address_en,address_el")
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return {
+      phone: typeof data?.contact_phone === "string" ? data.contact_phone : null,
+      email: typeof data?.contact_email === "string" ? data.contact_email : null,
+      address_en: typeof data?.address_en === "string" ? data.address_en : null,
+      address_el: typeof data?.address_el === "string" ? data.address_el : null,
+    };
+  } catch {
+    return { phone: null, email: null, address_en: null, address_el: null };
   }
 }
