@@ -52,6 +52,11 @@ grant select (
   accepted_payment_methods,
   monthly_stays_allowed,
   max_stay_nights,
+  damage_deposit_currency,
+  arrival_instructions_en,
+  arrival_instructions_el,
+  local_guide_en,
+  local_guide_el,
   public_review_url
 ) on public.hotel_house_policies to anon;
 
