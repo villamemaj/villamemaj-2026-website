@@ -83,7 +83,7 @@ export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
         <div className="travel-flight-frame" aria-live="polite">
           <div className="travel-flight-loading" role="status">{t.loading}</div>
           <div
-            data-skyscanner-widget="FlightSearchWidget"
+            data-skyscanner-widget="SearchWidget"
             data-locale={widgetLocale(locale)}
             data-flight-type="return"
             data-target="_blank"
@@ -92,6 +92,9 @@ export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
             data-widget-border-radius="12"
             data-widget-padding="12px"
             data-web-only-redirects="true"
+            data-enable-placeholders="true"
+            data-responsive="true"
+            data-widget-scale="1"
           />
           <Script
             src="https://widgets.skyscanner.net/widget-server/v2.0/widgets-constructor.js"
