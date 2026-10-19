@@ -1,10 +1,10 @@
 import Link from "next/link";
 import EditorialPageHero from "@/components/EditorialPageHero";
-import { policyLinks, type PolicyDocument } from "@/lib/legal-content";
+import { getPolicyLinks, type PolicyDocument } from "@/lib/legal-content";
 import type { Locale } from "@/lib/site";
 
 export default function PolicyDocumentPage({ locale, document }: { locale: Locale; document: PolicyDocument }) {
-  const links = policyLinks[locale];
+  const links = getPolicyLinks(locale);
   return (
     <div className="legal-page">
       <EditorialPageHero locale={locale} eyebrow={document.label} title={document.title} subtitle={document.subtitle} />
