@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 /**
  * Drain the notification queue.
  *
- * Protected by CRON_SECRET (Vercel Cron sends it as `Authorization: Bearer <secret>`; a
- * manual call may instead pass `?secret=`). Returns diagnostics rather than throwing when
- * the provider or service key is missing, so a misconfigured cron does not error-spam.
+ * Protected only by CRON_SECRET in the Authorization header (Vercel Cron supplies it).
+ * Query-string secrets are deliberately rejected so credentials do not leak into access logs
+ * or browser history. Returns diagnostics when a provider or service key is missing.
  */
 function authorised(request: Request): boolean {
   const secret = process.env.CRON_SECRET?.trim();
@@ -17,11 +17,7 @@ function authorised(request: Request): boolean {
 
   if (request.headers.get("authorization") === `Bearer ${secret}`) return true;
 
-  try {
-    return new URL(request.url).searchParams.get("secret") === secret;
-  } catch {
-    return false;
-  }
+  return false;
 }
 
 async function handle(request: Request) {
