@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Geist } from "next/font/google";
 import { notFound } from "next/navigation";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -65,6 +66,7 @@ export default async function LocaleLayout({
         <Footer locale={locale as Locale} dict={dict} />
         <CookieConsent locale={locale} />
         <SupportChat locale={locale} />
+        <SpeedInsights />
       </body>
     </html>
   );
