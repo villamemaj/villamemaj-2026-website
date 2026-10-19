@@ -10,7 +10,7 @@ const dictionary: Dictionary = {
     travel: "Ταξίδι",
     menu: "Άνοιγμα μενού",
     closeMenu: "Κλείσιμο μενού",
-    language: "Επιλογή γλώσσας",
+    language: "Επιλογή γλώσσας", mainNavigation: "Κύρια πλοήγηση",
   },
   hero: {
     title: "Η φιλοξενία συναντά τη θάλασσα",
