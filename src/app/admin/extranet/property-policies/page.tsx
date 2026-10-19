@@ -91,7 +91,19 @@ export default async function PropertyPoliciesPage({
   const params = await searchParams;
   const { data, error } = await supabase
     .from("hotel_house_policies")
-    .select("*")
+.select([
+      "id", "check_in_time", "check_out_time", "smoking_allowed", "pets_allowed",
+      "children_allowed", "parties_allowed", "quiet_hours", "children_policy",
+      "child_rates_configured", "cots_available", "extra_beds_available",
+      "guest_address_required", "guest_phone_required", "minimum_check_in_age",
+      "curfew", "internet_information", "parking_information", "damage_policy",
+      "additional_fees_note", "accepted_payment_methods", "monthly_stays_allowed",
+      "max_stay_nights", "house_rules_en", "house_rules_el", "taxes_included",
+      "tax_label", "tax_rate", "damage_deposit", "damage_deposit_currency",
+      "extra_fees", "terms_en", "terms_el", "arrival_instructions_en",
+      "arrival_instructions_el", "local_guide_en", "local_guide_el", "privacy_en",
+      "privacy_el", "public_review_url"
+    ].join(", "))
     .limit(1)
     .maybeSingle();
 
