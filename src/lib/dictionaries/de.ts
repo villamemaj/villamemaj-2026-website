@@ -1,7 +1,7 @@
 import type { Dictionary } from "../i18n";
 
 const dictionary: Dictionary = {
-  nav: { home: "Startseite", rooms: "Zimmer", gallery: "Galerie", booking: "Buchung", contact: "Kontakt" , travel: "Reise", menu: "Menü öffnen", closeMenu: "Menü schließen", language: "Sprache wählen" },
+  nav: { home: "Startseite", rooms: "Zimmer", gallery: "Galerie", booking: "Buchung", contact: "Kontakt" , travel: "Reise", menu: "Menü öffnen", closeMenu: "Menü schließen", language: "Sprache wählen", mainNavigation: "Hauptnavigation" },
   hero: { title: "Gastfreundschaft trifft auf das Meer", subtitle: "Ein ruhiger Rückzugsort mit Aussicht, herzlicher Gastfreundschaft und Zimmern für erholsame Stunden.", ctaRooms: "Zimmer entdecken", ctaBook: "Jetzt buchen" },
   home: {
     welcomeLabel: "Willkommen", welcomeTitle: "Gastfreundschaft von Herzen",
