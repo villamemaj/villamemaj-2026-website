@@ -20,12 +20,34 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const safeLocale = isLocale(locale) ? locale : "el";
+  const ogLocale: Record<Locale, string> = {
+    el: "el_AL",
+    en: "en_GB",
+    fr: "fr_FR",
+    sq: "sq_AL",
+    de: "de_DE",
+    it: "it_IT",
+  };
   return {
     title: {
       default: SITE_CONFIG.name,
       template: `%s | ${SITE_CONFIG.name}`,
     },
     description: SITE_CONFIG.tagline[safeLocale],
+    openGraph: {
+      type: "website",
+      siteName: SITE_CONFIG.name,
+      locale: ogLocale[safeLocale],
+      title: SITE_CONFIG.name,
+      description: SITE_CONFIG.tagline[safeLocale],
+      images: [{ url: "/723811999.jpg", alt: SITE_CONFIG.name + " exterior" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_CONFIG.name,
+      description: SITE_CONFIG.tagline[safeLocale],
+      images: ["/723811999.jpg"],
+    },
   };
 }
 
