@@ -5,7 +5,7 @@ import { LOCALES, type Locale } from "@/lib/site";
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://villamemaj-2026-website.vercel.app").replace(/\/+$/, "");
 
 const coreRoutes = ["/", "/rooms", "/gallery", "/booking", "/contact", "/reviews"];
-const reviewedPolicyRoutes = ["/faq", "/policies", "/terms", "/privacy", "/cancellation", "/house-rules", "/payments"];
+const reviewedPolicyRoutes = ["/faq", "/policies", "/terms", "/privacy", "/cancellation", "/house-rules", "/payments", "/cookies"];
 
 function alternatesFor(route: string, locales: Locale[]): Record<string, string> {
   const alternates = Object.fromEntries(locales.map((locale) => [locale, `${siteUrl}/${locale}${route === "/" ? "" : route}`]));
