@@ -14,7 +14,7 @@ export default async function MediaLibraryPage() {
   const { role } = await requireStaff(["owner", "manager"]);
   const supabase = createSupabaseServiceClient();
   if (!supabase) {
-    return <div className="admin-extranet-page media-page"><p className="admin-eyebrow">Property · Media</p><h1>Media library</h1><div role="alert" className="admin-portal-alert warning">Server-side media storage is not configured. Add the service-role key in Vercel's server environment.</div></div>;
+    return <div className="admin-extranet-page media-page"><p className="admin-eyebrow">Property · Media</p><h1>Media library</h1><div role="alert" className="admin-portal-alert warning">Server-side media storage is not configured. Add the service-role key in Vercel&apos;s server environment.</div></div>;
   }
 
   const [roomsResult, roomImagesResult, siteImagesResult] = await Promise.all([
