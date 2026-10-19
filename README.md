@@ -25,7 +25,7 @@ Open http://localhost:3000 (redirects to `/el`). Staff sign in at `/admin/login`
 | `NEXT_PUBLIC_SUPABASE_URL` | yes | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | yes | publishable (anon) key — safe in the browser |
 | `SUPABASE_SERVICE_ROLE_KEY` | for email | server-only; needed to drain the notification queue |
-| `EMAIL_PROVIDER` | no | `resend` (live) or `log` (dry run). Unset = queue only, nothing sent |
+| `EMAIL_PROVIDER` | no | `resend` only. Unset or missing required credentials = queue only, nothing sent |
 | `RESEND_API_KEY` | no | when `EMAIL_PROVIDER=resend` |
 | `EMAIL_FROM` | no | e.g. `Villa Memaj <bookings@villamemaj.com>` |
 | `CRON_SECRET` | no | protects `/api/email/dispatch` |
