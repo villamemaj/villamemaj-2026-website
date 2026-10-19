@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 const copy = {
   en: { from: "From city or airport code", to: "Destination airport code", depart: "Departure", return: "Return (optional)", adults: "Adults", cabin: "Cabin", search: "Find flights on Skyscanner", note: "Flight search and booking are provided by Skyscanner. Flight prices, baggage rules and changes are set by the airline or seller.", originHint: "Use a 3-letter IATA city or airport code, e.g. LON.", destHint: "For Albania, TIA is Tirana International Airport; choose the airport that best fits your itinerary." },
@@ -24,7 +24,7 @@ export default function FlightFinder({ locale }: { locale: string }) {
   const [cabin, setCabin] = useState("economy");
   const [error, setError] = useState("");
 
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     const originCode = origin.trim().toUpperCase();
