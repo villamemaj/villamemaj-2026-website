@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { faq, getPolicyDocument, type FAQItem } from "@/lib/legal-content";
+import { getFAQItems, getPolicyDocument, type FAQItem } from "@/lib/legal-content";
 import { isLocale, type Locale } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -17,7 +17,7 @@ function needsHuman(text: string): boolean {
 }
 
 function fallbackAnswer(message: string, locale: Locale): string {
-  const questions = faq[locale] ?? faq.en ?? [];
+  const questions = getFAQItems(locale);
   const normalized = message.toLowerCase();
   const score = (item: FAQItem) => {
     const question = (item.q + " " + item.a).toLowerCase();
@@ -43,7 +43,7 @@ function policyContext(locale: Locale): string {
   const docs = ["terms", "cancellation", "houseRules", "payments", "privacy"]
     .map((slug) => getPolicyDocument(slug, locale) ?? getPolicyDocument(slug, "en"))
     .filter(Boolean);
-  const relevantFaqs = faq[locale] ?? faq.en ?? [];
+  const relevantFaqs = getFAQItems(locale);
   return [
     ...docs.map((doc) => doc ? doc.title + "\n" + doc.sections.map((s) => s.heading + "\n" + s.paragraphs.join("\n")).join("\n") : ""),
     "FAQ:\n" + relevantFaqs.map((item) => item.q + "\n" + item.a).join("\n"),
