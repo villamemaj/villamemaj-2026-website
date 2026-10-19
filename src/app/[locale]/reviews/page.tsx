@@ -60,7 +60,7 @@ export default async function GuestReviewsPage({ params }: { params: Promise<{ l
                 </article>)}
               </div>
             )}
-            {externalReviewUrl && /^https:\\/\\//i.test(externalReviewUrl) ? <a href={externalReviewUrl} target="_blank" rel="noopener noreferrer" className="button-dark mt-5">{t.booking}<span aria-hidden="true">↗</span></a> : null}
+            {externalReviewUrl && externalReviewUrl.startsWith("https://") ? <a href={externalReviewUrl} target="_blank" rel="noopener noreferrer" className="button-dark mt-5">{t.booking}<span aria-hidden="true">↗</span></a> : null}
             <p className="mt-4 text-xs leading-6 text-ink-soft">{t.note}</p>
           </div>
           <div className="reviews-submit-card">
