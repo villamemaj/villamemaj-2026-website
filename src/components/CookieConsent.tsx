@@ -26,11 +26,11 @@ export default function CookieConsent({ locale }: { locale: string }) {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-  
       try {
         const stored = localStorage.getItem(CONSENT_KEY);
-        if (!stored) setVisible(true);
-        else {
+        if (!stored) {
+          setVisible(true);
+        } else {
           const value = JSON.parse(stored) as Consent;
           setAnalytics(value.analytics === true);
           setMarketing(value.marketing === true);
@@ -38,15 +38,17 @@ export default function CookieConsent({ locale }: { locale: string }) {
       } catch {
         setVisible(true);
       }
-  
-      const openSettings = () => {
-        setVisible(true);
-        setPreferences(true);
-      };
-      window.addEventListener("villa-memaj:open-cookie-settings", openSettings);
-      return () => window.removeEventListener("villa-memaj:open-cookie-settings", openSettings);
     });
-    return () => window.cancelAnimationFrame(frame);
+
+    const openSettings = () => {
+      setVisible(true);
+      setPreferences(true);
+    };
+    window.addEventListener("villa-memaj:open-cookie-settings", openSettings);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("villa-memaj:open-cookie-settings", openSettings);
+    };
   }, []);
 
   function save(allowAnalytics: boolean, allowMarketing: boolean) {
