@@ -35,7 +35,9 @@ export default function Navbar({ locale, dict }: NavbarProps) {
     { href: `/${locale}/gallery`, label: dict.nav.gallery },
     { href: `/${locale}/booking`, label: dict.nav.booking },
     { href: `/${locale}/contact`, label: dict.nav.contact },
-    { href: `/${locale}/faq`, label: locale === "el" ? "Συχνές ερωτήσεις" : "FAQ" },
+    { href: `/${locale}/faq`, label: locale === "el" ? "Συχνές ερωτήσεις" : locale === "fr" ? "FAQ" : locale === "sq" ? "Pyetje" : locale === "de" ? "FAQ" : locale === "it" ? "FAQ" : "FAQ" },
+    { href: `/${locale}/flights`, label: locale === "el" ? "Πτήσεις" : locale === "fr" ? "Vols" : locale === "sq" ? "Fluturime" : locale === "de" ? "Flüge" : locale === "it" ? "Voli" : "Flights" },
+    { href: `/${locale}/reviews`, label: locale === "el" ? "Κριτικές" : locale === "fr" ? "Avis" : locale === "sq" ? "Vlerësime" : locale === "de" ? "Bewertungen" : locale === "it" ? "Recensioni" : "Reviews" },
   ];
 
   return (
