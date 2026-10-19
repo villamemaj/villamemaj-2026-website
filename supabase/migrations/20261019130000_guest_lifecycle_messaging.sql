@@ -868,17 +868,11 @@ alter table public.hotel_guest_reviews enable row level security;
 drop policy if exists guest_reviews_public_read on public.hotel_guest_reviews;
 create policy guest_reviews_public_read on public.hotel_guest_reviews
   for select to anon, authenticated using (status = 'published');
+-- The public roles receive column-level SELECT only for the fields displayed on the
+-- website. All moderation reads/updates go through server actions guarded by requireStaff.
 drop policy if exists guest_reviews_staff_read on public.hotel_guest_reviews;
-create policy guest_reviews_staff_read on public.hotel_guest_reviews
-  for select to authenticated using (private.has_hotel_role(array['owner','manager']));
 drop policy if exists guest_reviews_staff_update on public.hotel_guest_reviews;
-create policy guest_reviews_staff_update on public.hotel_guest_reviews
-  for update to authenticated
-  using (private.has_hotel_role(array['owner','manager']))
-  with check (private.has_hotel_role(array['owner','manager']));
-revoke all on public.hotel_guest_reviews from anon, authenticated;
+revoke all on public.hotel_guest_reviews from public, anon, authenticated;
 grant select (id, guest_display_name, rating, title, review_text, locale, published_at, created_at)
   on public.hotel_guest_reviews to anon, authenticated;
--- Authenticated visitors can read only public display columns. Staff moderation uses the
--- server-only service role after requireStaff(["owner","manager"]) checks.
 grant all on public.hotel_guest_reviews to service_role;
