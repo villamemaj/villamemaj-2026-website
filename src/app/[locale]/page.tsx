@@ -1,10 +1,54 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import RoomCard from "@/components/RoomCard";
 import BookingSearchPanel from "@/components/BookingSearchPanel";
 import { getDictionary } from "@/lib/i18n";
 import { getGalleryImages, getRooms, getSiteMediaImages } from "@/lib/data";
-import { isLocale, SITE_CONFIG, type Locale } from "@/lib/site";
+import { isLocale, LOCALES, SITE_CONFIG, type Locale } from "@/lib/site";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: rawLocale } = await params;
+  const locale: Locale = isLocale(rawLocale) ? rawLocale : "el";
+  const dict = await getDictionary(locale);
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || SITE_CONFIG.url).replace(/\/+$/, "");
+  const ogLocale: Record<Locale, string> = {
+    el: "el_AL",
+    en: "en_GB",
+    fr: "fr_FR",
+    sq: "sq_AL",
+    de: "de_DE",
+    it: "it_IT",
+  };
+  const localizedRoutes = Object.fromEntries(LOCALES.map((code) => [code, siteUrl + "/" + code]));
+  return {
+    title: dict.hero.title,
+    description: dict.hero.subtitle,
+    alternates: {
+      canonical: siteUrl + "/" + locale,
+      languages: localizedRoutes,
+    },
+    openGraph: {
+      type: "website",
+      siteName: SITE_CONFIG.name,
+      title: SITE_CONFIG.name + " — " + dict.hero.title,
+      description: dict.hero.subtitle,
+      url: siteUrl + "/" + locale,
+      locale: ogLocale[locale],
+      images: [{ url: "/723811999.jpg", alt: SITE_CONFIG.name + " exterior" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_CONFIG.name + " — " + dict.hero.title,
+      description: dict.hero.subtitle,
+      images: ["/723811999.jpg"],
+    },
+  };
+}
 
 function WaveTransition({ tone = "cream" }: { tone?: "cream" | "sand" | "olive" }) {
   return (
@@ -123,17 +167,17 @@ export default async function HomePage({
             <div className="hero-ring hero-ring-one" aria-hidden="true" />
             <div className="hero-ring hero-ring-two" aria-hidden="true" />
             <div className="hero-photo-frame" data-scroll-scrub="hero-frame">
-              <Image src={siteMedia.home_hero_detail?.image_url ?? "/902234060.jpg"} alt={(greek ? siteMedia.home_hero_detail?.alt_text_el : siteMedia.home_hero_detail?.alt_text_en) || (greek ? "Λεπτομέρεια από τους χώρους φιλοξενίας" : "A detail of the guest interiors")} fill priority sizes="(max-width: 1024px) 88vw, 42vw" className="object-cover" />
+              <Image src={siteMedia.home_hero_detail?.image_url ?? "/902234060.jpg"} alt={(greek ? siteMedia.home_hero_detail?.alt_text_el : siteMedia.home_hero_detail?.alt_text_en) || (greek ? "Λεπτομέρεια από τους χώρους φιλοξενίας" : "A detail of the guest interiors")} fill sizes="(max-width: 1024px) 88vw, 42vw" className="object-cover" />
               <div className="hero-photo-overlay" />
               <div className="hero-photo-caption">
                 <span className="photo-caption-mark">✳</span>
-                <span>{greek ? "Μια πιο προσωπική απόδραση" : "A more personal escape"}</span>
+                <span>{copy.heroPhotoCaption}</span>
               </div>
             </div>
             <div className="hero-floating-card scroll-float">
-              <span className="floating-card-kicker">{greek ? "Οι χώροι μας" : "Our spaces"}</span>
+              <span className="floating-card-kicker">{copy.spacesLabel}</span>
               <strong>20—60 <small>m²</small></strong>
-              <span className="floating-card-bottom">{greek ? "Σχεδιασμένοι για να νιώθετε άνετα" : "Space to settle in and feel at ease"}</span>
+              <span className="floating-card-bottom">{copy.spacesCaption}</span>
             </div>
             <div className="hero-side-note">{copy.location}</div>
           </div>
@@ -178,7 +222,7 @@ export default async function HomePage({
             <div className="intro-image-small image-parallax" data-parallax="18">
               <Image src={siteMedia.home_intro_kitchen?.image_url ?? "/723812074.jpg"} alt={(greek ? siteMedia.home_intro_kitchen?.alt_text_el : siteMedia.home_intro_kitchen?.alt_text_en) || (greek ? "Λεπτομέρεια κουζίνας" : "Kitchen detail")} fill sizes="(max-width: 1024px) 42vw, 20vw" className="object-cover" />
             </div>
-            <div className="intro-stamp scroll-float"><span>J&M</span><span>{greek ? "ΜΕ ΦΡΟΝΤΙΔΑ" : "MADE WITH CARE"}</span></div>
+            <div className="intro-stamp scroll-float"><span>J&amp;M</span><span>{copy.madeWithCare}</span></div>
           </div>
           <div className="intro-copy">
             <p className="section-label reveal-from-bottom">{copy.introKicker}</p>
