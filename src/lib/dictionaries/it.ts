@@ -18,6 +18,10 @@ const dictionary: Dictionary = {
   editorialHome: {
     heroKicker: "VILLA MEMAJ",
     heroNote: "Una fuga più personale sulla costa di Valona.",
+    heroPhotoCaption: "Una fuga più personale",
+    spacesLabel: "I nostri spazi",
+    spacesCaption: "Pensati per sentirsi a proprio agio",
+    madeWithCare: "CON CURA",
     scroll: "Scorri per scoprire",
     location: "VALONA · ALBANIA",
     introMeta: "Ospitalità personale, atmosfera rilassata",
