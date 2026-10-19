@@ -27,18 +27,22 @@ export default function SupportChat({ locale }: { locale: string }) {
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      const key = "villa-memaj-support-id:" + language;
-      const existing = sessionStorage.getItem(key);
-      if (existing) setConversationId(existing);
-      else {
-        const id = crypto.randomUUID();
-        sessionStorage.setItem(key, id);
-        setConversationId(id);
+    const frame = window.requestAnimationFrame(() => {
+  
+      try {
+        const key = "villa-memaj-support-id:" + language;
+        const existing = sessionStorage.getItem(key);
+        if (existing) setConversationId(existing);
+        else {
+          const id = crypto.randomUUID();
+          sessionStorage.setItem(key, id);
+          setConversationId(id);
+        }
+      } catch {
+        setConversationId("");
       }
-    } catch {
-      setConversationId("");
-    }
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [language]);
 
   useEffect(() => {
