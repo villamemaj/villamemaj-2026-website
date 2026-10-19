@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE_CONFIG, type Locale } from "@/lib/site";
 import type { Dictionary } from "@/lib/i18n";
+import CookieSettingsButton from "@/components/CookieSettingsButton";
 
 interface FooterProps {
   locale: Locale;
@@ -24,6 +25,7 @@ export default function Footer({ locale, dict }: FooterProps) {
     { href: `/${locale}/privacy`, label: locale === "el" ? "Πολιτική απορρήτου" : "Privacy policy" },
     { href: `/${locale}/house-rules`, label: locale === "el" ? "Κανόνες καταλύματος" : "House rules" },
     { href: `/${locale}/payments`, label: locale === "el" ? "Επιλογές πληρωμής" : "Payment options" },
+    { href: `/${locale}/cookies`, label: locale === "el" ? "Πολιτική cookies" : locale === "fr" ? "Politique des cookies" : locale === "sq" ? "Politika e cookies" : locale === "de" ? "Cookie-Richtlinie" : "Cookie policy" },
   ];
 
   return (
@@ -58,6 +60,7 @@ export default function Footer({ locale, dict }: FooterProps) {
               <li key={link.href}><Link href={link.href} className="text-cream/80 hover:text-cream">{link.label}</Link></li>
             ))}
           </ul>
+          <div className="mt-4"><CookieSettingsButton locale={locale} /></div>
         </div>
         <div>
           <p className="section-label text-gold-soft">{dict.footer.contact}</p>
