@@ -42,6 +42,10 @@ type PolicyRow = {
   extra_fees: unknown;
   terms_en: string;
   terms_el: string;
+  arrival_instructions_en: string;
+  arrival_instructions_el: string;
+  local_guide_en: string;
+  local_guide_el: string;
   privacy_en: string;
   privacy_el: string;
 };
@@ -197,7 +201,17 @@ export default async function PropertyPoliciesPage({
           </section>
 
           <section className="admin-policy-section">
-            <div className="admin-policy-section-heading"><span>06</span><div><h2>Custom legal text additions</h2><p>Optional property-specific additions appended to the standard website Terms and Privacy pages. Have legal counsel review any changes before publication.</p></div></div>
+            <div className="admin-policy-section-heading"><span>06</span><div><h2>Arrival and local guide</h2><p>These instructions are inserted into the confirmation and pre-arrival welcome email. Keep them factual and current.</p></div></div>
+            <div className="admin-policy-fields">
+              <TextField label="Arrival instructions · English" name="arrival_instructions_en" defaultValue={row.arrival_instructions_en} hint="Share meeting point, door access and how to request assistance. Do not put access codes here if the email may be forwarded." />
+              <TextField label="Οδηγίες άφιξης · Ελληνικά" name="arrival_instructions_el" defaultValue={row.arrival_instructions_el} hint="Προσθέστε σημείο συνάντησης, πρόσβαση και στοιχεία επικοινωνίας." />
+              <TextField label="Local guide · English" name="local_guide_en" defaultValue={row.local_guide_en} hint="Use verified nearby attractions, beaches, transport, restaurants and seasonal caveats." />
+              <TextField label="Τοπικός οδηγός · Ελληνικά" name="local_guide_el" defaultValue={row.local_guide_el} hint="Προσθέστε ελεγμένες προτάσεις, παραλίες, μετακινήσεις και δραστηριότητες." />
+            </div>
+          </section>
+
+          <section className="admin-policy-section">
+            <div className="admin-policy-section-heading"><span>07</span><div><h2>Custom legal text additions</h2><p>Optional property-specific additions appended to the standard website Terms and Privacy pages. Have legal counsel review any changes before publication.</p></div></div>
             <div className="admin-policy-fields">
               <TextField label="Additional booking terms · English" name="terms_en" defaultValue={row.terms_en} hint="Add only terms specific to this property. The base policy remains published." />
               <TextField label="Πρόσθετοι όροι κράτησης · Ελληνικά" name="terms_el" defaultValue={row.terms_el} hint="Προσθέστε μόνο ειδικούς όρους του καταλύματος." />
