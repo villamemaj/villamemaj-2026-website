@@ -61,7 +61,7 @@ export default function Navbar({ locale, dict }: NavbarProps) {
   function LanguagePicker({ compact = false }: { compact?: boolean }) {
     return (
       <details className={compact ? "site-language-picker site-language-picker-mobile" : "site-language-picker"}>
-        <summary aria-label={dict.nav.mainNavigation}>
+        <summary aria-label={dict.nav.language}>
           <span>{locale.toUpperCase()}</span>
           <svg aria-hidden="true" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
             <path d="m4 6 4 4 4-4" />
@@ -101,7 +101,7 @@ export default function Navbar({ locale, dict }: NavbarProps) {
           </span>
         </Link>
 
-        <nav className="site-navbar-links hidden items-center md:flex" aria-label={dict.nav.language}>
+        <nav className="site-navbar-links hidden items-center md:flex" aria-label={dict.nav.mainNavigation}>
           {links.map((link) => (
             <Link
               key={link.href}
@@ -134,7 +134,7 @@ export default function Navbar({ locale, dict }: NavbarProps) {
       </div>
 
       <div id="site-mobile-navigation" className={open ? "site-mobile-navigation is-open md:hidden" : "site-mobile-navigation md:hidden"} hidden={!open}>
-        <nav aria-label={dict.nav.language}>
+        <nav aria-label={dict.nav.mainNavigation}>
           {[
             ...links.slice(0, 3),
             { href: homePath + "/booking", label: dict.hero.ctaBook },
