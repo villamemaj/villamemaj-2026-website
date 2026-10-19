@@ -3,6 +3,23 @@ import { requireStaff } from "@/lib/admin/auth";
 
 export const dynamic = "force-dynamic";
 
+type BookingAnalytics = {
+  status: string;
+  payment_status: string;
+  total_price: number | string | null;
+  amount_paid: number | string | null;
+  currency_code: string;
+  check_in: string;
+  check_out: string;
+  created_at: string;
+};
+type PaymentAnalytics = {
+  status: string;
+  kind: string;
+  amount: number | string | null;
+  currency_code: string;
+};
+
 function money(value: number, currency: string) {
   try { return new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(value); }
   catch { return value.toFixed(2) + " " + currency; }
@@ -15,21 +32,21 @@ export default async function ExtranetAnalyticsPage() {
     supabase.from("hotel_rooms").select("id", { count: "exact", head: true }).eq("active", true),
     supabase.from("hotel_payment_transactions").select("status,kind,amount,currency_code").eq("status", "succeeded").eq("kind", "charge").limit(1000),
   ]);
-  const bookings = bookingResult.data ?? [];
-  const payments = paymentsResult.data ?? [];
-  const confirmed = bookings.filter((b: any) => ["confirmed", "checked_in", "checked_out"].includes(b.status));
-  const pending = bookings.filter((b: any) => ["request", "hold"].includes(b.status));
-  const paidEUR = bookings.filter((b: any) => b.currency_code === "EUR").reduce((sum: number,b: any) => sum + Number(b.amount_paid || 0), 0);
-  const paidALL = bookings.filter((b: any) => b.currency_code === "ALL").reduce((sum: number,b: any) => sum + Number(b.amount_paid || 0), 0);
-  const paidTransactionsEUR = payments.filter((p: any) => p.currency_code === "EUR").reduce((sum: number,p: any) => sum + Number(p.amount || 0), 0);
-  const paidTransactionsALL = payments.filter((p: any) => p.currency_code === "ALL").reduce((sum: number,p: any) => sum + Number(p.amount || 0), 0);
+  const bookings = (bookingResult.data ?? []) as BookingAnalytics[];
+  const payments = (paymentsResult.data ?? []) as PaymentAnalytics[];
+  const confirmed = bookings.filter((booking) => ["confirmed", "checked_in", "checked_out"].includes(booking.status));
+  const pending = bookings.filter((booking) => ["request", "hold"].includes(booking.status));
+  const paidEUR = bookings.filter((booking) => booking.currency_code === "EUR").reduce((sum, booking) => sum + Number(booking.amount_paid || 0), 0);
+  const paidALL = bookings.filter((booking) => booking.currency_code === "ALL").reduce((sum, booking) => sum + Number(booking.amount_paid || 0), 0);
+  const paidTransactionsEUR = payments.filter((payment) => payment.currency_code === "EUR").reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  const paidTransactionsALL = payments.filter((payment) => payment.currency_code === "ALL").reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
   const statusItems = [
-    { label: "Requests", value: bookings.filter((b: any) => b.status === "request").length },
-    { label: "Payment holds", value: bookings.filter((b: any) => b.status === "hold").length },
-    { label: "Confirmed", value: bookings.filter((b: any) => b.status === "confirmed").length },
-    { label: "Checked in", value: bookings.filter((b: any) => b.status === "checked_in").length },
-    { label: "Checked out", value: bookings.filter((b: any) => b.status === "checked_out").length },
-    { label: "Cancelled / no-show", value: bookings.filter((b: any) => ["cancelled", "no_show"].includes(b.status)).length },
+    { label: "Requests", value: bookings.filter((booking) => booking.status === "request").length },
+    { label: "Payment holds", value: bookings.filter((booking) => booking.status === "hold").length },
+    { label: "Confirmed", value: bookings.filter((booking) => booking.status === "confirmed").length },
+    { label: "Checked in", value: bookings.filter((booking) => booking.status === "checked_in").length },
+    { label: "Checked out", value: bookings.filter((booking) => booking.status === "checked_out").length },
+    { label: "Cancelled / no-show", value: bookings.filter((booking) => ["cancelled", "no_show"].includes(booking.status)).length },
   ];
   const errors = [bookingResult.error, roomsResult.error, paymentsResult.error].filter(Boolean);
   return (
