@@ -760,3 +760,108 @@ revoke all on function public.claim_guest_messages_configured(integer, text[]) f
 revoke all on function public.claim_guest_messages_for_booking_configured(uuid, integer, text[]) from public, anon, authenticated;
 grant execute on function public.claim_guest_messages_configured(integer, text[]) to service_role;
 grant execute on function public.claim_guest_messages_for_booking_configured(uuid, integer, text[]) to service_role;
+
+
+-- Private guest support inbox. Public input is accepted only through a server route that
+-- validates size/rate limits and can call the AI provider; this table is not directly exposed.
+create table if not exists public.hotel_guest_support_threads (
+  id uuid primary key default gen_random_uuid(),
+  public_reference text not null unique default ('SUP-' || upper(substr(encode(gen_random_bytes(8),'hex'),1,8))),
+  guest_name text,
+  guest_email text,
+  guest_phone text,
+  locale text not null default 'en' check (locale in ('el','en','fr','sq','de')),
+  subject text not null default 'Guest question',
+  status text not null default 'open' check (status in ('open','waiting_for_guest','waiting_for_staff','resolved','closed')),
+  source text not null default 'website_chat' check (source in ('website_chat','email','phone','whatsapp','staff')),
+  request_ip_hash text,
+  assigned_to uuid references auth.users(id) on delete set null,
+  last_message_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists hotel_guest_support_threads_ip_idx
+  on public.hotel_guest_support_threads(request_ip_hash, created_at desc);
+create index if not exists hotel_guest_support_threads_status_idx
+  on public.hotel_guest_support_threads(status, last_message_at desc);
+
+create table if not exists public.hotel_guest_support_messages (
+  id uuid primary key default gen_random_uuid(),
+  thread_id uuid not null references public.hotel_guest_support_threads(id) on delete cascade,
+  sender_role text not null check (sender_role in ('guest','assistant','staff','system')),
+  content text not null check (length(content) between 1 and 8000),
+  model text,
+  delivery_channel text not null default 'web_chat' check (delivery_channel in ('web_chat','email','sms','whatsapp','slack')),
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+create index if not exists hotel_guest_support_messages_thread_idx
+  on public.hotel_guest_support_messages(thread_id, created_at);
+
+alter table public.hotel_guest_support_threads enable row level security;
+alter table public.hotel_guest_support_messages enable row level security;
+revoke all on public.hotel_guest_support_threads from anon, authenticated;
+revoke all on public.hotel_guest_support_messages from anon, authenticated;
+
+drop policy if exists support_threads_staff_read on public.hotel_guest_support_threads;
+create policy support_threads_staff_read on public.hotel_guest_support_threads
+  for select to authenticated using (private.has_hotel_role(array['owner','manager','receptionist']));
+drop policy if exists support_threads_staff_update on public.hotel_guest_support_threads;
+create policy support_threads_staff_update on public.hotel_guest_support_threads
+  for update to authenticated
+  using (private.has_hotel_role(array['owner','manager','receptionist']))
+  with check (private.has_hotel_role(array['owner','manager','receptionist']));
+drop policy if exists support_messages_staff_read on public.hotel_guest_support_messages;
+create policy support_messages_staff_read on public.hotel_guest_support_messages
+  for select to authenticated
+  using (
+    exists (
+      select 1 from public.hotel_guest_support_threads t
+      where t.id = thread_id
+        and private.has_hotel_role(array['owner','manager','receptionist'])
+    )
+  );
+
+grant select, update on public.hotel_guest_support_threads to authenticated;
+grant select on public.hotel_guest_support_messages to authenticated;
+grant all on public.hotel_guest_support_threads to service_role;
+grant all on public.hotel_guest_support_messages to service_role;
+
+-- Reviews are never published automatically. A real completed booking can submit one review;
+-- staff explicitly approves publication. Anonymous visitors get column-level SELECT access only
+-- to the fields displayed on the website (never booking IDs, review tokens or moderation notes).
+create table if not exists public.hotel_guest_reviews (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid not null unique references public.hotel_bookings(id) on delete cascade,
+  guest_display_name text not null,
+  rating integer not null check (rating between 1 and 5),
+  title text not null,
+  review_text text not null check (length(review_text) between 10 and 4000),
+  locale text not null default 'en' check (locale in ('el','en','fr','sq','de')),
+  status text not null default 'pending' check (status in ('pending','published','rejected')),
+  moderation_note text,
+  moderated_by uuid references auth.users(id) on delete set null,
+  published_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists hotel_guest_reviews_public_idx
+  on public.hotel_guest_reviews(status, published_at desc);
+
+alter table public.hotel_guest_reviews enable row level security;
+drop policy if exists guest_reviews_public_read on public.hotel_guest_reviews;
+create policy guest_reviews_public_read on public.hotel_guest_reviews
+  for select to anon, authenticated using (status = 'published');
+drop policy if exists guest_reviews_staff_read on public.hotel_guest_reviews;
+create policy guest_reviews_staff_read on public.hotel_guest_reviews
+  for select to authenticated using (private.has_hotel_role(array['owner','manager']));
+drop policy if exists guest_reviews_staff_update on public.hotel_guest_reviews;
+create policy guest_reviews_staff_update on public.hotel_guest_reviews
+  for update to authenticated
+  using (private.has_hotel_role(array['owner','manager']))
+  with check (private.has_hotel_role(array['owner','manager']));
+revoke all on public.hotel_guest_reviews from anon, authenticated;
+grant select (id, guest_display_name, rating, title, review_text, locale, published_at, created_at)
+  on public.hotel_guest_reviews to anon, authenticated;
+grant select, update on public.hotel_guest_reviews to authenticated;
+grant all on public.hotel_guest_reviews to service_role;
