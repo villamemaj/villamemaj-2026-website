@@ -1,7 +1,7 @@
 import type { Dictionary } from "../i18n";
 
 const dictionary: Dictionary = {
-  nav: { home: "Home", rooms: "Camere", gallery: "Galleria", booking: "Prenotazioni", contact: "Contatti" , travel: "Viaggio", menu: "Apri il menu", closeMenu: "Chiudi il menu", language: "Scegli la lingua" },
+  nav: { home: "Home", rooms: "Camere", gallery: "Galleria", booking: "Prenotazioni", contact: "Contatti" , travel: "Viaggio", menu: "Apri il menu", closeMenu: "Chiudi il menu", language: "Scegli la lingua", mainNavigation: "Navigazione principale" },
   hero: { title: "L’ospitalità incontra il mare", subtitle: "Un rifugio tranquillo con vista, un’accoglienza calorosa e camere pensate per il tuo riposo.", ctaRooms: "Scopri le camere", ctaBook: "Prenota ora" },
   home: {
     welcomeLabel: "Benvenuti", welcomeTitle: "Ospitalità con il cuore",
