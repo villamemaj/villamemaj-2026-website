@@ -1,8 +1,8 @@
 import type { Dictionary } from "../i18n";
 
 const dictionary: Dictionary = {
-  nav: { home: "Accueil", rooms: "Chambres", gallery: "Galerie", booking: "Réserver", contact: "Contact" , travel: "Voyage"},
-  hero: { title: "Villa Memaj", subtitle: "Un refuge paisible, une hospitalité chaleureuse et des espaces pensés pour votre détente.", ctaRooms: "Découvrir les chambres", ctaBook: "Réserver" },
+  nav: { home: "Accueil", rooms: "Chambres", gallery: "Galerie", booking: "Réserver", contact: "Contact" , travel: "Voyage", menu: "Ouvrir le menu", closeMenu: "Fermer le menu", language: "Choisir la langue" },
+  hero: { title: "L’hospitalité rencontre la mer", subtitle: "Un refuge paisible avec vue, une hospitalité chaleureuse et des chambres conçues pour votre repos.", ctaRooms: "Découvrir les chambres", ctaBook: "Réserver" },
   home: {
     welcomeLabel: "Bienvenue", welcomeTitle: "L’hospitalité avec le cœur",
     welcomeText: "À Villa Memaj, chaque instant trouve son calme. Des espaces soignés, une lumière naturelle et une atmosphère détendue pour vous sentir chez vous.",
@@ -13,13 +13,48 @@ const dictionary: Dictionary = {
     ],
     roomsTitle: "Nos chambres", roomsText: "Choisissez l’espace qui vous convient.", viewAll: "Voir toutes les chambres",
     galleryTitle: "Instants à Villa Memaj", galleryText: "Un aperçu des espaces et de l’atmosphère qui vous attendent.",
-    ctaTitle: "Prêt pour vos vacances ?", ctaText: "Envoyez une demande de réservation et nous vous répondrons dès que possible.", ctaBook: "Demande de réservation"
+    ctaTitle: "Faites place à quelque chose de beau.", ctaText: "Envoyez une demande de réservation et nous vous répondrons dès que possible.", ctaBook: "Demande de réservation"
+  },
+  editorialHome: {
+    heroKicker: "VILLA MEMAJ",
+    heroNote: "Une escapade plus personnelle sur la côte de Vlorë.",
+    scroll: "Faites défiler pour découvrir",
+    introKicker: "L’art de séjourner",
+    introTitle: "Le luxe, c’est retrouver le temps de ralentir.",
+    introBody: "Un rythme doux, une hospitalité attentionnée et l’espace pour se sentir chez soi. Chaque séjour est pensé autour des petits instants qui rendent un voyage inoubliable.",
+    introLink: "Découvrez notre hospitalité",
+    momentsKicker: "Un séjour, mille moments",
+    momentsTitle: "Vivez les lieux à votre propre rythme.",
+    momentsBody: "D’un matin paisible sur le balcon aux soirées avec vue, chaque détail invite à la détente.",
+    roomsKicker: "Des espaces choisis avec soin",
+    galleryKicker: "Un aperçu de votre séjour",
+    galleryTitle: "Lumière, matières et détails choisis.",
+    galleryBody: "Explorez les espaces et les recoins qui feront peut-être partie de votre prochaine escapade.",
+    quote: "Arrivez en voyageur. Repartez avec le sentiment d’être chez vous.",
+    quoteNote: "Votre moment sur la côte",
+    ctaKicker: "Votre prochaine escapade commence ici",
+    ctaTitle: "Faites place à quelque chose de beau.",
+    sizeLabel: "Surface des chambres",
+    capacityLabel: "Voyageurs par chambre",
+    amenitiesLabel: "Le confort à chaque séjour",
+    bookingSearch: {
+      title: "Préparez votre séjour",
+      arrival: "Arrivée",
+      departure: "Départ",
+      guests: "Voyageurs",
+      adults: "Adultes",
+      children: "Enfants",
+      action: "Voir les disponibilités",
+      note: "Choisissez vos dates et le nombre de voyageurs. Nous confirmerons les disponibilités et le tarif final avant validation.",
+      invalidDates: "Le départ doit être après l’arrivée et les dates ne peuvent pas être passées.",
+      invalidGuests: "Choisissez au moins un adulte.",
+    },
   },
   rooms: { title: "Chambres et suites", subtitle: "Des espaces conçus pour le confort, le calme et la détente.", from: "à partir de", perNight: "€ / nuit", guests: "Voyageurs", size: "Surface", viewDetails: "Détails", book: "Réserver", amenities: "Équipements", empty: "Les chambres seront bientôt affichées. Contactez-nous pour connaître les disponibilités." },
   room: { backToRooms: "Retour aux chambres", bookThisRoom: "Réserver cette chambre", notFound: "Chambre introuvable." },
   booking: { title: "Demande de réservation", subtitle: "Renseignez vos coordonnées et nous vous contacterons pour confirmer la disponibilité.", roomLabel: "Chambre", anyRoom: "Toute chambre disponible", name: "Nom complet", email: "E-mail", phone: "Téléphone", checkIn: "Arrivée", checkOut: "Départ", guests: "Nombre de voyageurs", message: "Message (facultatif)", messagePlaceholder: "Demandes particulières ou questions…", submit: "Envoyer la demande", sending: "Envoi…", successTitle: "Votre demande a été reçue !", successText: "Merci. Nous vous contacterons prochainement pour confirmer votre réservation.", errorText: "Une erreur s’est produite. Réessayez ou contactez-nous directement.", newRequest: "Nouvelle demande" },
   contact: { title: "Contact", subtitle: "Nous sommes là pour répondre à vos questions et vous aider avec votre réservation.", name: "Nom complet", email: "E-mail", subject: "Sujet", message: "Message", submit: "Envoyer le message", sending: "Envoi…", successTitle: "Votre message a été envoyé !", successText: "Merci. Nous vous répondrons bientôt.", errorText: "Une erreur s’est produite. Veuillez réessayer.", phoneLabel: "Téléphone", emailLabel: "E-mail", addressLabel: "Adresse", newMessage: "Nouveau message" },
-  gallery: { title: "Galerie photos", subtitle: "Espaces, détails et instants de Villa Memaj.", empty: "Les photos seront bientôt disponibles." },
+  gallery: { title: "Galerie photos", subtitle: "Espaces, détails et instants de Villa Memaj.", empty: "Les photos seront bientôt disponibles.", openImage: "Ouvrir l’image", closeImage: "Fermer l’image", previousImage: "Image précédente", nextImage: "Image suivante" },
   footer: { tagline: "Votre refuge paisible pour vous reposer et découvrir la région.", quickLinks: "Liens rapides", contact: "Contact", rights: "Tous droits réservés." },
   amenities: { wifi: "Wi-Fi gratuit", ac: "Climatisation", tv: "Télévision", minibar: "Minibar", balcony: "Balcon", sea_view: "Vue sur la mer", kitchen: "Cuisine", breakfast: "Petit-déjeuner", parking: "Parking", workspace: "Espace de travail" }
 };
