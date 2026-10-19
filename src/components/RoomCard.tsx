@@ -14,6 +14,13 @@ interface RoomCardProps {
 
 export default function RoomCard({ room, locale, dict }: RoomCardProps) {
   const name = locale === "el" ? room.name_el : room.name_en;
+  const formattedPrice = room.price_per_night == null
+    ? null
+    : new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: room.currency || "EUR",
+        maximumFractionDigits: 0,
+      }).format(Number(room.price_per_night));
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-sand-dark bg-white shadow-sm transition-shadow hover:shadow-lg">
@@ -36,9 +43,9 @@ export default function RoomCard({ room, locale, dict }: RoomCardProps) {
       <div className="space-y-3 p-5">
         <div className="flex items-start justify-between gap-3">
           <h3 className="font-display text-xl font-semibold text-ink">{name}</h3>
-          {room.price_per_night != null && (
+          {formattedPrice != null && (
             <p className="shrink-0 text-sm font-semibold text-olive">
-              {dict.rooms.from} {room.price_per_night}€
+              {dict.rooms.from} {formattedPrice}
             </p>
           )}
         </div>
