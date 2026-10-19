@@ -15,6 +15,7 @@ export default function Footer({ locale, dict }: FooterProps) {
     { href: `/${locale}/rooms`, label: dict.nav.rooms },
     { href: `/${locale}/gallery`, label: dict.nav.gallery },
     { href: `/${locale}/booking`, label: dict.nav.booking },
+    { href: `/${locale}/travel`, label: dict.nav.travel },
     { href: `/${locale}/contact`, label: dict.nav.contact },
   ];
   const policyLinks = [
