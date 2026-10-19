@@ -37,6 +37,10 @@ export interface Dictionary {
   editorialHome: {
     heroKicker: string;
     heroNote: string;
+    heroPhotoCaption: string;
+    spacesLabel: string;
+    spacesCaption: string;
+    madeWithCare: string;
     scroll: string;
     location: string;
     introMeta: string;
