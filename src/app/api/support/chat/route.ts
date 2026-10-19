@@ -58,7 +58,7 @@ function extractResponseText(payload: unknown): string {
   return parts.join("\n").trim();
 }
 
-async function notifySlack(webhook: string | undefined, reference: string, message: string, locale: string) {
+async function notifySlack(webhook: string | undefined, reference: string, locale: string) {
   if (!webhook) return;
   try {
     const url = new URL(webhook);
@@ -67,7 +67,7 @@ async function notifySlack(webhook: string | undefined, reference: string, messa
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        text: "New Villa Memaj support request " + reference + " (" + locale + ")\n" + message.slice(0, 900),
+        text: "New Villa Memaj support request " + reference + " (" + locale + "). Please open the private CRM Support Inbox to read and respond."
       }),
       cache: "no-store",
       signal: AbortSignal.timeout(3500),
@@ -113,10 +113,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
   }
 
-  const forwarded = request.headers.get("x-vercel-forwarded-for")
-    || request.headers.get("x-real-ip")
-    || request.headers.get("x-forwarded-for")
-    || "unknown";
+  // Only trust the platform-provided Vercel client-IP header. Other forwarding headers
+  // may be supplied by callers and could let an attacker evade the per-IP request limit.
+  const forwarded = request.headers.get("x-vercel-forwarded-for") || "unknown";
   const ip = forwarded.split(",")[0].trim().slice(0, 100) || "unknown";
   const ipHash = createHash("sha256").update(ip).digest("hex");
 
@@ -245,7 +244,7 @@ export async function POST(request: Request) {
     if (error) console.error("Support owner alert queue failed", { code: error.code, reference: thread.public_reference });
   }
 
-  await notifySlack(process.env.SLACK_WEBHOOK_URL, thread.public_reference, message, locale);
+  await notifySlack(process.env.SLACK_WEBHOOK_URL, thread.public_reference, locale);
 
   // The assistant may answer simple property questions, but it cannot query or promise
   // live availability, change bookings, cancel reservations, issue refunds or take payments.
