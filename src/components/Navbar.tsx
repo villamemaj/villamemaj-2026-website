@@ -33,6 +33,7 @@ export default function Navbar({ locale, dict }: NavbarProps) {
     { href: `/${locale}/rooms`, label: dict.nav.rooms },
     { href: `/${locale}/gallery`, label: dict.nav.gallery },
     { href: `/${locale}/booking`, label: dict.nav.booking },
+    { href: `/${locale}/travel`, label: dict.nav.travel },
     { href: `/${locale}/contact`, label: dict.nav.contact },
     { href: `/${locale}/faq`, label: locale === "el" ? "Συχνές ερωτήσεις" : "FAQ" },
   ];
