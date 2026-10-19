@@ -31,6 +31,7 @@ interface Quote {
 }
 
 interface BookingResult {
+  booking_id: string;
   code: string;
   status: string;
   total_price: number;
@@ -269,6 +270,18 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
 
     setResult(response.booking);
     setStep("success");
+
+    // The booking trigger has already committed the guest acknowledgement and owner
+    // notification to the outbox. Dispatch only this booking's records immediately.
+    void fetch("/api/notifications/dispatch-booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookingId: response.booking.booking_id,
+        bookingCode: response.booking.code,
+        guestEmail: String(draft.guest_email || ""),
+      }),
+    }).catch(() => undefined);
   }
 
   if (step === "success" && result) {
