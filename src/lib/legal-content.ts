@@ -14,7 +14,7 @@ export type PolicyDocument = {
   sections: PolicySection[];
 };
 
-const documents: Record<string, Record<Locale, PolicyDocument>> = {
+const documents: Record<string, Partial<Record<Locale, PolicyDocument>>> = {
   terms: {
     en: {
       label: "Guest information",
@@ -314,7 +314,7 @@ const documents: Record<string, Record<Locale, PolicyDocument>> = {
 };
 
 export function getPolicyDocument(slug: string, locale: Locale): PolicyDocument | null {
-  return documents[slug]?.[locale] ?? null;
+  return documents[slug]?.[locale] ?? documents[slug]?.en ?? documents[slug]?.el ?? null;
 }
 
 export const policyLinks: Record<Locale, { href: string; label: string; description: string }[]> = {
@@ -337,7 +337,7 @@ export const policyLinks: Record<Locale, { href: string; label: string; descript
 };
 
 export type FAQItem = { q: string; a: string };
-export const faq: Record<Locale, FAQItem[]> = {
+export const faq: Partial<Record<Locale, FAQItem[]>> = {
   en: [
     { q: "What are the check-in and check-out times?", a: "The current property information lists check-in from 12:00 to 23:00 and check-out from 08:00 to 10:00. Please follow any specific time confirmed for your reservation." },
     { q: "Are children allowed?", a: "Yes. Children of any age are currently allowed. No child-specific rates, cots or extra beds are currently listed as available; ask before booking if you need one." },
