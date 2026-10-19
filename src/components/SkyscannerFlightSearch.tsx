@@ -94,6 +94,7 @@ function hasOptionalThirdPartyConsent(): boolean {
 export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
   const [activated, setActivated] = useState(false);
   const [needsConsent, setNeedsConsent] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
   const pendingActivation = useRef(false);
@@ -106,6 +107,7 @@ export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
         if (consent?.marketing === true) {
           pendingActivation.current = false;
           setNeedsConsent(false);
+          setLoaded(false);
           setLoadError(false);
           setActivated(true);
         } else if (consent?.marketing === false) {
@@ -115,6 +117,7 @@ export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
       }
       if (consent?.marketing === false) {
         setActivated(false);
+        setLoaded(false);
         setLoadError(false);
       }
     };
@@ -133,16 +136,23 @@ export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
     script.async = true;
     script.dataset.villaMemajSkyscanner = "true";
     script.onload = () => {
-      if (!disposed) setLoadError(false);
+      if (!disposed) {
+        setLoaded(true);
+        setLoadError(false);
+      }
     };
     script.onerror = () => {
-      if (!disposed) setLoadError(true);
+      if (!disposed) {
+        setLoaded(false);
+        setLoadError(true);
+      }
     };
     document.body.appendChild(script);
 
     return () => {
       disposed = true;
       script.remove();
+      setLoaded(false);
       // Remove any third-party-created frame/content when the component unmounts
       // or optional consent is withdrawn.
       host.replaceChildren();
@@ -151,6 +161,7 @@ export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
 
   function activateSearch() {
     setLoadError(false);
+    setLoaded(false);
     if (hasOptionalThirdPartyConsent()) {
       setNeedsConsent(false);
       setActivated(true);
@@ -178,7 +189,8 @@ export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
         </div>
       ) : (
         <div className="travel-flight-frame" aria-live="polite">
-          {!loadError ? <div className="travel-flight-loading" role="status">{t.loading}</div> : <p className="travel-flight-consent-note" role="alert">{t.loadError}</p>}
+          {!loaded && !loadError ? <div className="travel-flight-loading" role="status">{t.loading}</div> : null}
+          {loadError ? <p className="travel-flight-consent-note" role="alert">{t.loadError}</p> : null}
           <div
             ref={widgetRef}
             data-skyscanner-widget="SearchWidget"
