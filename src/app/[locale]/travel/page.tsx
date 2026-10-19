@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import SkyscannerFlightSearch from "@/components/SkyscannerFlightSearch";
+import { getSiteMediaImages } from "@/lib/data";
 import { isLocale, type Locale } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -114,10 +115,11 @@ export default async function TravelPage({ params }: { params: Promise<{ locale:
   if (!isLocale(rawLocale)) notFound();
   const locale = rawLocale as Locale;
   const page = COPY[locale];
+  const siteMedia = await getSiteMediaImages(["travel_hero"]);
 
   return (
     <div className="editorial-page travel-page">
-      <EditorialPageHero locale={locale} eyebrow={page.eyebrow} title={page.title} subtitle={page.subtitle} imageSrc="/902234060.jpg" />
+      <EditorialPageHero locale={locale} eyebrow={page.eyebrow} title={page.title} subtitle={page.subtitle} imageSrc={siteMedia.travel_hero?.image_url ?? "/902234060.jpg"} imageAlt={(locale === "el" ? siteMedia.travel_hero?.alt_text_el : siteMedia.travel_hero?.alt_text_en) || (locale === "el" ? "Οργανώστε το ταξίδι σας" : "Plan your journey")} />
       <section className="editorial-standard-content">
         <div className="mx-auto max-w-6xl">
           <div className="travel-intro-copy">

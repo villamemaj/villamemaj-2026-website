@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import EditorialPageHero from "@/components/EditorialPageHero";
-import { getPublicHousePolicySettings } from "@/lib/data";
+import { getPublicHousePolicySettings, getSiteMediaImages } from "@/lib/data";
 import { getFAQItems, getPolicyLinks } from "@/lib/legal-content";
 import { isLocale, type Locale } from "@/lib/site";
 
@@ -27,7 +27,7 @@ export default async function FAQPage({ params }: { params: Promise<{ locale: st
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const lang = locale as Locale;
-  const settings = await getPublicHousePolicySettings();
+  const [settings, siteMedia] = await Promise.all([getPublicHousePolicySettings(), getSiteMediaImages(["faq_hero"])]);
   const baseFaq = getFAQItems(lang);
   let questions = [...baseFaq];
 
@@ -90,7 +90,8 @@ export default async function FAQPage({ params }: { params: Promise<{ locale: st
         eyebrow={lang === "el" ? "Πριν και κατά τη διαμονή" : "Before and during your stay"}
         title={lang === "el" ? "Συχνές ερωτήσεις" : "Frequently asked questions"}
         subtitle={lang === "el" ? "Οι βασικές πληροφορίες για τη διαμονή σας, συγκεντρωμένες σε ένα σημείο." : "The essentials for your stay, collected in one place."}
-        imageSrc="/902234060.jpg"
+        imageSrc={siteMedia.faq_hero?.image_url ?? "/902234060.jpg"}
+        imageAlt={(lang === "el" ? siteMedia.faq_hero?.alt_text_el : siteMedia.faq_hero?.alt_text_en) || (lang === "el" ? "Συχνές ερωτήσεις" : "Frequently asked questions")}
       />
       <section className="faq-content">
         <div className="faq-intro reveal-from-left">

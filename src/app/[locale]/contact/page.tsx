@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import ContactForm from "@/components/ContactForm";
 import { getDictionary } from "@/lib/i18n";
-import { getContactInfo } from "@/lib/data";
+import { getContactInfo, getSiteMediaImages } from "@/lib/data";
 import { isLocale, SITE_CONFIG, type Locale } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -16,7 +16,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   if (!isLocale(locale)) return null;
   const lang = locale as Locale;
   const dict = await getDictionary(lang);
-  const contact = await getContactInfo();
+  const [contact, siteMedia] = await Promise.all([getContactInfo(), getSiteMediaImages(["contact_hero"])]);
   const phoneHref = contact.phone ? contact.phone.replace(/\s/g, "") : "";
   const address = lang === "el" ? (contact.address_el ?? SITE_CONFIG.address.el) : (contact.address_en ?? SITE_CONFIG.address[lang]);
 
@@ -27,7 +27,8 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
         eyebrow={lang === "el" ? "Είμαστε εδώ για εσάς" : "We're here to help"}
         title={dict.contact.title}
         subtitle={dict.contact.subtitle}
-        imageSrc="/723812114.jpg"
+        imageSrc={siteMedia.contact_hero?.image_url ?? "/723812114.jpg"}
+        imageAlt={(lang === "el" ? siteMedia.contact_hero?.alt_text_el : siteMedia.contact_hero?.alt_text_en) || (lang === "el" ? "Επικοινωνία" : "Contact Villa Memaj")}
       />
       <section className="editorial-standard-content">
         <div className="contact-premium-grid">

@@ -1,13 +1,15 @@
 import Link from "next/link";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import { getPolicyLinks, type PolicyDocument } from "@/lib/legal-content";
+import { getSiteMediaImages } from "@/lib/data";
 import type { Locale } from "@/lib/site";
 
-export default function PolicyDocumentPage({ locale, document }: { locale: Locale; document: PolicyDocument }) {
+export default async function PolicyDocumentPage({ locale, document }: { locale: Locale; document: PolicyDocument }) {
   const links = getPolicyLinks(locale);
+  const siteMedia = await getSiteMediaImages(["legal_hero"]);
   return (
     <div className="legal-page">
-      <EditorialPageHero locale={locale} eyebrow={document.label} title={document.title} subtitle={document.subtitle} />
+      <EditorialPageHero locale={locale} eyebrow={document.label} title={document.title} subtitle={document.subtitle} imageSrc={siteMedia.legal_hero?.image_url ?? "/723811999.jpg"} imageAlt={(locale === "el" ? siteMedia.legal_hero?.alt_text_el : siteMedia.legal_hero?.alt_text_en) || document.title} />
       {locale !== "en" && locale !== "el" ? (
         <div className="legal-translation-note" role="note">
           <strong>{locale === "fr" ? "Traduction juridique à valider" : locale === "de" ? "Rechtliche Übersetzung noch zu prüfen" : locale === "sq" ? "Përkthimi ligjor duhet verifikuar" : "Traduzione legale da verificare"}</strong>

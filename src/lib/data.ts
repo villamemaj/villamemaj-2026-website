@@ -1,5 +1,6 @@
 import { getSupabase } from "./supabase";
 import type { HotelGalleryImage, HotelRoom, HotelRoomGalleryImage } from "./types";
+import type { SiteMediaAssignment, SiteMediaSlotKey } from "./site-media-slots";
 
 
 async function attachRoomGallery(rooms: HotelRoom[]): Promise<HotelRoom[]> {
@@ -60,6 +61,54 @@ export async function getRoomBySlug(slug: string): Promise<HotelRoom | null> {
   } catch {
     return null;
   }
+}
+
+
+export type ResolvedSiteMedia = {
+  image_url: string;
+  alt_text_en: string | null;
+  alt_text_el: string | null;
+};
+
+export async function getSiteMediaImages(
+  slotKeys: SiteMediaSlotKey[],
+): Promise<Partial<Record<SiteMediaSlotKey, ResolvedSiteMedia>>> {
+  const resolved: Partial<Record<SiteMediaSlotKey, ResolvedSiteMedia>> = {};
+  if (slotKeys.length === 0) return resolved;
+  try {
+    const supabase = getSupabase();
+    const { data: assignments, error } = await supabase
+      .from("hotel_site_media_slots")
+      .select("slot_key,gallery_image_id,alt_text_en,alt_text_el")
+      .in("slot_key", slotKeys);
+    if (error || !assignments?.length) return resolved;
+    const rows = assignments as SiteMediaAssignment[];
+    const ids = rows.map((row) => row.gallery_image_id);
+    const { data: assets, error: assetError } = await supabase
+      .from("hotel_gallery_images")
+      .select("id,image_url,alt_text_en,alt_text_el,active")
+      .in("id", ids)
+      .eq("active", true);
+    if (assetError || !assets) return resolved;
+    const byId = new Map(assets.map((asset) => [asset.id, asset]));
+    for (const row of rows) {
+      const asset = byId.get(row.gallery_image_id);
+      if (!asset) continue;
+      resolved[row.slot_key] = {
+        image_url: asset.image_url,
+        alt_text_en: row.alt_text_en || asset.alt_text_en || null,
+        alt_text_el: row.alt_text_el || asset.alt_text_el || null,
+      };
+    }
+    return resolved;
+  } catch {
+    return resolved;
+  }
+}
+
+export async function getSiteMediaImage(slotKey: SiteMediaSlotKey): Promise<ResolvedSiteMedia | null> {
+  const images = await getSiteMediaImages([slotKey]);
+  return images[slotKey] ?? null;
 }
 
 export async function getGalleryImages(): Promise<HotelGalleryImage[]> {

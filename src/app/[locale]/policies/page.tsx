@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import { getPolicyLinks } from "@/lib/legal-content";
+import { getSiteMediaImages } from "@/lib/data";
 import { isLocale, type Locale } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -15,6 +16,7 @@ export default async function PolicyHubPage({ params }: { params: Promise<{ loca
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const lang = locale as Locale;
+  const siteMedia = await getSiteMediaImages(["policies_hero"]);
   return (
     <div className="editorial-page policy-hub">
       <EditorialPageHero
@@ -22,7 +24,8 @@ export default async function PolicyHubPage({ params }: { params: Promise<{ loca
         eyebrow={lang === "el" ? "Πληροφορίες επισκεπτών" : "Guest information"}
         title={lang === "el" ? "Όλα όσα χρειάζεται να γνωρίζετε." : "Everything you need to know."}
         subtitle={lang === "el" ? "Ελέγξτε τους όρους κράτησης και τις πρακτικές πληροφορίες πριν επιλέξετε τη διαμονή σας." : "Review the booking terms and practical information before choosing your stay."}
-        imageSrc="/723812114.jpg"
+        imageSrc={siteMedia.policies_hero?.image_url ?? "/723812114.jpg"}
+        imageAlt={(lang === "el" ? siteMedia.policies_hero?.alt_text_el : siteMedia.policies_hero?.alt_text_en) || (lang === "el" ? "Πληροφορίες και πολιτικές" : "Guest information and policies")}
       />
       <section className="policy-hub-content">
         <div className="policy-hub-heading reveal-from-bottom">

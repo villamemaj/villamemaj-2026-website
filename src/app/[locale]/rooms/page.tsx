@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import RoomCard from "@/components/RoomCard";
 import { getDictionary } from "@/lib/i18n";
-import { getRooms } from "@/lib/data";
+import { getRooms, getSiteMediaImages } from "@/lib/data";
 import { isLocale, type Locale } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -16,7 +16,7 @@ export default async function RoomsPage({ params }: { params: Promise<{ locale: 
   if (!isLocale(locale)) return null;
   const lang = locale as Locale;
   const dict = await getDictionary(lang);
-  const rooms = await getRooms();
+  const [rooms, siteMedia] = await Promise.all([getRooms(), getSiteMediaImages(["rooms_hero"])]);
 
   return (
     <div className="editorial-page rooms-page">
@@ -25,7 +25,8 @@ export default async function RoomsPage({ params }: { params: Promise<{ locale: 
         eyebrow={lang === "el" ? "Οι χώροι μας" : "Our spaces"}
         title={dict.rooms.title}
         subtitle={dict.rooms.subtitle}
-        imageSrc="/902234060.jpg"
+        imageSrc={siteMedia.rooms_hero?.image_url ?? "/902234060.jpg"}
+        imageAlt={(lang === "el" ? siteMedia.rooms_hero?.alt_text_el : siteMedia.rooms_hero?.alt_text_en) || (lang === "el" ? "Οι χώροι μας" : "Our rooms")}
       />
       <section className="editorial-standard-content">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4 reveal-from-bottom">
