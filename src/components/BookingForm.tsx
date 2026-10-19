@@ -5,7 +5,18 @@ import { getSupabase } from "@/lib/supabase";
 import type { Dictionary } from "@/lib/i18n";
 import type { HotelRoom } from "@/lib/types";
 
-const inputClass =
+function propertyLocalDate(): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Tirane",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return values.year + "-" + values.month + "-" + values.day;
+}
+
+const inputClass =const inputClass =
   "w-full rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-olive focus:ring-2 focus:ring-olive/20";
 
 interface RatePlan {
@@ -153,7 +164,7 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, initialCheck
   const [result, setResult] = useState<BookingResult | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [draft, setDraft] = useState<Record<string, string | number> | null>(null);
-  const [today, setToday] = useState("");
+  const today = propertyLocalDate();
   const [checkInDate, setCheckInDate] = useState(initialCheckIn ?? "");
   const [checkOutDate, setCheckOutDate] = useState(initialCheckOut ?? "");
   const [adultCount, setAdultCount] = useState(String(Math.min(12, Math.max(1, initialAdults ?? 2))));
@@ -162,8 +173,6 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, initialCheck
 
   useEffect(() => {
     startRef.current = Date.now();
-    const now = new Date();
-    setToday(now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0"));
     getSupabase()
       .from("rate_plans")
       .select(
