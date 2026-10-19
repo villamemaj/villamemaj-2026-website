@@ -39,6 +39,7 @@ type PolicyRow = {
   tax_label: string | null;
   tax_rate: number | null;
   damage_deposit: number;
+  damage_deposit_currency: "EUR" | "ALL";
   extra_fees: unknown;
   terms_en: string;
   terms_el: string;
@@ -180,6 +181,14 @@ export default async function PropertyPoliciesPage({
               <Field label="Tax label" name="tax_label" defaultValue={row.tax_label} hint="Optional; verify with the accountant before publishing." />
               <Field label="Tax rate (%)" name="tax_rate" type="number" defaultValue={row.tax_rate} hint="Optional. Leave blank if not applicable or unknown." />
               <Field label="Damage deposit amount" name="damage_deposit" type="number" defaultValue={row.damage_deposit} hint="Use 0 if no deposit is collected." />
+              <label className="admin-policy-field">
+                <span>Damage deposit currency</span>
+                <select name="damage_deposit_currency" defaultValue={row.damage_deposit_currency || "EUR"} className="w-full rounded-lg border border-sand-dark bg-white px-3 py-3 text-sm text-ink">
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="ALL">ALL — Albanian lek</option>
+                </select>
+                <small>This currency is included in the guest confirmation; confirm it with your accountant.</small>
+              </label>
             </div>
           </section>
 
