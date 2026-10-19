@@ -61,7 +61,7 @@ export default async function HomePage({
   const sharedAmenities = (["wifi", "ac", "balcony"] as const)
     .filter((amenity) => rooms.length > 0 && rooms.every((room) => room.amenities.includes(amenity)));
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || SITE_CONFIG.url).replace(/\\/+$/, "");
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || SITE_CONFIG.url).replace(/\/+$/, "");
   const roomPrices = rooms.map((room) => Number(room.price_per_night)).filter((price) => Number.isFinite(price) && price > 0);
   const structuredData = {
     "@context": "https://schema.org",
