@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE_CONFIG, type Locale } from "@/lib/site";
+import { getContactInfo } from "@/lib/data";
 import type { Dictionary } from "@/lib/i18n";
 import CookieSettingsLink from "@/components/CookieSettingsLink";
 
@@ -10,6 +11,9 @@ interface FooterProps {
 
 export default function Footer({ locale, dict }: FooterProps) {
   const year = new Date().getFullYear();
+  const contact = await getContactInfo();
+  const phoneHref = contact.phone ? contact.phone.replace(/\s/g, "") : "";
+  const address = locale === "el" ? (contact.address_el ?? SITE_CONFIG.address.el) : (contact.address_en ?? SITE_CONFIG.address[locale]);
 
   const links = [
     { href: `/${locale}/rooms`, label: dict.nav.rooms },
@@ -67,14 +71,12 @@ export default function Footer({ locale, dict }: FooterProps) {
           <p className="section-label text-gold-soft">{dict.footer.contact}</p>
           <ul className="mt-4 space-y-2 text-sm text-cream/80">
             <li>
-              <a href={`tel:${SITE_CONFIG.phone.replace(/\s/g, "")}`}>
-                {SITE_CONFIG.phone}
-              </a>
+              {contact.phone ? <a href={`tel:${phoneHref}`}>{contact.phone}</a> : null}
             </li>
             <li>
-              <a href={`mailto:${SITE_CONFIG.email}`}>{SITE_CONFIG.email}</a>
+              {contact.email ? <a href={`mailto:${contact.email}`}>{contact.email}</a> : null}
             </li>
-            <li>{SITE_CONFIG.address[locale]}</li>
+            {address ? <li>{address}</li> : null}
           </ul>
         </div>
       </div>
