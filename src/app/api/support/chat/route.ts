@@ -13,6 +13,7 @@ type SupportInput = {
   phone?: unknown;
   locale?: unknown;
   website?: unknown;
+  threadId?: unknown;
 };
 
 const MAX_MESSAGE = 2000;
@@ -95,6 +96,10 @@ export async function POST(request: Request) {
   const phone = text(input.phone, 40) || null;
   const localeCandidate = text(input.locale, 8);
   const locale = LOCALES.has(localeCandidate) ? localeCandidate : "en";
+  const requestedThreadId = text(input.threadId, 80);
+  if (requestedThreadId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedThreadId)) {
+    return NextResponse.json({ ok: false, error: "invalid_thread" }, { status: 400 });
+  }
 
   if (message.length < 8) {
     return NextResponse.json({ ok: false, error: "message_too_short" }, { status: 400 });
@@ -116,53 +121,95 @@ export async function POST(request: Request) {
   const ipHash = createHash("sha256").update(ip).digest("hex");
 
   const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-  const { count, error: rateError } = await supabase
-    .from("hotel_guest_support_threads")
-    .select("id", { count: "exact", head: true })
-    .eq("request_ip_hash", ipHash)
-    .gte("created_at", cutoff);
+  type SupportThread = { id: string; public_reference: string; guest_email: string | null; guest_name: string | null };
+  let thread: SupportThread;
 
-  if (rateError) {
-    console.error("Support rate-limit query failed", { code: rateError.code });
-    return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
-  }
-  if ((count ?? 0) >= 8) {
-    return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+  if (requestedThreadId) {
+    const { data: existingThread, error: existingError } = await supabase
+      .from("hotel_guest_support_threads")
+      .select("id,public_reference,guest_email,guest_name,status")
+      .eq("id", requestedThreadId)
+      .eq("request_ip_hash", ipHash)
+      .in("status", ["open", "waiting_for_guest", "waiting_for_staff"])
+      .maybeSingle();
+
+    if (existingError || !existingThread) {
+      return NextResponse.json({ ok: false, error: "thread_not_found" }, { status: 404 });
+    }
+
+    const { count: messageCount, error: messageCountError } = await supabase
+      .from("hotel_guest_support_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("thread_id", requestedThreadId)
+      .eq("sender_role", "guest")
+      .gte("created_at", cutoff);
+
+    if (messageCountError) {
+      return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
+    }
+    if ((messageCount ?? 0) >= 10) {
+      return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+    }
+
+    thread = existingThread as SupportThread;
+    await supabase.from("hotel_guest_support_threads").update({
+      status: "open",
+      last_message_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }).eq("id", thread.id);
+  } else {
+    const { count, error: rateError } = await supabase
+      .from("hotel_guest_support_threads")
+      .select("id", { count: "exact", head: true })
+      .eq("request_ip_hash", ipHash)
+      .gte("created_at", cutoff);
+
+    if (rateError) {
+      console.error("Support rate-limit query failed", { code: rateError.code });
+      return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
+    }
+    if ((count ?? 0) >= 8) {
+      return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+    }
+
+    const initialSubject = message.split(/\r?\n/, 1)[0].slice(0, 120) || "Guest question";
+    const { data: newThread, error: threadError } = await supabase
+      .from("hotel_guest_support_threads")
+      .insert({
+        guest_name: name,
+        guest_email: email || null,
+        guest_phone: phone,
+        locale,
+        subject: initialSubject,
+        source: "website_chat",
+        status: "open",
+        request_ip_hash: ipHash,
+        last_message_at: new Date().toISOString(),
+      })
+      .select("id,public_reference,guest_email,guest_name")
+      .single();
+
+    if (threadError || !newThread) {
+      console.error("Support thread creation failed", { code: threadError?.code });
+      return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
+    }
+    thread = newThread as SupportThread;
   }
 
   const subject = message.split(/\r?\n/, 1)[0].slice(0, 120) || "Guest question";
-  const { data: thread, error: threadError } = await supabase
-    .from("hotel_guest_support_threads")
-    .insert({
-      guest_name: name,
-      guest_email: email || null,
-      guest_phone: phone,
-      locale,
-      subject,
-      source: "website_chat",
-      status: "open",
-      request_ip_hash: ipHash,
-      last_message_at: new Date().toISOString(),
-    })
-    .select("id,public_reference")
-    .single();
-
-  if (threadError || !thread) {
-    console.error("Support thread creation failed", { code: threadError?.code });
-    return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
-  }
-
-  const { error: messageError } = await supabase
+  const { data: guestMessage, error: messageError } = await supabase
     .from("hotel_guest_support_messages")
     .insert({
       thread_id: thread.id,
       sender_role: "guest",
       content: message,
       delivery_channel: "web_chat",
-    });
+    })
+    .select("id")
+    .single();
 
-  if (messageError) {
-    console.error("Support message creation failed", { code: messageError.code, reference: thread.public_reference });
+  if (messageError || !guestMessage) {
+    console.error("Support message creation failed", { code: messageError?.code, reference: thread.public_reference });
     return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
   }
 
@@ -185,15 +232,15 @@ export async function POST(request: Request) {
       body_text: [
         "Reference: " + thread.public_reference,
         "Language: " + locale,
-        "Name: " + (name || "not provided"),
-        "Email: " + (email || "not provided"),
+        "Name: " + (thread.guest_name || name || "not provided"),
+        "Email: " + (thread.guest_email || email || "not provided"),
         "Phone: " + (phone || "not provided"),
         "",
         message,
         "",
         "Open the CRM support inbox to reply. Do not send payment credentials over chat.",
       ].join("\n"),
-      dedupe_key: "support:" + thread.id + ":owner:" + recipient,
+      dedupe_key: "support:" + thread.id + ":message:" + guestMessage.id + ":owner:" + recipient,
     });
     if (error) console.error("Support owner alert queue failed", { code: error.code, reference: thread.public_reference });
   }
@@ -229,6 +276,18 @@ export async function POST(request: Request) {
         roomNames: rooms.map((room) => ({ name: locale === "el" ? room.name_el : room.name_en })),
       };
 
+      const { data: recentHistory } = await supabase
+        .from("hotel_guest_support_messages")
+        .select("sender_role,content")
+        .eq("thread_id", thread.id)
+        .in("sender_role", ["guest", "assistant"])
+        .order("created_at", { ascending: false })
+        .limit(10);
+      const conversationInput = (recentHistory ?? []).reverse().map((item) => ({
+        role: item.sender_role === "assistant" ? "assistant" : "user",
+        content: item.content,
+      }));
+
       const instructions = [
         "You are the guest-support assistant for Villa Memaj, a small accommodation property in Albania.",
         "Reply in " + (locale === "el" ? "Greek" : locale === "fr" ? "French" : locale === "sq" ? "Albanian" : locale === "de" ? "German" : "English") + ".",
@@ -249,7 +308,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           model,
           instructions,
-          input: message,
+          input: conversationInput,
           max_output_tokens: 350,
           store: false,
         }),
@@ -297,6 +356,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     ok: true,
     reference: thread.public_reference,
+    threadId: thread.id,
     reply,
     handedOff: !aiAnswered,
   });
