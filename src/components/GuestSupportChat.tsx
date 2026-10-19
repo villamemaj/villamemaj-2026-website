@@ -6,12 +6,12 @@ import type { Locale } from "@/lib/site";
 type ChatEntry = { role: "guest" | "assistant"; text: string };
 
 const COPY: Record<Locale, {
-  label: string; title: string; intro: string; name: string; email: string; message: string;
+  label: string; title: string; intro: string; name: string; email: string; phone: string; human: string; message: string;
   send: string; sending: string; close: string; privacy: string; error: string; start: string;
 }> = {
   en: {
     label: "Chat with us", title: "Villa Memaj support", intro: "Ask us about the property or your stay.",
-    name: "Name (optional)", email: "Email (optional)", message: "Your question",
+    name: "Name (optional)", email: "Email (optional)", phone: "Phone (optional)", human: "Please have a team member contact me.", message: "Your question",
     send: "Send question", sending: "Sending…", close: "Close chat",
     privacy: "Messages are stored in our private support inbox. Do not send payment-card details or passwords.",
     error: "We could not send that message. Please try again or email info@villamemaj.com.",
@@ -19,7 +19,7 @@ const COPY: Record<Locale, {
   },
   el: {
     label: "Συνομιλήστε μαζί μας", title: "Υποστήριξη Villa Memaj", intro: "Ρωτήστε μας για το κατάλυμα ή τη διαμονή σας.",
-    name: "Όνομα (προαιρετικό)", email: "Email (προαιρετικό)", message: "Η ερώτησή σας",
+    name: "Όνομα (προαιρετικό)", email: "Email (προαιρετικό)", phone: "Τηλέφωνο (προαιρετικό)", human: "Θα ήθελα να επικοινωνήσει μαζί μου μέλος της ομάδας.", message: "Η ερώτησή σας",
     send: "Αποστολή ερώτησης", sending: "Αποστολή…", close: "Κλείσιμο συνομιλίας",
     privacy: "Τα μηνύματα αποθηκεύονται στο ιδιωτικό μας inbox υποστήριξης. Μην στέλνετε στοιχεία κάρτας ή κωδικούς.",
     error: "Δεν ήταν δυνατή η αποστολή. Δοκιμάστε ξανά ή στείλτε email στο info@villamemaj.com.",
@@ -27,7 +27,7 @@ const COPY: Record<Locale, {
   },
   fr: {
     label: "Discuter avec nous", title: "Assistance Villa Memaj", intro: "Posez une question sur l’hébergement ou votre séjour.",
-    name: "Nom (facultatif)", email: "E-mail (facultatif)", message: "Votre question",
+    name: "Nom (facultatif)", email: "E-mail (facultatif)", phone: "Téléphone (facultatif)", human: "Je souhaite être contacté par un membre de l’équipe.", message: "Votre question",
     send: "Envoyer", sending: "Envoi…", close: "Fermer la discussion",
     privacy: "Les messages sont conservés dans notre boîte de support privée. N’envoyez pas de données de carte ou de mots de passe.",
     error: "Envoi impossible. Réessayez ou écrivez à info@villamemaj.com.",
@@ -35,7 +35,7 @@ const COPY: Record<Locale, {
   },
   sq: {
     label: "Bisedoni me ne", title: "Mbështetja Villa Memaj", intro: "Pyesni për akomodimin ose qëndrimin tuaj.",
-    name: "Emri (opsional)", email: "Email (opsional)", message: "Pyetja juaj",
+    name: "Emri (opsional)", email: "Email (opsional)", phone: "Telefoni (opsional)", human: "Dua të më kontaktojë një anëtar i ekipit.", message: "Pyetja juaj",
     send: "Dërgo pyetjen", sending: "Duke dërguar…", close: "Mbyll bisedën",
     privacy: "Mesazhet ruhen në kutinë tonë private të mbështetjes. Mos dërgoni të dhëna karte ose fjalëkalime.",
     error: "Mesazhi nuk u dërgua. Provoni përsëri ose shkruani në info@villamemaj.com.",
@@ -43,7 +43,7 @@ const COPY: Record<Locale, {
   },
   de: {
     label: "Chatten Sie mit uns", title: "Villa Memaj Support", intro: "Fragen Sie uns zur Unterkunft oder Ihrem Aufenthalt.",
-    name: "Name (optional)", email: "E-Mail (optional)", message: "Ihre Frage",
+    name: "Name (optional)", email: "E-Mail (optional)", phone: "Telefon (optional)", human: "Ich möchte von einem Teammitglied kontaktiert werden.", message: "Ihre Frage",
     send: "Frage senden", sending: "Wird gesendet…", close: "Chat schließen",
     privacy: "Nachrichten werden in unserem privaten Support-Postfach gespeichert. Senden Sie keine Kartendaten oder Passwörter.",
     error: "Nachricht konnte nicht gesendet werden. Versuchen Sie es erneut oder schreiben Sie an info@villamemaj.com.",
@@ -58,6 +58,8 @@ export default function GuestSupportChat({ locale }: { locale: Locale }) {
   const [threadId, setThreadId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [requestHuman, setRequestHuman] = useState(false);
   const [message, setMessage] = useState("");
   const [entries, setEntries] = useState<ChatEntry[]>([]);
   const [error, setError] = useState("");
@@ -80,8 +82,10 @@ export default function GuestSupportChat({ locale }: { locale: Locale }) {
           message: nextMessage,
           name,
           email,
+          phone,
           locale,
           threadId,
+          requestHuman,
           website: "",
         }),
       });
@@ -131,9 +135,16 @@ export default function GuestSupportChat({ locale }: { locale: Locale }) {
           </div>
           <form onSubmit={submit} className="space-y-2 border-t border-sand-dark p-4">
             {entries.length === 0 ? (
-              <div className="grid grid-cols-2 gap-2">
-                <input value={name} onChange={(event) => setName(event.target.value)} maxLength={100} autoComplete="name" placeholder={t.name} className="min-w-0 rounded-lg border border-sand-dark px-3 py-2 text-xs text-ink" />
-                <input value={email} onChange={(event) => setEmail(event.target.value)} maxLength={254} type="email" autoComplete="email" placeholder={t.email} className="min-w-0 rounded-lg border border-sand-dark px-3 py-2 text-xs text-ink" />
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <input value={name} onChange={(event) => setName(event.target.value)} maxLength={100} autoComplete="name" placeholder={t.name} className="min-w-0 rounded-lg border border-sand-dark px-3 py-2 text-xs text-ink" />
+                  <input value={email} onChange={(event) => setEmail(event.target.value)} maxLength={254} type="email" autoComplete="email" placeholder={t.email} className="min-w-0 rounded-lg border border-sand-dark px-3 py-2 text-xs text-ink" />
+                  <input value={phone} onChange={(event) => setPhone(event.target.value)} maxLength={40} type="tel" autoComplete="tel" placeholder={t.phone} className="col-span-2 min-w-0 rounded-lg border border-sand-dark px-3 py-2 text-xs text-ink" />
+                </div>
+                <label className="flex items-start gap-2 text-xs leading-5 text-ink-soft">
+                  <input type="checkbox" checked={requestHuman} onChange={(event) => setRequestHuman(event.target.checked)} className="mt-1 h-3.5 w-3.5 accent-olive" />
+                  <span>{t.human}</span>
+                </label>
               </div>
             ) : null}
             <label className="sr-only" htmlFor="guest-support-message">{t.message}</label>
