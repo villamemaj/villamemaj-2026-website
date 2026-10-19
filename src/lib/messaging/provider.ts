@@ -45,7 +45,7 @@ const twilioProvider: GuestMessageProvider = {
       : process.env.TWILIO_WHATSAPP_FROM?.trim();
 
     if (!sid || !token || !fromRaw) {
-      return { ok: false, provider: "twilio", error: \`Twilio is not configured for \${message.channel}.\` };
+      return { ok: false, provider: "twilio", error: `Twilio is not configured for ${message.channel}.` };
     }
 
     const toPhone = normalizePhone(message.toPhone);
@@ -59,15 +59,15 @@ const twilioProvider: GuestMessageProvider = {
     }
 
     const form = new URLSearchParams();
-    form.set("To", message.channel === "whatsapp" ? \`whatsapp:\${toPhone}\` : toPhone);
-    form.set("From", message.channel === "whatsapp" ? \`whatsapp:\${fromPhone}\` : fromPhone);
+    form.set("To", message.channel === "whatsapp" ? `whatsapp:${toPhone}` : toPhone);
+    form.set("From", message.channel === "whatsapp" ? `whatsapp:${fromPhone}` : fromPhone);
     form.set("Body", message.body.slice(0, 1500));
 
     try {
-      const response = await fetch(\`https://api.twilio.com/2010-04-01/Accounts/\${encodeURIComponent(sid)}/Messages.json\`, {
+      const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(sid)}/Messages.json`, {
         method: "POST",
         headers: {
-          Authorization: \`Basic \${Buffer.from(\`\${sid}:\${token}\`).toString("base64")}\`,
+          Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString("base64")}`,
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: form,
@@ -78,7 +78,7 @@ const twilioProvider: GuestMessageProvider = {
         return {
           ok: false,
           provider: "twilio",
-          error: \`Twilio \${response.status}: \${String(data?.message || "message send failed").slice(0, 250)}\`,
+          error: `Twilio ${response.status}: ${String(data?.message || "message send failed").slice(0, 250)}`,
         };
       }
       return { ok: true, provider: "twilio", messageId: data.sid };
