@@ -83,7 +83,6 @@ export default async function CookiesPage({ params }: { params: Promise<{ locale
             ))}
           </div>
           <div className="mt-10 flex flex-wrap gap-5 border-t border-sand-dark pt-6 text-sm font-semibold text-olive">
-            <button type="button" onClick={undefined as never} className="sr-only" aria-hidden="true">Cookie settings</button>
             <Link href={"/" + locale + "/privacy"} className="underline underline-offset-4">{locale === "el" ? "Πολιτική απορρήτου" : locale === "fr" ? "Politique de confidentialité" : locale === "sq" ? "Politika e privatësisë" : locale === "de" ? "Datenschutzerklärung" : "Privacy policy"}</Link>
             <Link href={"/" + locale + "/terms"} className="underline underline-offset-4">{locale === "el" ? "Όροι κράτησης" : locale === "fr" ? "Conditions de réservation" : locale === "sq" ? "Kushtet e rezervimit" : locale === "de" ? "Buchungsbedingungen" : "Booking terms"}</Link>
           </div>
