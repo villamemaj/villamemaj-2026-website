@@ -3,12 +3,23 @@
 -- grants from private guest, audit and staff-membership tables.
 
 grant select (
+  contact_email,
+  contact_phone,
+  address_en,
+  address_el,
   damage_deposit_currency,
   arrival_instructions_en,
   arrival_instructions_el,
   local_guide_en,
-  local_guide_el
+  local_guide_el,
+  public_review_url
 ) on public.hotel_house_policies to anon;
+
+-- Owner notification destinations are private operational data and must not be
+-- selectable by ordinary authenticated staff, even when a staff RLS policy grants
+-- access to the public property-settings row. The owner-alert worker uses service_role.
+revoke select (notification_emails) on public.hotel_house_policies from authenticated;
+revoke update (notification_emails) on public.hotel_house_policies from authenticated;
 
 revoke all privileges on table public.guests, public.hotel_audit_log, public.hotel_staff_memberships
   from public, anon;
