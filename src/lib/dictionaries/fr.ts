@@ -7,6 +7,7 @@ const dictionary: Dictionary = {
     gallery: "Galerie",
     booking: "Réservation",
     contact: "Contact",
+    travel: "Voyage",
   },
   hero: {
     title: "Villa Memaj",
