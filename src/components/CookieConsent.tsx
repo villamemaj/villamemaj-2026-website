@@ -25,24 +25,28 @@ export default function CookieConsent({ locale }: { locale: string }) {
     : { title: "Your privacy choices", body: "We use only necessary cookies for site operation and security by default. Optional analytics and marketing stay off unless you choose to enable them.", necessary: "Necessary (always on)", analytics: "Analytics", marketing: "Marketing", manage: "Preferences", accept: "Save choices", only: "Necessary only", privacy: "Privacy policy" };
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(CONSENT_KEY);
-      if (!stored) setVisible(true);
-      else {
-        const value = JSON.parse(stored) as Consent;
-        setAnalytics(value.analytics === true);
-        setMarketing(value.marketing === true);
+    const frame = window.requestAnimationFrame(() => {
+  
+      try {
+        const stored = localStorage.getItem(CONSENT_KEY);
+        if (!stored) setVisible(true);
+        else {
+          const value = JSON.parse(stored) as Consent;
+          setAnalytics(value.analytics === true);
+          setMarketing(value.marketing === true);
+        }
+      } catch {
+        setVisible(true);
       }
-    } catch {
-      setVisible(true);
-    }
-
-    const openSettings = () => {
-      setVisible(true);
-      setPreferences(true);
-    };
-    window.addEventListener("villa-memaj:open-cookie-settings", openSettings);
-    return () => window.removeEventListener("villa-memaj:open-cookie-settings", openSettings);
+  
+      const openSettings = () => {
+        setVisible(true);
+        setPreferences(true);
+      };
+      window.addEventListener("villa-memaj:open-cookie-settings", openSettings);
+      return () => window.removeEventListener("villa-memaj:open-cookie-settings", openSettings);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   function save(allowAnalytics: boolean, allowMarketing: boolean) {
