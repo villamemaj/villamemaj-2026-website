@@ -8,7 +8,7 @@ import { isLocale, type Locale } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
-const methodLabels: Record<string, Record<Locale, string>> = {
+const methodLabels: Record<string, Partial<Record<Locale, string>>> = {
   cash: { en: "cash at the property", el: "μετρητά στο κατάλυμα" },
   online_card: { en: "online card payment through secure Stripe Checkout", el: "ηλεκτρονική πληρωμή με κάρτα μέσω ασφαλούς Stripe Checkout" },
   bank_transfer: { en: "bank transfer when stated in the offer", el: "τραπεζική μεταφορά όταν αναφέρεται στην προσφορά" },
@@ -28,7 +28,8 @@ export default async function FAQPage({ params }: { params: Promise<{ locale: st
   if (!isLocale(locale)) notFound();
   const lang = locale as Locale;
   const settings = await getPublicHousePolicySettings();
-  let questions = [...faq[lang]];
+  const baseFaq = faq[lang] ?? faq.en ?? [];
+  let questions = [...baseFaq];
 
   if (settings) {
     const livePaymentsEnabled = process.env.STRIPE_LIVE_PAYMENTS_ENABLED === "true";
@@ -45,12 +46,12 @@ export default async function FAQPage({ params }: { params: Promise<{ locale: st
           `${settings.parties_allowed ? "Τα πάρτι επιτρέπονται μόνο σύμφωνα με τους όρους κράτησης." : "Τα πάρτι και οι εκδηλώσεις δεν επιτρέπονται."} ${settings.quiet_hours ? `Ώρες κοινής ησυχίας: ${settings.quiet_hours}.` : "Δεν έχουν οριστεί ειδικές ώρες κοινής ησυχίας, αλλά πρέπει να γίνεται σεβαστή η γειτονιά."}`,
           `${settings.internet_information} ${settings.parking_information}`,
           paymentMethods.length ? `Οι μέθοδοι απευθείας πληρωμής που είναι ρυθμισμένες είναι: ${paymentMethods.join(", ")}. Ισχύουν οι όροι της συγκεκριμένης προσφοράς.` : "Δεν έχει ρυθμιστεί διαθέσιμη μέθοδος απευθείας πληρωμής. Επικοινωνήστε μαζί μας πριν από την κράτηση.",
-          faq[lang][7].a,
-          faq[lang][8].a,
+          (baseFaq[7]?.a ?? "Please contact the property for details."),
+          (baseFaq[8]?.a ?? "Please contact the property for details."),
           settings.monthly_stays_allowed
             ? `Διαμονές άνω των 30 διανυκτερεύσεων μπορεί να γίνουν δεκτές έως ${settings.max_stay_nights} διανυκτερεύσεις, ανάλογα με τη διαθεσιμότητα και την επιβεβαιωμένη τιμή.`
             : "Δεν γίνονται δεκτές διαμονές άνω των 30 διανυκτερεύσεων.",
-          faq[lang][10].a,
+          (baseFaq[10]?.a ?? "Email info@villamemaj.com for assistance."),
         ]
       : [
           `Check-in: ${settings.check_in_time}. Check-out: ${settings.check_out_time}. Always follow your individual confirmation.`,
@@ -60,12 +61,12 @@ export default async function FAQPage({ params }: { params: Promise<{ locale: st
           `${settings.parties_allowed ? "Parties are permitted only under the booking terms." : "Parties and events are not allowed."} ${settings.quiet_hours ? `Quiet hours: ${settings.quiet_hours}.` : "No specific quiet hours are published, but guests must respect neighbours."}`,
           `${settings.internet_information} ${settings.parking_information}`,
           paymentMethods.length ? `The direct payment methods currently configured are: ${paymentMethods.join(", ")}. Your specific offer terms apply.` : "No direct payment method is currently configured. Contact the property before booking.",
-          faq[lang][7].a,
-          faq[lang][8].a,
+          (baseFaq[7]?.a ?? "Please contact the property for details."),
+          (baseFaq[8]?.a ?? "Please contact the property for details."),
           settings.monthly_stays_allowed
             ? `Stays over 30 nights may be accepted up to ${settings.max_stay_nights} nights, subject to availability and a confirmed rate.`
             : "Stays over 30 nights are not accepted.",
-          faq[lang][10].a,
+          (baseFaq[10]?.a ?? "Email info@villamemaj.com for assistance."),
         ];
     questions = questions.map((item, index) => ({ ...item, a: answers[index] ?? item.a }));
     questions.push({
