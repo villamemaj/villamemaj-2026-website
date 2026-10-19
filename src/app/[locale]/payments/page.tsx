@@ -7,7 +7,7 @@ import { isLocale, type Locale } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
-const methodLabels: Record<string, Record<Locale, string>> = {
+const methodLabels: Record<string, Partial<Record<Locale, string>>> = {
   cash: { en: "Cash at the property", el: "Μετρητά στο κατάλυμα" },
   online_card: { en: "Online card payment through secure Stripe Checkout", el: "Ηλεκτρονική πληρωμή με κάρτα μέσω ασφαλούς Stripe Checkout" },
   bank_transfer: { en: "Bank transfer, when stated in the offer", el: "Τραπεζική μεταφορά, όταν αναφέρεται στην προσφορά" },
