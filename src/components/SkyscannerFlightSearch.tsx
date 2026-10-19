@@ -95,6 +95,8 @@ export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
             data-enable-placeholders="true"
             data-responsive="true"
             data-widget-scale="1"
+            data-associate-id={process.env.NEXT_PUBLIC_SKYSCANNER_ASSOCIATE_ID || undefined}
+            data-utm-term="villa-memaj-website"
           />
           <Script
             src="https://widgets.skyscanner.net/widget-server/v2.0/widgets-constructor.js"
