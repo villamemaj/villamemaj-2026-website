@@ -130,8 +130,8 @@ export const legalTranslations: Partial<Record<Locale, Record<string, PolicyDocu
       { heading: "2. Shuma dhe monedha", paragraphs: ["Çmimi total, monedha, parapagimi dhe bilanci duhet të shfaqen para se të angazhoheni. Mos paguani një shumë që nuk përputhet me konfirmimin; kontaktoni akomodimin për verifikim."] },
       { heading: "3. Siguria dhe konfirmimi", paragraphs: ["Vendosni të dhënat e kartës vetëm në faqen e sigurt të ofruesit të identifikuar. Mos dërgoni numrin e plotë të kartës, kod sigurie, fjalëkalim bankar apo kod autentikimi me email ose mesazh. Pagesa regjistrohet si e marrë vetëm pas verifikimit nga ofruesi në server; ridrejtimi i shfletuesit nuk mjafton."] },
       { heading: "4. Rimbursimet dhe kundërshtimet", paragraphs: ["Rimbursimet ndjekin kushtet e anulimit dhe ligjin e zbatueshëm. Afatet ndryshojnë sipas ofruesit dhe bankës. Ruani konfirmimin dhe faturën dhe kontaktoni info@villamemaj.com me kodin e rezervimit nëse një transaksion duket i pasaktë."] }
-    ])
-  ]),
+    ]),
+  },
   de: {
     terms: makeDocument("Gästeinformationen", "Buchungs- und Aufenthaltsbedingungen", "Wichtige Informationen zu Reservierung, Aufenthalt, Zahlungen und gemeinsamen Pflichten.", "19. Oktober 2026", [
       { heading: "1. Buchung und Bestätigung", paragraphs: [
