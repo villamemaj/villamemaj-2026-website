@@ -8,6 +8,12 @@ export default function PolicyDocumentPage({ locale, document }: { locale: Local
   return (
     <div className="legal-page">
       <EditorialPageHero locale={locale} eyebrow={document.label} title={document.title} subtitle={document.subtitle} />
+      {locale !== "en" && locale !== "el" ? (
+        <div className="legal-translation-note" role="note">
+          <strong>{locale === "fr" ? "Traduction juridique à valider" : locale === "de" ? "Rechtliche Übersetzung noch zu prüfen" : locale === "sq" ? "Përkthimi ligjor duhet verifikuar" : "Traduzione legale da verificare"}</strong>
+          <p>{locale === "fr" ? "Le texte juridiquement applicable est actuellement disponible en anglais. Une traduction professionnelle doit être vérifiée avant que cette version puisse être considérée comme définitive." : locale === "de" ? "Der rechtlich maßgebliche Text ist derzeit auf Englisch verfügbar. Eine professionelle Übersetzung muss geprüft werden, bevor diese Fassung als endgültig gilt." : locale === "sq" ? "Teksti ligjor aktualisht është i disponueshëm në anglisht. Përkthimi profesional duhet verifikuar para se ky version të konsiderohet përfundimtar." : "Il testo giuridicamente applicabile è attualmente disponibile in inglese. Una traduzione professionale deve essere verificata prima che questa versione possa essere considerata definitiva."}</p>
+        </div>
+      ) : null}
       <div className="legal-layout">
         <aside className="legal-sidebar reveal-from-left">
           <p className="section-label">{locale === "el" ? "Πληροφορίες" : "Information"}</p>
