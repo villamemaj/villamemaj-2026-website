@@ -76,7 +76,7 @@ export default function MediaLibraryClient({
   }, [target, roomImages, siteImages, roomId, search]);
 
   function addFiles(files: File[]) {
-    if (files.length > 12) {
+    if (files.length + queue.length > 12) {
       setNotice({ kind: "error", text: "Choose up to 12 images per upload batch." });
       return;
     }
@@ -141,7 +141,7 @@ export default function MediaLibraryClient({
         const response = await fetch("/api/admin/media/upload", { method: "POST", body: form });
         const result = await response.json() as { ok?: boolean; item?: MediaAsset; error?: string };
         if (!response.ok || !result.item) throw new Error(result.error || "An image could not be uploaded.");
-        if (target === "room") setRoomImages((current) => [result.item!, ...current]);
+        if (target === "room") setRoomImages((current) => [result.item!, ...current.map((image) => result.item?.is_cover && image.room_id === roomId ? { ...image, is_cover: false } : image)]);
         else setSiteImages((current) => [result.item!, ...current]);
         completed += 1;
       }
@@ -166,11 +166,19 @@ export default function MediaLibraryClient({
       const result = await response.json() as { ok?: boolean; item?: MediaAsset; error?: string };
       if (!response.ok || !result.item) throw new Error(result.error || "Could not save image changes.");
       if (target === "room") {
-        setRoomImages((current) => current.map((image) => {
-          if (image.id === item.id) return result.item!;
-          if (changes.is_cover === true && image.room_id === roomId) return { ...image, is_cover: false };
-          return image;
-        }));
+        setRoomImages((current) => {
+          let next = current.map((image) => {
+            if (image.id === item.id) return result.item!;
+            if (changes.is_cover === true && image.room_id === roomId) return { ...image, is_cover: false };
+            return image;
+          });
+          const roomPhotos = next.filter((image) => image.room_id === roomId && image.active).sort((a, b) => a.sort_order - b.sort_order);
+          if (roomPhotos.length && !roomPhotos.some((image) => image.is_cover)) {
+            const firstId = roomPhotos[0].id;
+            next = next.map((image) => image.room_id === roomId ? { ...image, is_cover: image.id === firstId } : image);
+          }
+          return next;
+        });
       } else {
         setSiteImages((current) => current.map((image) => image.id === item.id ? result.item! : image));
       }
@@ -194,7 +202,15 @@ export default function MediaLibraryClient({
       });
       const result = await response.json() as { ok?: boolean; storageCleanupPending?: boolean; error?: string };
       if (!response.ok || !result.ok) throw new Error(result.error || "Could not remove the image.");
-      if (target === "room") setRoomImages((current) => current.filter((image) => image.id !== item.id));
+      if (target === "room") setRoomImages((current) => {
+        let next = current.filter((image) => image.id !== item.id);
+        const roomPhotos = next.filter((image) => image.room_id === roomId && image.active).sort((a, b) => a.sort_order - b.sort_order);
+        if (roomPhotos.length && !roomPhotos.some((image) => image.is_cover)) {
+          const firstId = roomPhotos[0].id;
+          next = next.map((image) => image.room_id === roomId ? { ...image, is_cover: image.id === firstId } : image);
+        }
+        return next;
+      });
       else setSiteImages((current) => current.filter((image) => image.id !== item.id));
       setNotice({ kind: result.storageCleanupPending ? "error" : "success", text: result.storageCleanupPending ? "Image removed from the website, but its stored file needs cleanup." : "Image removed." });
     } catch (error) {
