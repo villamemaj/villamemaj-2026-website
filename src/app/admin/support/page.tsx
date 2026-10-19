@@ -37,7 +37,7 @@ export default async function SupportInboxPage({
 }: {
   searchParams: Promise<{ sent?: string; closed?: string; error?: string }>;
 }) {
-  const { role } = await requireStaff(["owner", "manager", "receptionist"]);
+  await requireStaff(["owner", "manager", "receptionist"]);
   const params = await searchParams;
   const service = createSupabaseServiceClient();
   if (!service) {
