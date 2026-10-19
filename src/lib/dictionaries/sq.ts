@@ -1,7 +1,7 @@
 import type { Dictionary } from "../i18n";
 
 const dictionary: Dictionary = {
-  nav: { home: "Kryefaqja", rooms: "Dhomat", gallery: "Galeria", booking: "Rezervimi", contact: "Kontakt" , travel: "Udhëtimi", menu: "Hap menunë", closeMenu: "Mbyll menunë", language: "Zgjidhni gjuhën" },
+  nav: { home: "Kryefaqja", rooms: "Dhomat", gallery: "Galeria", booking: "Rezervimi", contact: "Kontakt" , travel: "Udhëtimi", menu: "Hap menunë", closeMenu: "Mbyll menunë", language: "Zgjidhni gjuhën", mainNavigation: "Navigimi kryesor" },
   hero: { title: "Mikpritja takon detin", subtitle: "Një strehë e qetë me pamje, mikpritje të ngrohtë dhe dhoma të krijuara për pushimin tuaj.", ctaRooms: "Shikoni dhomat", ctaBook: "Rezervoni tani" },
   home: {
     welcomeLabel: "Mirë se vini", welcomeTitle: "Mikpritje me zemër",
