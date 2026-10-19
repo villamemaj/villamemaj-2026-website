@@ -13,7 +13,7 @@ export const SITE_MEDIA_SLOTS = [
   { key: "contact_hero", label: "Contact page · hero", group: "Page banners", defaultImage: "/723812114.jpg", description: "Banner image above contact details and the contact form." },
   { key: "policies_hero", label: "Policies page · hero", group: "Page banners", defaultImage: "/723812114.jpg", description: "Banner image above the guest information and policy hub." },
   { key: "faq_hero", label: "FAQ page · hero", group: "Page banners", defaultImage: "/902234060.jpg", description: "Banner image on the frequently asked questions page." },
-  { key: "legal_hero", label: "Legal documents · hero", group: "Page banners", defaultImage: "/723812114.jpg", description: "Shared banner image on terms, privacy, cookies, cancellation and other legal detail pages." },
+  { key: "legal_hero", label: "Legal documents · hero", group: "Page banners", defaultImage: "/723811999.jpg", description: "Shared banner image on terms, privacy, cookies, cancellation and other legal detail pages." },
 ] as const;
 
 export type SiteMediaSlotKey = (typeof SITE_MEDIA_SLOTS)[number]["key"];
