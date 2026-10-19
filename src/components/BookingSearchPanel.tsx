@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/site";
 import type { Dictionary } from "@/lib/i18n";
 
-function localDate(value: Date): string {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-  return year + "-" + month + "-" + day;
+function localDate(): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Tirane",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return values.year + "-" + values.month + "-" + values.day;
 }
 
 function followingDay(value: string): string {
@@ -27,16 +31,13 @@ export default function BookingSearchPanel({
   copy: Dictionary["editorialHome"]["bookingSearch"];
 }) {
   const router = useRouter();
-  const [today, setToday] = useState("");
+  const today = localDate();
   const [arrival, setArrival] = useState("");
   const [departure, setDeparture] = useState("");
   const [adults, setAdults] = useState("2");
   const [children, setChildren] = useState("0");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    setToday(localDate(new Date()));
-  }, []);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
