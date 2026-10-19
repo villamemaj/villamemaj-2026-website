@@ -23,7 +23,7 @@ export default async function BookingPage({ params, searchParams }: {
   const rooms = await getRooms();
   const initialRoom = rooms.find((room) => room.slug === roomSlug);
   const isValidDate = (value?: string) => {
-    if (!value || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
+    if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     const parsed = new Date(value + "T00:00:00Z");
     return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
   };
