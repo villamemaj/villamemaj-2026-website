@@ -1,0 +1,26 @@
+import type { Dictionary } from "../i18n";
+
+const dictionary: Dictionary = {
+  nav: { home: "Home", rooms: "Camere", gallery: "Galleria", booking: "Prenotazioni", contact: "Contatti" },
+  hero: { title: "Villa Memaj", subtitle: "Un rifugio tranquillo, un’accoglienza calorosa e spazi pensati per il vostro relax.", ctaRooms: "Scopri le camere", ctaBook: "Prenota ora" },
+  home: {
+    welcomeLabel: "Benvenuti", welcomeTitle: "Ospitalità con il cuore",
+    welcomeText: "A Villa Memaj ogni momento trova la sua tranquillità. Spazi curati, luce naturale e un’atmosfera rilassata per sentirsi a casa.",
+    features: [
+      { title: "Posizione tranquilla", text: "Un soggiorno rigenerante vicino alla natura e al mare." },
+      { title: "Camere confortevoli", text: "Camere luminose e pulite con comfort moderni." },
+      { title: "Sapori locali", text: "Scoprite i prodotti del territorio e le esperienze locali." }
+    ],
+    roomsTitle: "Le nostre camere", roomsText: "Scegliete lo spazio più adatto a voi.", viewAll: "Vedi tutte le camere",
+    galleryTitle: "Momenti a Villa Memaj", galleryText: "Uno sguardo agli spazi e all’atmosfera che vi aspettano.",
+    ctaTitle: "Pronti per le vacanze?", ctaText: "Inviate una richiesta di prenotazione e vi risponderemo il prima possibile.", ctaBook: "Richiesta di prenotazione"
+  },
+  rooms: { title: "Camere e suite", subtitle: "Spazi pensati per il comfort, la tranquillità e il riposo.", from: "da", perNight: "€ / notte", guests: "Ospiti", size: "Superficie", viewDetails: "Dettagli", book: "Prenota", amenities: "Servizi", empty: "Le camere saranno disponibili a breve. Contattateci per conoscere la disponibilità." },
+  room: { backToRooms: "Torna alle camere", bookThisRoom: "Prenota questa camera", notFound: "Camera non trovata." },
+  booking: { title: "Richiesta di prenotazione", subtitle: "Inserite i vostri dati e vi contatteremo per confermare la disponibilità.", roomLabel: "Camera", anyRoom: "Qualsiasi camera disponibile", name: "Nome completo", email: "E-mail", phone: "Telefono", checkIn: "Check-in", checkOut: "Check-out", guests: "Numero di ospiti", message: "Messaggio (facoltativo)", messagePlaceholder: "Richieste particolari o domande…", submit: "Invia richiesta", sending: "Invio…", successTitle: "Richiesta ricevuta!", successText: "Grazie. Vi contatteremo a breve per la conferma.", errorText: "Si è verificato un problema. Riprovate oppure contattateci direttamente.", newRequest: "Nuova richiesta" },
+  contact: { title: "Contatti", subtitle: "Siamo a disposizione per domande e assistenza con la prenotazione.", name: "Nome completo", email: "E-mail", subject: "Oggetto", message: "Messaggio", submit: "Invia messaggio", sending: "Invio…", successTitle: "Messaggio inviato!", successText: "Grazie. Vi risponderemo presto.", errorText: "Si è verificato un problema. Riprovate.", phoneLabel: "Telefono", emailLabel: "E-mail", addressLabel: "Indirizzo", newMessage: "Nuovo messaggio" },
+  gallery: { title: "Galleria fotografica", subtitle: "Spazi, dettagli e momenti di Villa Memaj.", empty: "Le foto saranno disponibili a breve." },
+  footer: { tagline: "Il vostro rifugio tranquillo per riposare e vivere nuove esperienze.", quickLinks: "Link rapidi", contact: "Contatti", rights: "Tutti i diritti riservati." },
+  amenities: { wifi: "Wi-Fi gratuito", ac: "Aria condizionata", tv: "TV", minibar: "Minibar", balcony: "Balcone", sea_view: "Vista mare", kitchen: "Cucina", breakfast: "Colazione", parking: "Parcheggio", workspace: "Spazio di lavoro" }
+};
+export default dictionary;
