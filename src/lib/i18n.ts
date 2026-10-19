@@ -12,6 +12,7 @@ export interface Dictionary {
     menu: string;
     closeMenu: string;
     language: string;
+    mainNavigation: string;
   };
   hero: {
     title: string;
