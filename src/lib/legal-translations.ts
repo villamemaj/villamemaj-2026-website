@@ -69,8 +69,8 @@ export const legalTranslations: Partial<Record<Locale, Record<string, PolicyDocu
       { heading: "2. Montant et devise", paragraphs: ["Le prix total, la devise, l'acompte et le solde doivent apparaître avant que vous ne vous engagiez. N'effectuez pas de paiement qui ne correspond pas à votre confirmation; contactez-nous afin de vérifier l'écart."] },
       { heading: "3. Sécurité et confirmation", paragraphs: ["Saisissez les données de carte uniquement sur la page hébergée par le fournisseur de paiement identifié. Ne transmettez jamais de numéro complet de carte, code de sécurité, mot de passe bancaire ou code d'authentification par e-mail ou message. Le paiement est enregistré comme reçu uniquement après vérification côté serveur par le prestataire; une redirection du navigateur ne suffit pas."] },
       { heading: "4. Remboursements et contestations", paragraphs: ["Les remboursements suivent les conditions d'annulation et la loi applicable. Les délais varient selon le prestataire et la banque. Gardez la confirmation et le reçu et contactez info@villamemaj.com avec votre référence si une transaction semble incorrecte."] }
-    ])
-  ]),
+    ]),
+  },
   sq: {
     terms: makeDocument("Informacion për vizitorët", "Kushtet e rezervimit dhe qëndrimit", "Informacion i qartë për rezervimin, pagesat, qëndrimin dhe përgjegjësitë e përbashkëta.", "19 tetor 2026", [
       { heading: "1. Rezervimi dhe konfirmimi", paragraphs: [
