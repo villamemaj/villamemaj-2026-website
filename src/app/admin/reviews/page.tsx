@@ -33,7 +33,7 @@ export default async function GuestReviewsPage() {
           <h2>Continue in Booking.com</h2>
           <p className="admin-panel-copy">Until the property authorises an API connection, use the official Extranet to read reviews and submit replies. This CRM page intentionally does not scrape the logged-in Extranet.</p>
           <a className="admin-primary-link" href="https://admin.booking.com/" target="_blank" rel="noreferrer">Open Booking.com Extranet ↗</a>
-          <div className="admin-warning-note"><strong>Public website note</strong><p>Booking.com’s Review API documentation states that reviews obtained through this API are for internal use and may not be rendered on the public property page. For the public website, use a link to the property's Booking.com listing, or publish independently collected testimonials with a lawful basis and appropriate permission.</p></div>
+          <div className="admin-warning-note"><strong>Public website note</strong><p>Booking.com’s Review API documentation states that reviews obtained through this API are for internal use and may not be rendered on the public property page. For the public website, use a link to the property’s Booking.com listing, or publish independently collected testimonials with a lawful basis and appropriate permission.</p></div>
         </section>
       </div>
       <p className="admin-data-note">Signed in with the {role} role. Review text, reviewer names, reservation references and reply data will only appear here after an authorised integration is configured and tested.</p>

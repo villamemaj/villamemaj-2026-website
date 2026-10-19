@@ -24,6 +24,8 @@ export async function savePropertyPolicies(formData: FormData) {
   const taxRate = taxRateRaw === "" ? null : Number(taxRateRaw);
   const damageDepositRaw = readText(formData, "damage_deposit", 12) || "0";
   const damageDeposit = Number(damageDepositRaw);
+  const damageDepositCurrencyRaw = readText(formData, "damage_deposit_currency", 3);
+  const damageDepositCurrency = damageDepositCurrencyRaw === "ALL" ? "ALL" : "EUR";
 
   if (!checkIn || !checkOut || !Number.isInteger(maxNights) || maxNights < 1 || maxNights > 365) {
     redirect("/admin/extranet/property-policies?error=validation");
@@ -78,10 +80,15 @@ export async function savePropertyPolicies(formData: FormData) {
     tax_label: readText(formData, "tax_label", 120) || null,
     tax_rate: taxRate,
     damage_deposit: damageDeposit,
+    damage_deposit_currency: damageDepositCurrency,
     terms_en: readText(formData, "terms_en", 6000),
     terms_el: readText(formData, "terms_el", 6000),
     privacy_en: readText(formData, "privacy_en", 6000),
     privacy_el: readText(formData, "privacy_el", 6000),
+    arrival_instructions_en: readText(formData, "arrival_instructions_en", 5000),
+    arrival_instructions_el: readText(formData, "arrival_instructions_el", 5000),
+    local_guide_en: readText(formData, "local_guide_en", 6000),
+    local_guide_el: readText(formData, "local_guide_el", 6000),
     monthly_stays_allowed: readCheckbox(formData, "monthly_stays_allowed"),
     max_stay_nights: maxNights,
     house_rules_en: readText(formData, "house_rules_en", 2000),

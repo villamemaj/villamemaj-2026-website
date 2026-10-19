@@ -584,3 +584,74 @@ img { height: auto; }
   .admin-policy-actions { align-items:stretch; }
   .admin-policy-actions button { justify-content:center; }
 }
+
+
+/* Guest support inbox and website-review moderation. */
+.admin-support-thread-list { display:grid; gap:18px; }
+.admin-support-thread { min-width:0; border:1px solid #dfe7e2; border-radius:18px; padding:22px; background:#fff; }
+.admin-support-thread-header { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:16px; border-bottom:1px solid #edf1ee; padding-bottom:17px; }
+.admin-support-thread-header h2 { margin-top:6px; color:#203e31; font-family:var(--font-display); font-size:1.55rem; font-weight:500; line-height:1.25; }
+.admin-support-thread-header p:not(.admin-eyebrow) { margin-top:6px; color:#7c8a81; font-size:.75rem; overflow-wrap:anywhere; }
+.admin-support-thread-state { display:grid; justify-items:end; gap:7px; }
+.admin-support-thread-state small { color:#8b978f; font-size:.67rem; }
+.admin-support-message-list { display:grid; gap:12px; padding:20px 0; }
+.admin-support-message { border:1px solid #e2e8e4; border-radius:12px; padding:14px 16px; background:#fbfcfb; }
+.admin-support-message.guest { border-left:3px solid #7c9d87; }
+.admin-support-message.assistant { border-left:3px solid #92a5c4; background:#f7f9fc; }
+.admin-support-message.staff { border-left:3px solid #3d7554; }
+.admin-support-message>div { display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.admin-support-message strong { color:#345141; font-size:.76rem; text-transform:capitalize; }
+.admin-support-message time { color:#8a978f; font-size:.66rem; }
+.admin-support-message p { white-space:pre-wrap; overflow-wrap:anywhere; color:#536459; font-size:.79rem; line-height:1.8; }
+.admin-support-thread-actions { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px; border-top:1px solid #edf1ee; padding-top:18px; }
+.admin-support-reply-form { display:grid; flex:1; min-width:min(100%,300px); gap:12px; }
+.admin-support-reply-form small { color:#8a978f; font-size:.68rem; line-height:1.65; }
+.guest-review-form { display:block; }
+.guest-review-form .admin-policy-field input,.guest-review-form .admin-policy-field textarea { width:100%; min-width:0; border:1px solid #d7e0d9; border-radius:10px; padding:12px 13px; background:#fff; color:#243a2d; font-size:.9rem; outline:0; }
+.guest-review-form .admin-policy-field input:focus,.guest-review-form .admin-policy-field textarea:focus { border-color:#739a80; box-shadow:0 0 0 3px rgb(58 119 79 / 10%); }
+@media(max-width:560px) {
+  .admin-support-thread { padding:16px; }
+  .admin-support-thread-state { justify-items:start; }
+  .admin-support-thread-actions { display:grid; }
+  .admin-support-message { padding:12px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .admin-module-card { transition:none; }
+}
+
+
+/* Guest travel planning and Skyscanner widget. Load occurs only after an explicit click. */
+.travel-page .travel-intro-copy { max-width:780px; margin:0 auto 28px; text-align:center; }
+.travel-page .travel-intro-copy .section-label { color:#71816f; font-size:.7rem; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
+.travel-page .travel-intro-copy>p:last-child { margin-top:12px; color:#68776b; font-size:.96rem; line-height:1.85; }
+.travel-flight-widget { overflow:hidden; border:1px solid #dce5df; border-radius:24px; background:#fff; box-shadow:0 18px 50px rgb(36 57 42 / 7%); }
+.travel-flight-widget-heading { padding:26px 28px 22px; border-bottom:1px solid #edf1ee; background:linear-gradient(135deg,#f8faf7 0%,#fff 70%); }
+.travel-flight-kicker { display:inline-block; color:#69846f; font-size:.67rem; font-weight:850; letter-spacing:.16em; text-transform:uppercase; }
+.travel-flight-widget-heading h2 { margin-top:7px; color:#244b37; font-size:clamp(1.7rem,3.5vw,2.55rem); font-weight:500; line-height:1.1; }
+.travel-flight-widget-heading p { max-width:870px; margin-top:12px; color:#708076; font-size:.78rem; line-height:1.75; }
+.travel-flight-activate { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; padding:26px 28px; }
+.travel-flight-activate p { max-width:520px; color:#718077; font-size:.82rem; line-height:1.75; }
+.travel-flight-frame { position:relative; min-height:460px; padding:18px; background:#fff; }
+.travel-flight-frame [data-skyscanner-widget="FlightSearchWidget"] { position:relative; z-index:1; width:100%; min-height:390px; }
+.travel-flight-loading { position:absolute; inset:0 auto auto 0; width:100%; padding:20px 22px; color:#7b897f; font-size:.75rem; pointer-events:none; }
+.travel-flight-footnote { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:10px; padding:14px 24px; border-top:1px solid #edf1ee; color:#849187; font-size:.68rem; }
+.travel-flight-footnote a { color:#4d7058; text-decoration:underline; text-underline-offset:3px; }
+.travel-steps { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:28px; }
+.travel-step-card { min-width:0; border:1px solid #dfe7e2; border-radius:17px; padding:24px; background:#fff; }
+.travel-step-number { display:grid; width:36px; height:36px; place-items:center; border-radius:11px; background:#e9f1eb; color:#3c6b4e; font-size:.72rem; font-weight:850; }
+.travel-step-card h2 { margin-top:18px; color:#294a36; font-family:var(--font-display); font-size:1.5rem; font-weight:500; line-height:1.15; }
+.travel-step-card p { margin-top:10px; color:#748177; font-size:.78rem; line-height:1.8; }
+.travel-support-note { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:15px; margin-top:26px; border:1px solid #e2e8e3; border-radius:15px; padding:18px 21px; background:#f9fbf9; }
+.travel-support-note>span { color:#6d896f; font-size:1.3rem; }
+.travel-support-note p { color:#66776c; font-size:.8rem; line-height:1.7; }
+.travel-support-note a { color:#355c40; white-space:nowrap; }
+@media(max-width:760px) {
+  .travel-steps { grid-template-columns:1fr; }
+  .travel-flight-widget-heading { padding:22px 20px 18px; }
+  .travel-flight-activate { align-items:stretch; padding:22px 20px; }
+  .travel-flight-activate .button-dark { justify-content:center; }
+  .travel-flight-frame { min-height:420px; padding:10px; }
+  .travel-flight-frame [data-skyscanner-widget="FlightSearchWidget"] { min-height:380px; }
+  .travel-support-note { grid-template-columns:auto 1fr; }
+  .travel-support-note a { grid-column:2; }
+}
