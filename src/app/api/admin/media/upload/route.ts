@@ -78,7 +78,7 @@ export async function POST(request: Request) {
   const captionEl = safeText(form.get("caption_el"), 500);
   const active = form.get("active") !== "false";
   const requestedCover = form.get("is_cover") === "true";
-  if (altEn.length < 3) return NextResponse.json({ error: "Add English alt text (at least 3 characters) for accessibility." }, { status: 400 });
+  if (altEn.length < 3 || altEl.length < 3) return NextResponse.json({ error: "Add descriptive English and Greek alt text (at least 3 characters each) for accessibility." }, { status: 400 });
 
   let nextOrder = 0;
   let isCover = false;
