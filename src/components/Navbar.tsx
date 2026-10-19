@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { SITE_CONFIG, type Locale } from "@/lib/site";
+import { LOCALE_NATIVE_NAMES, LOCALES, SITE_CONFIG, type Locale } from "@/lib/site";
 import type { Dictionary } from "@/lib/i18n";
 
 interface NavbarProps {
@@ -13,12 +13,20 @@ interface NavbarProps {
 
 export default function Navbar({ locale, dict }: NavbarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  const otherLocale: Locale = locale === "el" ? "en" : "el";
-  const segments = pathname.split("/");
-  segments[1] = otherLocale;
-  const switchHref = segments.join("/") || `/${otherLocale}`;
+  function localeHref(nextLocale: Locale) {
+    const segments = pathname.split("/");
+    segments[1] = nextLocale;
+    return segments.join("/") || `/${nextLocale}`;
+  }
+
+  function changeLocale(nextLocale: string) {
+    if (!LOCALES.includes(nextLocale as Locale)) return;
+    setOpen(false);
+    router.push(localeHref(nextLocale as Locale));
+  }
 
   const links = [
     { href: `/${locale}`, label: dict.nav.home },
@@ -49,12 +57,16 @@ export default function Navbar({ locale, dict }: NavbarProps) {
               {link.label}
             </Link>
           ))}
-          <Link
-            href={switchHref}
-            className="rounded-full border border-olive/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-olive transition-colors hover:bg-olive hover:text-cream"
+          <label className="sr-only" htmlFor="site-language-desktop">Language</label>
+          <select
+            id="site-language-desktop"
+            value={locale}
+            onChange={(event) => changeLocale(event.target.value)}
+            aria-label="Choose language"
+            className="rounded-full border border-olive/30 bg-cream px-3 py-2 text-xs font-semibold text-olive outline-none focus:ring-2 focus:ring-olive/25"
           >
-            {otherLocale}
-          </Link>
+            {LOCALES.map((code) => <option key={code} value={code}>{LOCALE_NATIVE_NAMES[code]}</option>)}
+          </select>
         </nav>
 
         <button
@@ -87,13 +99,16 @@ export default function Navbar({ locale, dict }: NavbarProps) {
               {link.label}
             </Link>
           ))}
-          <Link
-            href={switchHref}
-            onClick={() => setOpen(false)}
-            className="mt-3 inline-block rounded-full border border-olive/30 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-olive"
+          <label htmlFor="site-language-mobile" className="mt-3 block text-xs font-semibold text-olive">Language / Idioma</label>
+          <select
+            id="site-language-mobile"
+            value={locale}
+            onChange={(event) => changeLocale(event.target.value)}
+            aria-label="Choose language"
+            className="mt-2 w-full rounded-xl border border-olive/30 bg-white px-3 py-2 text-sm text-olive"
           >
-            {otherLocale}
-          </Link>
+            {LOCALES.map((code) => <option key={code} value={code}>{LOCALE_NATIVE_NAMES[code]}</option>)}
+          </select>
         </nav>
       )}
     </header>
