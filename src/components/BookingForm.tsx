@@ -31,6 +31,7 @@ interface Quote {
 }
 
 interface BookingResult {
+  booking_id?: string;
   code: string;
   status: string;
   total_price: number;
@@ -71,6 +72,9 @@ const STRINGS = {
     confirm: "Επιβεβαίωση αιτήματος",
     confirming: "Αποστολή…",
     terms: "Αποδέχομαι τους όρους κράτησης και την πολιτική ακύρωσης.",
+    termsRequired: "Απαιτείται η αποδοχή των όρων κράτησης για να συνεχίσετε.",
+    smsOptIn: "Προαιρετικά: Συμφωνώ να λαμβάνω SMS από τη Villa Memaj για επιβεβαιώσεις κράτησης και σημαντικές ενημερώσεις διαμονής. Ενδέχεται να ισχύουν χρεώσεις. Απαντήστε STOP για διακοπή.",
+    whatsappOptIn: "Προαιρετικά: Συμφωνώ να λαμβάνω μηνύματα WhatsApp από τη Villa Memaj για επιβεβαιώσεις κράτησης και σημαντικές ενημερώσεις διαμονής. Μπορώ να ζητήσω διακοπή οποτεδήποτε.",
     notAvailable: "Μη διαθέσιμο για τις επιλεγμένες ημερομηνίες.",
     unavailable: "Το δωμάτιο δεν είναι διαθέσιμο για τις επιλεγμένες ημερομηνίες.",
     priceError: "Δεν ήταν δυνατός ο υπολογισμός τιμής. Δοκιμάστε άλλες ημερομηνίες.",
@@ -97,6 +101,9 @@ const STRINGS = {
     confirm: "Submit booking request",
     confirming: "Sending…",
     terms: "I accept the booking terms and the cancellation policy.",
+    termsRequired: "Please accept the booking terms before continuing.",
+    smsOptIn: "Optional: I agree to receive SMS from Villa Memaj about booking confirmations and essential stay updates. Message/data rates may apply. Reply STOP to opt out.",
+    whatsappOptIn: "Optional: I agree to receive WhatsApp messages from Villa Memaj about booking confirmations and essential stay updates. I can opt out at any time.",
     notAvailable: "Not available for the selected dates.",
     unavailable: "This room is not available for the selected dates.",
     priceError: "We could not calculate a price. Please try different dates.",
@@ -124,7 +131,8 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
   const [error, setError] = useState("");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [result, setResult] = useState<BookingResult | null>(null);
-  const [draft, setDraft] = useState<Record<string, string | number> | null>(null);
+  const [draft, setDraft] = useState<Record<string, string | number | boolean> | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const startRef = useRef(0);
 
   useEffect(() => {
@@ -173,6 +181,8 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
       guest_email: String(fd.get("guest_email") ?? "").trim(),
       guest_phone: String(fd.get("guest_phone") ?? "").trim(),
       special_requests: String(fd.get("message") ?? "").trim(),
+      sms_opt_in: fd.get("sms_opt_in") === "on",
+      whatsapp_opt_in: fd.get("whatsapp_opt_in") === "on",
       honeypot: String(fd.get("company_website") ?? "").trim(),
       elapsed_ms: Math.max(0, Date.now() - startRef.current),
     };
@@ -200,14 +210,19 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
     }
     setQuote(q);
     setDraft(payload);
+    setTermsAccepted(false);
     setStep("review");
   }
 
   async function handleConfirm() {
     if (!draft) return;
+    if (!termsAccepted) {
+      setError(t.termsRequired);
+      return;
+    }
     setError("");
     setBusy(true);
-    const { data, error: rpcError } = await getSupabase().rpc("submit_booking_request", {
+    const { data, error: rpcError } = await getSupabase().rpc("submit_booking_request_with_preferences", {
       p_room_id: draft.room_id,
       p_rate_plan_id: draft.rate_plan_id,
       p_check_in: draft.check_in,
@@ -222,6 +237,9 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
       p_accepted_terms: true,
       p_honeypot: draft.honeypot || null,
       p_elapsed_ms: Number(draft.elapsed_ms ?? 0),
+      p_sms_opt_in: draft.sms_opt_in === true,
+      p_whatsapp_opt_in: draft.whatsapp_opt_in === true,
+      p_guest_language: locale,
     });
     setBusy(false);
 
@@ -244,6 +262,13 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
 
     setResult(response.booking);
     setStep("success");
+    if (response.booking.booking_id) {
+      void fetch("/api/email/dispatch-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: response.booking.booking_id }),
+      }).catch(() => undefined);
+    }
   }
 
   if (step === "success" && result) {
@@ -331,7 +356,28 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
           )}
         </dl>
 
-        <p className="text-xs text-ink-soft">{t.terms}</p>
+        <label className="flex items-start gap-3 rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink-soft">
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={(event) => setTermsAccepted(event.target.checked)}
+            className="mt-1 h-4 w-4 shrink-0 accent-olive"
+          />
+          <span>
+            {t.terms}{" "}
+            <a href={`/${locale}/terms`} target="_blank" rel="noreferrer" className="font-semibold text-olive underline underline-offset-4">
+              {locale === "el" ? "Όροι κράτησης" : "Terms"}
+            </a>
+            {" · "}
+            <a href={`/${locale}/cancellation`} target="_blank" rel="noreferrer" className="font-semibold text-olive underline underline-offset-4">
+              {locale === "el" ? "Ακυρώσεις" : "Cancellation"}
+            </a>
+            {" · "}
+            <a href={`/${locale}/house-rules`} target="_blank" rel="noreferrer" className="font-semibold text-olive underline underline-offset-4">
+              {locale === "el" ? "Κανόνες καταλύματος" : "House rules"}
+            </a>
+          </span>
+        </label>
 
         {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
@@ -473,6 +519,22 @@ export default function BookingForm({ rooms, dict, initialRoomSlug, locale }: Bo
           placeholder={dict.booking.messagePlaceholder}
           className={inputClass}
         />
+      </div>
+
+      <div className="space-y-3 rounded-xl border border-sand-dark bg-white p-4">
+        <p className="text-xs leading-6 text-ink-soft">
+          {locale === "el"
+            ? "Οι παρακάτω επιλογές είναι προαιρετικές και αφορούν μόνο συναλλακτικές ενημερώσεις για την κράτησή σας, όχι διαφημίσεις."
+            : "The choices below are optional and cover transactional booking and stay updates only, not marketing."}
+        </p>
+        <label className="flex items-start gap-3 text-xs leading-6 text-ink-soft">
+          <input name="sms_opt_in" type="checkbox" className="mt-1 h-4 w-4 shrink-0 accent-olive" />
+          <span>{t.smsOptIn}</span>
+        </label>
+        <label className="flex items-start gap-3 text-xs leading-6 text-ink-soft">
+          <input name="whatsapp_opt_in" type="checkbox" className="mt-1 h-4 w-4 shrink-0 accent-olive" />
+          <span>{t.whatsappOptIn}</span>
+        </label>
       </div>
 
       {/* Bot trap: invisible to guests, irresistible to naive form-filling bots. */}
