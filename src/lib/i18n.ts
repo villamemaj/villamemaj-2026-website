@@ -2,7 +2,7 @@ import type { AmenityKey } from "./types";
 import { DEFAULT_LOCALE, LOCALES, type Locale } from "./site";
 
 export interface Dictionary {
-  nav: { home: string; rooms: string; gallery: string; booking: string; contact: string };
+  nav: { home: string; rooms: string; gallery: string; booking: string; contact: string; travel: string };
   hero: { title: string; subtitle: string; ctaRooms: string; ctaBook: string };
   home: {
     welcomeLabel: string; welcomeTitle: string; welcomeText: string;
