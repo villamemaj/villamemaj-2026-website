@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import EditorialPageHero from "@/components/EditorialPageHero";
-import { policyLinks } from "@/lib/legal-content";
+import { getPolicyLinks } from "@/lib/legal-content";
 import { isLocale, type Locale } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -31,7 +31,7 @@ export default async function PolicyHubPage({ params }: { params: Promise<{ loca
           <p>{lang === "el" ? "Οι ειδικοί όροι που εμφανίζονται στην επιλεγμένη τιμή και στην επιβεβαίωσή σας ισχύουν για τη συγκεκριμένη κράτηση." : "The specific terms shown for your selected rate and repeated in your confirmation apply to that reservation."}</p>
         </div>
         <div className="policy-card-grid stagger-reveal">
-          {policyLinks[lang].map((item, index) => (
+          {getPolicyLinks(lang).map((item, index) => (
             <Link key={item.href} href={`/${lang}${item.href}`} className="policy-card">
               <span className="policy-card-number">{String(index + 1).padStart(2, "0")}</span>
               <h3>{item.label}</h3>
