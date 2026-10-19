@@ -20,7 +20,7 @@ function configuredTwilio() {
   return accountSid && authToken && from ? { accountSid, authToken, from } : null;
 }
 
-export async function dispatchQueuedSms(limit = 25): Promise<SmsDispatchSummary> {
+export async function dispatchQueuedSms(limit = 25, bookingId?: string): Promise<SmsDispatchSummary> {
   const twilio = configuredTwilio();
   if (!twilio) {
     return { configured: false, reason: "TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_PHONE_NUMBER are not all configured", sent: 0, failed: 0 };
@@ -31,7 +31,10 @@ export async function dispatchQueuedSms(limit = 25): Promise<SmsDispatchSummary>
     return { configured: false, reason: "SUPABASE_SERVICE_ROLE_KEY is not set", sent: 0, failed: 0 };
   }
 
-  const { data, error } = await supabase.rpc("claim_outbox_sms", { p_limit: Math.max(1, Math.min(limit, 100)) });
+  const safeLimit = Math.max(1, Math.min(limit, 100));
+  const { data, error } = bookingId
+    ? await supabase.rpc("claim_booking_sms_outbox", { p_booking_id: bookingId, p_limit: safeLimit })
+    : await supabase.rpc("claim_outbox_sms", { p_limit: safeLimit });
   if (error) return { configured: true, reason: "Could not claim SMS outbox rows", sent: 0, failed: 0 };
 
   let sent = 0;
