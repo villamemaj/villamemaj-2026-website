@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/site";
+import { legalTranslations, legalFAQTranslations } from "@/lib/legal-translations";
 
 export type PolicySection = {
   heading: string;
@@ -316,7 +317,7 @@ const documents: Record<string, Partial<Record<Locale, PolicyDocument>>> = {
 };
 
 export function getPolicyDocument(slug: string, locale: Locale): PolicyDocument | null {
-  return documents[slug]?.[locale] ?? documents[slug]?.en ?? documents[slug]?.el ?? null;
+  return legalTranslations[locale]?.[slug] ?? documents[slug]?.[locale] ?? documents[slug]?.en ?? documents[slug]?.el ?? null;
 }
 
 export const policyLinks: Partial<Record<Locale, { href: string; label: string; description: string }[]>> = {
@@ -403,3 +404,7 @@ export const faq: Partial<Record<Locale, FAQItem[]>> = {
     { q: "Πώς επικοινωνώ με το κατάλυμα;", a: "Στείλτε email στο info@villamemaj.com με τον κωδικό κράτησης. Μην στέλνετε πλήρη στοιχεία κάρτας." }
   ]
 };
+
+export function getFAQItems(locale: Locale): FAQItem[] {
+  return legalFAQTranslations[locale] ?? faq[locale] ?? faq.en ?? [];
+}
