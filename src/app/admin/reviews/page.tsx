@@ -10,7 +10,7 @@ export default async function GuestReviewsPage() {
     <div className="admin-extranet-page">
       <div className="admin-extranet-page-header">
         <div><p className="admin-eyebrow">Guest experience</p><h1>Guest reviews</h1><p className="admin-page-intro">A private workspace for checking review performance and preparing replies.</p></div>
-        <Link href="/admin/extranet" className="admin-back-link">← Extranet home</Link>
+        <div className="flex flex-wrap gap-2"><Link href="/admin/reviews/testimonials" className="admin-primary-link">Moderate website testimonials ↗</Link><Link href="/admin/extranet" className="admin-back-link">← Extranet home</Link></div>
       </div>
       <div className={configured ? "admin-integration-status ready" : "admin-integration-status pending"}>
         <span className="admin-status-dot" aria-hidden="true" />
