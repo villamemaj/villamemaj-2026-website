@@ -76,7 +76,7 @@ const COPY: Record<Locale, { eyebrow: string; title: string; subtitle: string; n
       ]},
       { title: "3. Analisi e marketing facoltativi", text: [
         "Le categorie facoltative di analisi e marketing sono disattivate per impostazione predefinita. La misurazione delle prestazioni tramite Vercel Speed Insights si attiva solo dopo il consenso alla categoria analisi e resta disattivata in assenza di consenso. La selezione di una categoria non deve attivare tecnologie ulteriori di quelle descritte in questa informativa.",
-        "Al momento, la scelta di analisi non attiva uno strumento di analisi. L'eventuale introduzione di nuovi fornitori deve essere accompagnata da un aggiornamento dell'informativa e dei controlli di consenso."
+        "La misurazione delle prestazioni tramite Vercel Speed Insights si attiva solo dopo il consenso alla categoria analisi; senza consenso, nessuna misurazione viene eseguita. L'eventuale introduzione di nuovi fornitori deve essere accompagnata da un aggiornamento dell'informativa e dei controlli di consenso."
       ]},
       { title: "4. Ricerca voli Skyscanner", text: [
         "Il widget incorporato di Skyscanner viene caricato solo dopo che l'utente ha consentito la categoria facoltativa marketing/servizi di terze parti e ha scelto di aprire la ricerca. È sempre disponibile un collegamento diretto a Skyscanner.",
