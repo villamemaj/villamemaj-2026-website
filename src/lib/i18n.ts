@@ -37,6 +37,17 @@ export interface Dictionary {
     heroKicker: string;
     heroNote: string;
     scroll: string;
+    location: string;
+    introMeta: string;
+    momentOneLabel: string;
+    momentOneTitle: string;
+    momentTwoLabel: string;
+    momentTwoTitle: string;
+    momentThreeLabel: string;
+    momentThreeTitle: string;
+    roomsFootnote: string;
+    galleryCaptionFallback: string;
+    galleryFooter: string;
     introKicker: string;
     introTitle: string;
     introBody: string;
