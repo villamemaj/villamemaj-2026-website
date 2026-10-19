@@ -110,10 +110,6 @@ const dictionary: Dictionary = {
     book: "Book",
     amenities: "Amenities",
     empty: "Rooms will appear soon. Contact us for availability.",
-    openImage: "Open image",
-    closeImage: "Close image",
-    previousImage: "Previous image",
-    nextImage: "Next image",
   },
   room: {
     backToRooms: "Back to rooms",
@@ -164,6 +160,10 @@ const dictionary: Dictionary = {
     title: "Photo Gallery",
     subtitle: "Spaces, details and moments from Villa Memaj.",
     empty: "Photos coming soon.",
+    openImage: "Open image",
+    closeImage: "Close image",
+    previousImage: "Previous image",
+    nextImage: "Next image",
   },
   footer: {
     tagline: "Your quiet retreat for rest and experiences.",
