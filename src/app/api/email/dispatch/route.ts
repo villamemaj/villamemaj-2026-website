@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { dispatchQueuedEmails } from "@/lib/email/dispatch";
+import { dispatchQueuedGuestMessages } from "@/lib/messaging/dispatch";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +29,11 @@ async function handle(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const summary = await dispatchQueuedEmails(50);
-  return NextResponse.json(summary);
+  const [email, phoneMessages] = await Promise.all([
+    dispatchQueuedEmails(50),
+    dispatchQueuedGuestMessages(50),
+  ]);
+  return NextResponse.json({ email, phoneMessages });
 }
 
 export const GET = handle;
