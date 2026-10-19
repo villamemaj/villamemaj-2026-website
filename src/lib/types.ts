@@ -25,6 +25,23 @@ export interface HotelRoom {
   image_url: string | null;
   sort_order: number;
   active: boolean;
+  gallery_images?: HotelRoomGalleryImage[];
+}
+
+export interface HotelRoomGalleryImage {
+  id: string;
+  room_id: string;
+  image_url: string;
+  storage_path: string | null;
+  alt_text_en: string;
+  alt_text_el: string;
+  caption_en: string | null;
+  caption_el: string | null;
+  sort_order: number;
+  is_cover: boolean;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface HotelGalleryImage {
@@ -33,6 +50,11 @@ export interface HotelGalleryImage {
   caption_el: string | null;
   caption_en: string | null;
   sort_order: number;
+  active?: boolean;
+  storage_path?: string | null;
+  alt_text_en?: string | null;
+  alt_text_el?: string | null;
+  created_at?: string;
 }
 
 export interface BookingInsert {
