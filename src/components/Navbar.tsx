@@ -20,6 +20,47 @@ const supportedLocales: { code: Locale; label: string }[] = [
   { code: "it", label: "Italiano" },
 ];
 
+function LanguagePicker({
+  locale,
+  localeHref,
+  label,
+  compact = false,
+  onNavigate,
+}: {
+  locale: Locale;
+  localeHref: (code: Locale) => string;
+  label: string;
+  compact?: boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <details className={compact ? "site-language-picker site-language-picker-mobile" : "site-language-picker"}>
+      <summary aria-label={label}>
+        <span>{locale.toUpperCase()}</span>
+        <svg aria-hidden="true" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m4 6 4 4 4-4" />
+        </svg>
+      </summary>
+      <div className="site-language-options">
+        {supportedLocales.map((item) => (
+          <Link
+            key={item.code}
+            href={localeHref(item.code)}
+            hrefLang={item.code}
+            aria-current={locale === item.code ? "page" : undefined}
+            onClick={onNavigate}
+          >
+            <span>{item.label}</span>
+            <span aria-hidden="true">{locale === item.code ? "✓" : item.code.toUpperCase()}</span>
+          </Link>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+
+
 export default function Navbar({ locale, dict }: NavbarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -58,33 +99,6 @@ export default function Navbar({ locale, dict }: NavbarProps) {
     return href === homePath ? pathname === href || pathname === href + "/" : pathname === href || pathname.startsWith(href + "/");
   }
 
-  function LanguagePicker({ compact = false }: { compact?: boolean }) {
-    return (
-      <details className={compact ? "site-language-picker site-language-picker-mobile" : "site-language-picker"}>
-        <summary aria-label={dict.nav.language}>
-          <span>{locale.toUpperCase()}</span>
-          <svg aria-hidden="true" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m4 6 4 4 4-4" />
-          </svg>
-        </summary>
-        <div className="site-language-options">
-          {supportedLocales.map((item) => (
-            <Link
-              key={item.code}
-              href={localeHref(item.code)}
-              hrefLang={item.code}
-              aria-current={locale === item.code ? "page" : undefined}
-              onClick={() => setOpen(false)}
-            >
-              <span>{item.label}</span>
-              <span aria-hidden="true">{locale === item.code ? "✓" : item.code.toUpperCase()}</span>
-            </Link>
-          ))}
-        </div>
-      </details>
-    );
-  }
-
   return (
     <header className="site-navbar sticky top-0 z-50 border-b border-sand-dark/50 bg-cream/95 backdrop-blur-md">
       <div className="site-navbar-inner mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-12">
@@ -112,7 +126,7 @@ export default function Navbar({ locale, dict }: NavbarProps) {
               {link.label}
             </Link>
           ))}
-          <LanguagePicker />
+          <LanguagePicker locale={locale} localeHref={localeHref} label={dict.nav.language} />
           <Link href={homePath + "/booking"} className="site-navbar-booking">
             {dict.hero.ctaBook}<span aria-hidden="true">↗</span>
           </Link>
@@ -151,7 +165,7 @@ export default function Navbar({ locale, dict }: NavbarProps) {
             </Link>
           ))}
         </nav>
-        <LanguagePicker compact />
+        <LanguagePicker locale={locale} localeHref={localeHref} label={dict.nav.language} compact onNavigate={() => setOpen(false)} />
       </div>
     </header>
   );
