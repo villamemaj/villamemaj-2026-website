@@ -1,9 +1,13 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { dispatchQueuedEmails } from "@/lib/email/dispatch";
+import { dispatchQueuedSms } from "@/lib/notifications/sms";
+import { dispatchOwnerNotifications } from "@/lib/notifications/owner";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 type StripeEvent = {
   id: string;
@@ -98,5 +102,21 @@ export async function POST(request: Request) {
     console.error("Stripe webhook reconciliation failed", { eventId: event.id, code: error.code });
     return NextResponse.json({ error: "Could not reconcile payment event." }, { status: 500 });
   }
+  // A verified Stripe payment changes booking status and enqueues guest/owner messages.
+  // Dispatch only the affected booking; never drain unrelated guests' queue on a webhook.
+  if (outcome !== "pending") {
+    const dispatchResults = await Promise.allSettled([
+      dispatchQueuedEmails(10, bookingId),
+      dispatchQueuedSms(10, bookingId),
+      dispatchOwnerNotifications(10, bookingId),
+    ]);
+    console.info("Stripe booking notifications processed", {
+      eventId: event.id,
+      bookingId,
+      channelsAttempted: dispatchResults.length,
+      failedCalls: dispatchResults.filter((item) => item.status === "rejected").length,
+    });
+  }
+
   return NextResponse.json({ received: true, result: data });
 }
