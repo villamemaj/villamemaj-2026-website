@@ -14,6 +14,8 @@ interface RoomCardProps {
 
 export default function RoomCard({ room, locale, dict }: RoomCardProps) {
   const name = locale === "el" ? room.name_el : room.name_en;
+  const cover = room.gallery_images?.find((image) => image.active && image.is_cover) ?? room.gallery_images?.find((image) => image.active) ?? null;
+  const imageAlt = (locale === "el" ? cover?.alt_text_el : cover?.alt_text_en) || name;
   const formattedPrice = room.price_per_night == null
     ? null
     : new Intl.NumberFormat(locale, {
@@ -28,7 +30,7 @@ export default function RoomCard({ room, locale, dict }: RoomCardProps) {
         {room.image_url ? (
           <Image
             src={room.image_url}
-            alt={name}
+            alt={imageAlt}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
