@@ -152,7 +152,6 @@ export default function SkyscannerFlightSearch({ locale }: { locale: Locale }) {
     return () => {
       disposed = true;
       script.remove();
-      setLoaded(false);
       // Remove any third-party-created frame/content when the component unmounts
       // or optional consent is withdrawn.
       host.replaceChildren();
