@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import { getPublicHousePolicySettings } from "@/lib/data";
-import { faq, getPolicyLinks } from "@/lib/legal-content";
+import { getFAQItems, getPolicyLinks } from "@/lib/legal-content";
 import { isLocale, type Locale } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export default async function FAQPage({ params }: { params: Promise<{ locale: st
   if (!isLocale(locale)) notFound();
   const lang = locale as Locale;
   const settings = await getPublicHousePolicySettings();
-  const baseFaq = faq[lang] ?? faq.en ?? [];
+  const baseFaq = getFAQItems(lang);
   let questions = [...baseFaq];
 
   if (settings) {
