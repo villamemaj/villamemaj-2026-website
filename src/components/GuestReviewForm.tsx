@@ -6,6 +6,7 @@ import type { Locale } from "@/lib/site";
 type Copy = {
   title: string; intro: string; name: string; rating: string; reviewTitle: string; review: string;
   submit: string; sending: string; invalid: string; success: string; failed: string; privacy: string;
+  consent: string; privateFeedback: string;
   stars: (n: number) => string;
 };
 
@@ -15,7 +16,7 @@ const COPY: Record<Locale, Copy> = {
     name: "Display name (optional)", rating: "Your rating", reviewTitle: "Review title", review: "Your experience",
     submit: "Submit review", sending: "Submitting…", invalid: "This review link is invalid or has expired, or a review has already been submitted.",
     success: "Thank you. Your review has been received and is awaiting moderation.",
-    failed: "We could not submit your review. Please try again or contact us.", privacy: "Please do not include booking references, addresses, phone numbers or other private information in the public review.",
+    failed: "We could not submit your review. Please try again or contact us.", privacy: "Please do not include booking references, addresses, phone numbers or other private information in the public review.", consent: "I give Villa Memaj permission to publish this review on its website.", privateFeedback: "Without this consent, your feedback will remain private.",
     stars: (n) => n === 1 ? "1 star" : n + " stars",
   },
   el: {
@@ -23,7 +24,7 @@ const COPY: Record<Locale, Copy> = {
     name: "Όνομα εμφάνισης (προαιρετικό)", rating: "Η βαθμολογία σας", reviewTitle: "Τίτλος αξιολόγησης", review: "Η εμπειρία σας",
     submit: "Υποβολή αξιολόγησης", sending: "Υποβολή…", invalid: "Ο σύνδεσμος δεν είναι έγκυρος ή έχει λήξει, ή έχει ήδη υποβληθεί αξιολόγηση.",
     success: "Ευχαριστούμε. Η αξιολόγηση καταχωρήθηκε και αναμένει έλεγχο.",
-    failed: "Δεν ήταν δυνατή η υποβολή. Δοκιμάστε ξανά ή επικοινωνήστε μαζί μας.", privacy: "Μην συμπεριλάβετε κωδικούς κράτησης, διευθύνσεις, τηλέφωνα ή άλλα ιδιωτικά στοιχεία στη δημόσια αξιολόγηση.",
+    failed: "Δεν ήταν δυνατή η υποβολή. Δοκιμάστε ξανά ή επικοινωνήστε μαζί μας.", privacy: "Μην συμπεριλάβετε κωδικούς κράτησης, διευθύνσεις, τηλέφωνα ή άλλα ιδιωτικά στοιχεία στη δημόσια αξιολόγηση.", consent: "Δίνω άδεια στη Villa Memaj να δημοσιεύσει αυτή την αξιολόγηση στον ιστότοπό της.", privateFeedback: "Χωρίς αυτή τη συγκατάθεση, τα σχόλια παραμένουν ιδιωτικά.",
     stars: (n) => n === 1 ? "1 αστέρι" : n + " αστέρια",
   },
   fr: {
@@ -31,7 +32,7 @@ const COPY: Record<Locale, Copy> = {
     name: "Nom affiché (facultatif)", rating: "Votre note", reviewTitle: "Titre de l’avis", review: "Votre expérience",
     submit: "Envoyer l’avis", sending: "Envoi…", invalid: "Ce lien est invalide ou expiré, ou un avis a déjà été envoyé.",
     success: "Merci. Votre avis a été reçu et attend la modération.",
-    failed: "Impossible d’envoyer votre avis. Réessayez ou contactez-nous.", privacy: "N’incluez pas de référence de réservation, d’adresse, de numéro de téléphone ni d’autre information privée.",
+    failed: "Impossible d’envoyer votre avis. Réessayez ou contactez-nous.", privacy: "N’incluez pas de référence de réservation, d’adresse, de numéro de téléphone ni d’autre information privée.", consent: "J’autorise Villa Memaj à publier cet avis sur son site.", privateFeedback: "Sans ce consentement, votre retour restera privé.",
     stars: (n) => n === 1 ? "1 étoile" : n + " étoiles",
   },
   sq: {
@@ -39,7 +40,7 @@ const COPY: Record<Locale, Copy> = {
     name: "Emri i shfaqur (opsional)", rating: "Vlerësimi juaj", reviewTitle: "Titulli i vlerësimit", review: "Përvoja juaj",
     submit: "Dërgo vlerësimin", sending: "Duke dërguar…", invalid: "Lidhja është e pavlefshme ose ka skaduar, ose është dorëzuar një vlerësim.",
     success: "Faleminderit. Vlerësimi u mor dhe pret moderimin.",
-    failed: "Vlerësimi nuk u dërgua. Provoni përsëri ose na kontaktoni.", privacy: "Mos përfshini kod rezervimi, adresë, numër telefoni ose informacione të tjera private.",
+    failed: "Vlerësimi nuk u dërgua. Provoni përsëri ose na kontaktoni.", privacy: "Mos përfshini kod rezervimi, adresë, numër telefoni ose informacione të tjera private.", consent: "I jap leje Villa Memaj ta publikojë këtë vlerësim në faqen e saj.", privateFeedback: "Pa këtë pëlqim, përshtypjet tuaja mbeten private.",
     stars: (n) => n === 1 ? "1 yll" : n + " yje",
   },
   de: {
@@ -47,7 +48,7 @@ const COPY: Record<Locale, Copy> = {
     name: "Anzeigename (optional)", rating: "Ihre Bewertung", reviewTitle: "Titel der Bewertung", review: "Ihre Erfahrung",
     submit: "Bewertung senden", sending: "Wird gesendet…", invalid: "Dieser Link ist ungültig oder abgelaufen, oder es wurde bereits eine Bewertung abgegeben.",
     success: "Vielen Dank. Ihre Bewertung ist eingegangen und wartet auf die Moderation.",
-    failed: "Ihre Bewertung konnte nicht gesendet werden. Versuchen Sie es erneut oder kontaktieren Sie uns.", privacy: "Bitte keine Buchungsreferenzen, Adressen, Telefonnummern oder andere private Informationen veröffentlichen.",
+    failed: "Ihre Bewertung konnte nicht gesendet werden. Versuchen Sie es erneut oder kontaktieren Sie uns.", privacy: "Bitte keine Buchungsreferenzen, Adressen, Telefonnummern oder andere private Informationen veröffentlichen.", consent: "Ich erlaube Villa Memaj, diese Bewertung auf der Website zu veröffentlichen.", privateFeedback: "Ohne diese Einwilligung bleibt Ihr Feedback privat.",
     stars: (n) => n === 1 ? "1 Stern" : n + " Sterne",
   },
 };
