@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 
   const message = typeof body.message === "string" ? body.message.trim().slice(0, 3000) : "";
   const locale = typeof body.locale === "string" && isLocale(body.locale) ? body.locale as Locale : "en";
-  const requestedId = typeof body.conversationId === "string" && uuidPattern.test(body.conversationId) ? body.conversationId : randomUUID();
+  let requestedId = typeof body.conversationId === "string" && uuidPattern.test(body.conversationId) ? body.conversationId : randomUUID();
   const requestHuman = body.requestHuman === true;
   const contactEmail = typeof body.contactEmail === "string" && emailPattern.test(body.contactEmail.trim()) ? body.contactEmail.trim().toLowerCase() : null;
 
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
   const supabase = createSupabaseServiceClient();
   if (!supabase) return NextResponse.json({ error: "Guest support is temporarily unavailable. Please email info@villamemaj.com." }, { status: 503 });
 
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+  const forwarded = request.headers.get("x-real-ip")?.trim() || request.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() || "unknown";
   const salt = process.env.SUPPORT_RATE_LIMIT_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(-16) || process.env.CRON_SECRET || "support-rate-limit";
   const fingerprint = createHash("sha256").update(salt + ":" + forwarded).digest("hex");
   const { data: allowed, error: limitError } = await supabase.rpc("consume_support_rate_limit", {
@@ -134,10 +134,22 @@ export async function POST(request: Request) {
   });
   if (limitError || allowed !== true) return NextResponse.json({ error: "Please wait a minute before sending another question." }, { status: 429 });
 
+  const { data: existingConversation, error: existingConversationError } = await supabase
+    .from("guest_support_conversations")
+    .select("id,client_fingerprint_hash")
+    .eq("id", requestedId)
+    .maybeSingle();
+  if (existingConversationError) return NextResponse.json({ error: "Could not start the support conversation." }, { status: 500 });
+  if (existingConversation && existingConversation.client_fingerprint_hash !== fingerprint) {
+    // A conversation id copied from another browser must not allow cross-guest writes.
+    requestedId = randomUUID();
+  }
+
   const human = requestHuman || needsHuman(message);
-  const chosenContact = requestHuman ? contactEmail : null;
+  const chosenContact = contactEmail;
   const { error: conversationError } = await supabase.from("guest_support_conversations").upsert({
     id: requestedId,
+    client_fingerprint_hash: fingerprint,
     locale,
     status: human ? "waiting_staff" : "open",
     requested_human: human,
