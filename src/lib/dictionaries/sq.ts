@@ -18,6 +18,10 @@ const dictionary: Dictionary = {
   editorialHome: {
     heroKicker: "VILLA MEMAJ",
     heroNote: "Një arratisje më personale në bregdetin e Vlorës.",
+    heroPhotoCaption: "Një arratisje më personale",
+    spacesLabel: "Hapësirat tona",
+    spacesCaption: "Të krijuara për rehati",
+    madeWithCare: "ME KUJDES",
     scroll: "Zbritni për të zbuluar",
     location: "VLORË · SHQIPËRI",
     introMeta: "Mikpritje personale, atmosferë e qetë",
