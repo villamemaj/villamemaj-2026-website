@@ -53,20 +53,6 @@ const resendProvider = (apiKey: string, from: string): EmailProvider => ({
   },
 });
 
-/**
- * Dry-run provider: logs instead of sending. Lets the whole pipeline be exercised and
- * verified, and lets staff see the exact wording, before any provider key exists.
- */
-const logProvider: EmailProvider = {
-  name: "log",
-  async send(message) {
-    console.log(
-      `[email:log] to=${message.to} subject=${JSON.stringify(message.subject)}\n${message.body}`
-    );
-    return { ok: true, provider: "log" };
-  },
-};
-
 export interface ProviderResolution {
   provider: EmailProvider | null;
   configured: boolean;
@@ -79,23 +65,26 @@ export interface ProviderResolution {
  */
 export function getEmailProvider(): ProviderResolution {
   const name = (process.env.EMAIL_PROVIDER ?? "").trim().toLowerCase();
-  const from = process.env.EMAIL_FROM?.trim() || "Villa Memaj <onboarding@resend.dev>";
+  const from = process.env.EMAIL_FROM?.trim();
 
   if (name === "resend") {
     const apiKey = process.env.RESEND_API_KEY?.trim();
     if (!apiKey) {
       return { provider: null, configured: false, reason: "RESEND_API_KEY is not set" };
     }
+    if (!from) {
+      return { provider: null, configured: false, reason: "EMAIL_FROM must be set to a sender address verified with the email provider" };
+    }
     return { provider: resendProvider(apiKey, from), configured: true };
   }
 
   if (name === "log") {
-    return { provider: logProvider, configured: true };
+    return { provider: null, configured: false, reason: "Dry-run logging is disabled in the delivery worker to avoid exposing guest data in logs or marking undelivered messages as sent." };
   }
 
   return {
     provider: null,
     configured: false,
-    reason: "EMAIL_PROVIDER is not set (use EMAIL_PROVIDER=resend with RESEND_API_KEY, or EMAIL_PROVIDER=log)",
+    reason: "EMAIL_PROVIDER is not set (configure EMAIL_PROVIDER=resend with RESEND_API_KEY and a verified EMAIL_FROM sender)",
   };
 }
