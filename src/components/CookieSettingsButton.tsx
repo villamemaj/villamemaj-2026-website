@@ -8,6 +8,7 @@ const labels: Record<Locale, string> = {
   fr: "Paramètres des cookies",
   sq: "Cilësimet e cookies",
   de: "Cookie-Einstellungen",
+  it: "Impostazioni cookie",
 };
 
 export default function CookieSettingsButton({ locale }: { locale: Locale }) {

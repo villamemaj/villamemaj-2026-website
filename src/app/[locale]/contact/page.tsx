@@ -18,7 +18,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   const dict = await getDictionary(lang);
   const contact = await getContactInfo();
   const phoneHref = contact.phone ? contact.phone.replace(/\s/g, "") : "";
-  const address = lang === "el" ? contact.address_el : contact.address_en ?? SITE_CONFIG.address[lang];
+  const address = lang === "el" ? (contact.address_el ?? SITE_CONFIG.address.el) : (contact.address_en ?? SITE_CONFIG.address[lang]);
 
   return (
     <div className="editorial-page contact-page">
@@ -34,20 +34,12 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
           <div className="contact-premium-details stagger-reveal">
             <div className="contact-premium-card">
               <p className="section-label">{dict.contact.phoneLabel}</p>
-              {contact.phone ? (
-                <a href={`tel:${phoneHref}`} className="contact-premium-value">{contact.phone}</a>
-              ) : (
-                <p className="contact-premium-value text-ink-soft">—</p>
-              )}
+              {contact.phone ? <a href={`tel:${phoneHref}`} className="contact-premium-value">{contact.phone}</a> : <p className="contact-premium-value text-ink-soft">—</p>}
               <p className="contact-premium-caption">{lang === "el" ? "Για επείγουσες διευκρινίσεις σχετικά με την άφιξη." : "For time-sensitive arrival questions."}</p>
             </div>
             <div className="contact-premium-card">
               <p className="section-label">{dict.contact.emailLabel}</p>
-              {contact.email ? (
-                <a href={`mailto:${contact.email}`} className="contact-premium-value">{contact.email}</a>
-              ) : (
-                <p className="contact-premium-value text-ink-soft">—</p>
-              )}
+              {contact.email ? <a href={`mailto:${contact.email}`} className="contact-premium-value">{contact.email}</a> : <p className="contact-premium-value text-ink-soft">—</p>}
               <p className="contact-premium-caption">{lang === "el" ? "Αναφέρετε τον κωδικό κράτησης εφόσον υπάρχει." : "Include your booking reference if you have one."}</p>
             </div>
             <div className="contact-premium-card">

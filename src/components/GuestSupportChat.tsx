@@ -49,6 +49,15 @@ const COPY: Record<Locale, {
     error: "Nachricht konnte nicht gesendet werden. Versuchen Sie es erneut oder schreiben Sie an info@villamemaj.com.",
     start: "Hallo! Wie können wir Ihnen helfen?",
   },
+  it: {
+    label: "Chatta con noi", title: "Assistenza Villa Memaj", intro: "Chiedici informazioni sulla struttura o sul soggiorno.",
+    name: "Nome (facoltativo)", email: "Email (facoltativa)", message: "La tua domanda",
+    send: "Invia domanda", sending: "Invio…", close: "Chiudi chat",
+    privacy: "I messaggi vengono conservati nella nostra casella di supporto privata. Non inviare dati della carta o password.",
+    error: "Non è stato possibile inviare il messaggio. Riprova o scrivi a info@villamemaj.com.",
+    start: "Ciao! Come possiamo aiutarti?",
+  },
+
 };
 
 export default function GuestSupportChat({ locale }: { locale: Locale }) {

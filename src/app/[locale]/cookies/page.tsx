@@ -60,6 +60,34 @@ const COPY: Record<Locale, { eyebrow: string; title: string; subtitle: string; n
       { title: "5. Verantwortlicher und Kontakt", text: ["Vor Veröffentlichung muss der Betreiber den vollständigen rechtlichen Namen, die Postanschrift, Kontaktangaben und tatsächlich eingesetzte Tools bestätigen. Datenschutzanfragen: info@villamemaj.com."] },
     ],
   },
+  it: {
+    eyebrow: "Privacy e trasparenza",
+    title: "Informativa sui cookie",
+    subtitle: "Come funzionano le tecnologie essenziali e le preferenze facoltative di privacy.",
+    notice: "Questa pagina descrive i controlli di consenso attualmente implementati; non è una certificazione di piena conformità legale. Il gestore deve aggiornare queste informazioni quando cambiano servizi o fornitori.",
+    sections: [
+      { title: "1. Cookie e archiviazione locale", text: [
+        "I cookie sono piccoli file salvati sul dispositivo. Tecnologie simili, come la memoria locale del browser, possono conservare preferenze. Questa informativa va letta insieme all'Informativa sulla privacy.",
+        "Il sito utilizza la memoria strettamente necessaria per le funzioni fondamentali, la sicurezza e per ricordare le scelte sui cookie. Le tecnologie facoltative non devono essere attivate prima del consenso."
+      ]},
+      { title: "2. Tecnologie strettamente necessarie", text: [
+        "Le tecnologie strettamente necessarie supportano la navigazione, le funzioni di prenotazione, la sicurezza e la memorizzazione della scelta di consenso. Non possono essere disattivate tramite il pannello delle preferenze.",
+        "Il sito non deve utilizzare questa categoria per finalità pubblicitarie o analitiche facoltative."
+      ]},
+      { title: "3. Analisi e marketing facoltativi", text: [
+        "Le categorie facoltative di analisi e marketing sono disattivate per impostazione predefinita. La selezione di una categoria non deve attivare tecnologie ulteriori di quelle descritte in questa informativa.",
+        "Al momento, la scelta di analisi non attiva uno strumento di analisi. L'eventuale introduzione di nuovi fornitori deve essere accompagnata da un aggiornamento dell'informativa e dei controlli di consenso."
+      ]},
+      { title: "4. Ricerca voli Skyscanner", text: [
+        "Il widget incorporato di Skyscanner viene caricato solo dopo che l'utente ha consentito la categoria facoltativa marketing/servizi di terze parti e ha scelto di aprire la ricerca. È sempre disponibile un collegamento diretto a Skyscanner.",
+        "Quando si carica il widget o si apre il sito esterno, Skyscanner può ricevere i dati della ricerca e informazioni tecniche di connessione secondo le proprie condizioni e informative sulla privacy. Villa Memaj non vende biglietti aerei."
+      ]},
+      { title: "5. Modificare o revocare il consenso", text: [
+        "Puoi rifiutare tutte le categorie facoltative dal pannello dei cookie o modificare la selezione in seguito tramite il collegamento alle impostazioni cookie sul sito.",
+        "La revoca non rende illeciti i trattamenti effettuati prima della revoca. Per informazioni sul trattamento dei dati personali, consulta l'Informativa sulla privacy."
+      ]}
+    ]
+  },
 };
 
 export default async function CookiesPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -83,8 +111,8 @@ export default async function CookiesPage({ params }: { params: Promise<{ locale
             ))}
           </div>
           <div className="mt-10 flex flex-wrap gap-5 border-t border-sand-dark pt-6 text-sm font-semibold text-olive">
-            <Link href={"/" + locale + "/privacy"} className="underline underline-offset-4">{locale === "el" ? "Πολιτική απορρήτου" : locale === "fr" ? "Politique de confidentialité" : locale === "sq" ? "Politika e privatësisë" : locale === "de" ? "Datenschutzerklärung" : "Privacy policy"}</Link>
-            <Link href={"/" + locale + "/terms"} className="underline underline-offset-4">{locale === "el" ? "Όροι κράτησης" : locale === "fr" ? "Conditions de réservation" : locale === "sq" ? "Kushtet e rezervimit" : locale === "de" ? "Buchungsbedingungen" : "Booking terms"}</Link>
+            <Link href={"/" + locale + "/privacy"} className="underline underline-offset-4">{locale === "el" ? "Πολιτική απορρήτου" : locale === "fr" ? "Politique de confidentialité" : locale === "sq" ? "Politika e privatësisë" : locale === "de" ? "Datenschutzerklärung" : locale === "it" ? "Informativa sulla privacy" : "Privacy policy"}</Link>
+            <Link href={"/" + locale + "/terms"} className="underline underline-offset-4">{locale === "el" ? "Όροι κράτησης" : locale === "fr" ? "Conditions de réservation" : locale === "sq" ? "Kushtet e rezervimit" : locale === "de" ? "Buchungsbedingungen" : locale === "it" ? "Condizioni di prenotazione" : "Booking terms"}</Link>
           </div>
         </div>
       </section>

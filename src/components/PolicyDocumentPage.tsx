@@ -1,14 +1,19 @@
 import Link from "next/link";
 import EditorialPageHero from "@/components/EditorialPageHero";
-import { policyLinks, type PolicyDocument } from "@/lib/legal-content";
+import { getPolicyLinks, type PolicyDocument } from "@/lib/legal-content";
 import type { Locale } from "@/lib/site";
 
 export default function PolicyDocumentPage({ locale, document }: { locale: Locale; document: PolicyDocument }) {
-  const links = policyLinks[locale === "el" ? "el" : "en"];
-  const fallbackNotice = !["el", "en"].includes(locale);
+  const links = getPolicyLinks(locale);
   return (
     <div className="legal-page">
       <EditorialPageHero locale={locale} eyebrow={document.label} title={document.title} subtitle={document.subtitle} />
+      {locale !== "en" && locale !== "el" ? (
+        <div className="legal-translation-note" role="note">
+          <strong>{locale === "fr" ? "Traduction juridique à valider" : locale === "de" ? "Rechtliche Übersetzung noch zu prüfen" : locale === "sq" ? "Përkthimi ligjor duhet verifikuar" : "Traduzione legale da verificare"}</strong>
+          <p>{locale === "fr" ? "Cette traduction est un projet d’information. Faites vérifier la version française par un traducteur professionnel et un juriste compétent en droit albanais avant de vous y fier comme texte juridique définitif." : locale === "de" ? "Diese Übersetzung ist ein Informationsentwurf. Lassen Sie sie vor Verwendung als verbindlichen Rechtstext von professionellen Übersetzern und einer qualifizierten Beratung zum albanischen Recht prüfen." : locale === "sq" ? "Ky përkthim është draft informues. Para se të përdoret si tekst përfundimtar ligjor, duhet të kontrollohet nga përkthyes profesionalë dhe juristë të kualifikuar për ligjin shqiptar." : "Questa traduzione è una bozza informativa. Prima di considerarla un testo giuridico definitivo, deve essere verificata da traduttori professionisti e da un consulente qualificato in diritto albanese."}</p>
+        </div>
+      ) : null}
       <div className="legal-layout">
         <aside className="legal-sidebar reveal-from-left">
           <p className="section-label">{locale === "el" ? "Πληροφορίες" : "Information"}</p>
@@ -22,7 +27,6 @@ export default function PolicyDocumentPage({ locale, document }: { locale: Local
           <p className="legal-updated">{locale === "el" ? "Τελευταία ενημέρωση" : "Last updated"}: {document.updated}</p>
         </aside>
         <article className="legal-article">
-          {fallbackNotice ? <p role="note" className="mb-6 rounded-xl border border-sand-dark bg-sand/40 p-4 text-sm leading-6 text-ink-soft">This policy is currently published in English for this language version. The Greek and English copies are the reference texts until a reviewed translation is available.</p> : null}
           {document.sections.map((section, index) => (
             <section key={section.heading} id={`section-${index + 1}`} className="legal-section reveal-from-bottom">
               <h2>{section.heading}</h2>

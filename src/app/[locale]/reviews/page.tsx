@@ -1,78 +1,74 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import EditorialPageHero from "@/components/EditorialPageHero";
+import GuestTestimonialForm from "@/components/GuestTestimonialForm";
 import { getSupabase } from "@/lib/supabase";
-import { isLocale, type Locale } from "@/lib/site";
+import { isLocale } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  const lang = isLocale(locale) ? locale as Locale : "el";
-  return {
-    title: lang === "el" ? "Αξιολογήσεις επισκεπτών" : lang === "fr" ? "Avis des voyageurs" : lang === "sq" ? "Vlerësimet e mysafirëve" : lang === "de" ? "Gästebewertungen" : "Guest reviews",
-    description: lang === "el" ? "Δημοσιευμένες αξιολογήσεις επισκεπτών της Villa Memaj." : "Published guest reviews for Villa Memaj.",
-  };
+  if (!isLocale(locale)) return { title: "Reviews" };
+  const title: Record<string,string> = { en: "Guest reviews", el: "Κριτικές επισκεπτών", fr: "Avis des voyageurs", sq: "Vlerësimet e vizitorëve", de: "Gästebewertungen", it: "Recensioni degli ospiti" };
+  return { title: title[locale] || "Guest reviews", description: "Guest experiences shared directly with Villa Memaj." };
 }
 
-type PublicReview = {
-  id: string;
-  guest_display_name: string;
-  rating: number;
-  title: string;
-  review_text: string;
-  locale: string;
-  published_at: string | null;
-  created_at: string;
-};
+type Review = { id: string; display_name: string; locale: string; rating: number; title: string; body: string; submitted_at: string };
 
-const UI = {
-  en: { eyebrow: "Guest experiences", title: "Guest reviews", subtitle: "Feedback from guests who completed their stay.", empty: "No guest reviews have been published yet.", book: "Plan your stay" },
-  el: { eyebrow: "Εμπειρίες επισκεπτών", title: "Αξιολογήσεις επισκεπτών", subtitle: "Σχόλια επισκεπτών που ολοκλήρωσαν τη διαμονή τους.", empty: "Δεν έχουν δημοσιευτεί ακόμη αξιολογήσεις.", book: "Προγραμματίστε τη διαμονή σας" },
-  fr: { eyebrow: "Expériences des voyageurs", title: "Avis des voyageurs", subtitle: "Avis de voyageurs ayant terminé leur séjour.", empty: "Aucun avis n’a encore été publié.", book: "Préparer votre séjour" },
-  sq: { eyebrow: "Përvojat e mysafirëve", title: "Vlerësimet e mysafirëve", subtitle: "Komente nga mysafirët që e përfunduan qëndrimin.", empty: "Nuk ka ende vlerësime të publikuara.", book: "Planifikoni qëndrimin" },
-  de: { eyebrow: "Gästeerlebnisse", title: "Gästebewertungen", subtitle: "Rückmeldungen von Gästen nach abgeschlossenem Aufenthalt.", empty: "Es wurden noch keine Gästebewertungen veröffentlicht.", book: "Aufenthalt planen" },
-};
-
-export default async function PublicReviewsPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function GuestReviewsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  if (!isLocale(locale)) return null;
-  const lang = locale as Locale;
-  const ui = UI[lang];
-  let reviews: PublicReview[] = [];
+  if (!isLocale(locale)) notFound();
+  let reviews: Review[] = [];
+  let externalReviewUrl = process.env.NEXT_PUBLIC_BOOKING_REVIEW_URL || "";
   try {
-    const { data, error } = await getSupabase()
-      .from("hotel_guest_reviews")
-      .select("id,guest_display_name,rating,title,review_text,locale,published_at,created_at")
-      .eq("status", "published")
-      .order("published_at", { ascending: false })
-      .limit(30);
-    if (!error) reviews = (data ?? []) as PublicReview[];
+    const client = getSupabase();
+    const [publicReviews, policy] = await Promise.all([
+      client.from("guest_testimonials").select("id,display_name,locale,rating,title,body,submitted_at").eq("is_published", true).eq("consent_to_publish", true).order("submitted_at", { ascending: false }).limit(30),
+      client.from("hotel_house_policies").select("public_review_url").limit(1).maybeSingle(),
+    ]);
+    reviews = (publicReviews.data ?? []) as Review[];
+    if (!externalReviewUrl && typeof policy.data?.public_review_url === "string") externalReviewUrl = policy.data.public_review_url;
   } catch {
     reviews = [];
   }
 
+  const text: Record<string, { eyebrow:string; title:string; subtitle:string; latest:string; none:string; form:string; booking:string; note:string }> = {
+    en: { eyebrow:"Guest experiences", title:"Stories from our guests.", subtitle:"These testimonials are shared directly with Villa Memaj and published only with permission. For platform-specific reviews, use the property’s public listing.", latest:"Guest testimonials", none:"No approved testimonials have been published yet.", form:"Share your experience", booking:"Read reviews on Booking.com", note:"Only first-party reviews with explicit publication consent are shown here; Booking.com review text is not copied into this page." },
+    el: { eyebrow:"Εμπειρίες επισκεπτών", title:"Οι εμπειρίες των επισκεπτών μας.", subtitle:"Οι μαρτυρίες υποβάλλονται απευθείας στη Villa Memaj και δημοσιεύονται μόνο με άδεια.", latest:"Κριτικές επισκεπτών", none:"Δεν έχουν δημοσιευθεί ακόμη εγκεκριμένες κριτικές.", form:"Μοιραστείτε την εμπειρία σας", booking:"Δείτε τις κριτικές στο Booking.com", note:"Εμφανίζονται μόνο κριτικές που έχουν σταλεί απευθείας με ρητή συναίνεση· το κείμενο του Booking.com δεν αντιγράφεται εδώ." },
+    fr: { eyebrow:"Expériences des voyageurs", title:"Les expériences de nos hôtes.", subtitle:"Les témoignages sont envoyés directement à Villa Memaj et publiés uniquement avec autorisation.", latest:"Témoignages", none:"Aucun témoignage approuvé n’est encore publié.", form:"Partager votre expérience", booking:"Lire les avis sur Booking.com", note:"Seuls les avis envoyés directement avec consentement sont affichés ; les avis Booking.com ne sont pas copiés ici." },
+    sq: { eyebrow:"Përvojat e vizitorëve", title:"Përvojat e mysafirëve tanë.", subtitle:"Dëshmitë dërgohen drejtpërdrejt te Villa Memaj dhe publikohen vetëm me leje.", latest:"Vlerësimet", none:"Nuk ka ende vlerësime të miratuara për publikim.", form:"Ndani përvojën tuaj", booking:"Lexoni vlerësimet në Booking.com", note:"Shfaqen vetëm vlerësime të dorëzuara drejtpërdrejt me pëlqim të qartë; tekstet nga Booking.com nuk kopjohen këtu." },
+    de: { eyebrow:"Gästeerlebnisse", title:"Erfahrungen unserer Gäste.", subtitle:"Erfahrungsberichte werden direkt an Villa Memaj übermittelt und nur mit Einwilligung veröffentlicht.", latest:"Gästestimmen", none:"Es wurden noch keine freigegebenen Erfahrungsberichte veröffentlicht.", form:"Erfahrung teilen", booking:"Bewertungen auf Booking.com lesen", note:"Hier werden nur direkt eingereichte Bewertungen mit ausdrücklicher Zustimmung angezeigt; Booking.com-Texte werden nicht kopiert." },
+    it: { eyebrow:"Esperienze degli ospiti", title:"Le esperienze dei nostri ospiti.", subtitle:"Le testimonianze sono inviate direttamente a Villa Memaj e pubblicate solo con autorizzazione.", latest:"Testimonianze", none:"Non sono ancora state pubblicate testimonianze approvate.", form:"Condividi la tua esperienza", booking:"Leggi le recensioni su Booking.com", note:"Sono mostrate solo recensioni inviate direttamente con consenso esplicito; i testi di Booking.com non vengono copiati qui." }
+  };
+  const t = text[locale];
   return (
-    <div className="editorial-page">
-      <EditorialPageHero locale={lang} eyebrow={ui.eyebrow} title={ui.title} subtitle={ui.subtitle} imageSrc="/902234060.jpg" />
+    <div className="editorial-page reviews-page">
+      <EditorialPageHero locale={locale} eyebrow={t.eyebrow} title={t.title} subtitle={t.subtitle} imageSrc="/902234060.jpg" />
       <section className="editorial-standard-content">
-        {reviews.length ? (
-          <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-2">
-            {reviews.map((review) => (
-              <article key={review.id} className="rounded-2xl border border-sand-dark bg-white p-6 sm:p-8">
-                <p aria-label={review.rating + " out of 5 stars"} className="text-lg tracking-widest text-olive">{"★".repeat(review.rating)}{"☆".repeat(5-review.rating)}</p>
-                <h2 className="mt-4 font-display text-2xl font-medium text-olive-dark">{review.title}</h2>
-                <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-ink-soft">{review.review_text}</p>
-                <p className="mt-6 border-t border-sand-dark pt-4 text-xs font-semibold text-olive">{review.guest_display_name} · {review.locale.toUpperCase()}</p>
-              </article>
-            ))}
+        <div className="reviews-grid">
+          <div className="reviews-column">
+            <p className="section-label">{t.latest}</p>
+            {reviews.length === 0 ? <div className="review-empty">{t.none}</div> : (
+              <div className="review-card-list">
+                {reviews.map((review) => <article key={review.id} className="guest-review-card">
+                  <div className="guest-review-stars" aria-label={review.rating + " out of 5"}>{"★".repeat(review.rating)}{"☆".repeat(5-review.rating)}</div>
+                  {review.title ? <h2>{review.title}</h2> : null}
+                  <p>{review.body}</p>
+                  <footer><strong>{review.display_name}</strong><span>{new Date(review.submitted_at).toLocaleDateString(locale)}</span></footer>
+                </article>)}
+              </div>
+            )}
+            {externalReviewUrl && externalReviewUrl.startsWith("https://") ? <a href={externalReviewUrl} target="_blank" rel="noopener noreferrer" className="button-dark mt-5">{t.booking}<span aria-hidden="true">↗</span></a> : null}
+            <p className="mt-4 text-xs leading-6 text-ink-soft">{t.note}</p>
           </div>
-        ) : (
-          <div className="mx-auto max-w-3xl rounded-2xl border border-sand-dark bg-white p-8 text-center">
-            <p className="text-sm leading-7 text-ink-soft">{ui.empty}</p>
+          <div className="reviews-submit-card">
+            <p className="section-label">{t.form}</p>
+            <GuestTestimonialForm locale={locale} />
           </div>
-        )}
-        <div className="mt-10 text-center"><Link href={"/" + lang + "/booking"} className="button-dark">{ui.book} ↗</Link></div>
+        </div>
+        <div className="mt-10"><Link className="text-sm font-semibold text-olive underline underline-offset-4" href={"/" + locale + "/contact"}>Contact Villa Memaj ↗</Link></div>
       </section>
     </div>
   );

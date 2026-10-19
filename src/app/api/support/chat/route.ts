@@ -1,362 +1,212 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { getRooms } from "@/lib/data";
+import { getFAQItems, getPolicyDocument, type FAQItem } from "@/lib/legal-content";
+import { isLocale, type Locale } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type SupportInput = {
-  message?: unknown;
-  name?: unknown;
-  email?: unknown;
-  phone?: unknown;
-  locale?: unknown;
-  website?: unknown;
-  threadId?: unknown;
-};
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const MAX_MESSAGE = 2000;
-const LOCALES = new Set(["el", "en", "fr", "sq", "de"]);
+type ProviderAnswer = { provider: string; answer: string } | null;
 
-function text(value: unknown, max: number): string {
-  return typeof value === "string" ? value.trim().slice(0, max) : "";
+function needsHuman(text: string): boolean {
+  return /\b(human|person|staff|manager|owner|complaint|refund|chargeback|payment failed|cancel my|change my booking|emergency|urgent|safety|allergy|medical|lawsuit|data breach|gdpr|personal data)\b/i.test(text);
 }
 
-function genericReply(locale: string): string {
-  switch (locale) {
-    case "el":
-      return "Ευχαριστούμε για το μήνυμά σας. Το αίτημά σας καταχωρήθηκε και η ομάδα της Villa Memaj θα επικοινωνήσει μαζί σας. Για επείγουσες απορίες σχετικά με κράτηση, στείλτε email στο info@villamemaj.com.";
-    case "fr":
-      return "Merci pour votre message. Votre demande a été enregistrée et l’équipe de Villa Memaj vous répondra. Pour une question urgente concernant une réservation, écrivez à info@villamemaj.com.";
-    case "sq":
-      return "Faleminderit për mesazhin. Kërkesa juaj u regjistrua dhe ekipi i Villa Memaj do t'ju kontaktojë. Për çështje urgjente rezervimi, shkruani te info@villamemaj.com.";
-    case "de":
-      return "Vielen Dank für Ihre Nachricht. Ihre Anfrage wurde gespeichert und das Team der Villa Memaj meldet sich. Bei dringenden Fragen zur Buchung schreiben Sie an info@villamemaj.com.";
-    default:
-      return "Thank you for your message. Your request has been recorded and the Villa Memaj team will follow up. For urgent booking questions, email info@villamemaj.com.";
-  }
+function fallbackAnswer(message: string, locale: Locale): string {
+  const questions = getFAQItems(locale);
+  const normalized = message.toLowerCase();
+  const score = (item: FAQItem) => {
+    const question = (item.q + " " + item.a).toLowerCase();
+    const terms = normalized.split(/[^a-z0-9\u00c0-\u024f\u0370-\u03ff]+/i).filter((word) => word.length >= 4);
+    return terms.reduce((sum, term) => sum + (question.includes(term) ? 1 : 0), 0);
+  };
+  const best = questions.map((item) => ({ item, score: score(item) })).sort((a, b) => b.score - a.score)[0];
+  const threshold = locale === "el" ? 1 : 1;
+  if (best && best.score >= threshold) return best.item.a;
+
+  const contact: Record<Locale, string> = {
+    en: "I can help with general information about Villa Memaj, booking terms, cancellation rules and check-in. For a booking-specific change, payment issue or complaint, I’ll flag this for the property team. You can also write to info@villamemaj.com.",
+    el: "Μπορώ να βοηθήσω με γενικές πληροφορίες για τη Villa Memaj, τους όρους κράτησης, τις ακυρώσεις και την άφιξη. Για αλλαγή συγκεκριμένης κράτησης, πληρωμή ή παράπονο, θα ενημερώσω την ομάδα του καταλύματος. Μπορείτε επίσης να γράψετε στο info@villamemaj.com.",
+    fr: "Je peux vous aider avec les informations générales, les conditions de réservation, les annulations et l’arrivée. Pour modifier une réservation, un problème de paiement ou une réclamation, je transmettrai votre demande à l’équipe. Vous pouvez aussi écrire à info@villamemaj.com.",
+    sq: "Mund t’ju ndihmoj me informacion të përgjithshëm, kushtet e rezervimit, anulimet dhe regjistrimin. Për ndryshim rezervimi, problem pagese ose ankesë, do ta kaloj kërkesën te ekipi. Mund të shkruani edhe në info@villamemaj.com.",
+    de: "Ich helfe bei allgemeinen Informationen, Buchungsbedingungen, Stornierungen und Anreise. Bei Buchungsänderungen, Zahlungsproblemen oder Beschwerden leite ich die Anfrage an das Team weiter. Sie können auch an info@villamemaj.com schreiben.",
+    it: "Posso aiutarti con informazioni generali, condizioni di prenotazione, cancellazioni e check-in. Per modifiche a una prenotazione, problemi di pagamento o reclami, inoltrerò la richiesta al team. Puoi anche scrivere a info@villamemaj.com.",
+  };
+  return contact[locale];
 }
 
-function extractResponseText(payload: unknown): string {
-  if (!payload || typeof payload !== "object") return "";
-  const object = payload as { output_text?: unknown; output?: unknown };
-  if (typeof object.output_text === "string") return object.output_text.trim();
-  if (!Array.isArray(object.output)) return "";
-  const parts: string[] = [];
-  for (const item of object.output) {
-    if (!item || typeof item !== "object") continue;
-    const content = (item as { content?: unknown }).content;
-    if (!Array.isArray(content)) continue;
-    for (const node of content) {
-      if (node && typeof node === "object" && (node as { type?: unknown }).type === "output_text") {
-        const value = (node as { text?: unknown }).text;
-        if (typeof value === "string") parts.push(value);
-      }
-    }
-  }
-  return parts.join("\n").trim();
+function policyContext(locale: Locale): string {
+  const docs = ["terms", "cancellation", "houseRules", "payments", "privacy"]
+    .map((slug) => getPolicyDocument(slug, locale) ?? getPolicyDocument(slug, "en"))
+    .filter(Boolean);
+  const relevantFaqs = getFAQItems(locale);
+  return [
+    ...docs.map((doc) => doc ? doc.title + "\n" + doc.sections.map((s) => s.heading + "\n" + s.paragraphs.join("\n")).join("\n") : ""),
+    "FAQ:\n" + relevantFaqs.map((item) => item.q + "\n" + item.a).join("\n"),
+  ].join("\n\n").slice(0, 22000);
 }
 
-async function notifySlack(webhook: string | undefined, reference: string, locale: string) {
-  if (!webhook) return;
+async function answerWithOpenAI(message: string, locale: Locale): Promise<ProviderAnswer> {
+  const key = process.env.OPENAI_API_KEY?.trim();
+  if (!key) return null;
+  const model = process.env.OPENAI_MODEL?.trim() || "gpt-4.1-mini";
+  const instructions = [
+    "You are the guest support assistant for Villa Memaj, an accommodation provider in Albania.",
+    "Answer in the guest's selected language. Use only the property information below. Be courteous and concise.",
+    "Never claim to see or change a booking, never state payment is received, never approve refunds or exceptions, never invent inventory, fees, flight facts, tax rates, amenities or legal guarantees.",
+    "Do not ask for payment card numbers, security codes, authentication codes, passwords or identity documents.",
+    "You have no access to private booking records or staff CRM data. Do not imply otherwise.",
+    "For booking-specific changes, payment failures, cancellation disputes, complaints, legal/privacy requests, urgent/safety concerns or any uncertain answer, tell the guest the property team must confirm and request human support escalation.",
+    "Current property knowledge:\n" + policyContext(locale),
+  ].join("\n\n");
   try {
-    const url = new URL(webhook);
-    if (url.protocol !== "https:" || url.hostname !== "hooks.slack.com") return;
-    await fetch(url.toString(), {
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, instructions, input: message, max_output_tokens: 320 }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!response.ok) return null;
+    const data = await response.json() as { output_text?: string; output?: { content?: { type?: string; text?: string }[] }[] };
+    const answer = data.output_text ?? data.output?.flatMap((item) => item.content ?? []).filter((part) => part.type === "output_text" && part.text).map((part) => part.text).join("\n") ?? "";
+    return answer.trim() ? { provider: model, answer: answer.trim().slice(0, 4000) } : null;
+  } catch {
+    return null;
+  }
+}
+
+async function answerWithGemini(message: string, locale: Locale): Promise<ProviderAnswer> {
+  const key = process.env.GEMINI_API_KEY?.trim();
+  if (!key) return null;
+  const model = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+  const prompt = [
+    "You are the Villa Memaj guest support assistant. Answer in the selected language and use only the property knowledge below.",
+    "Do not claim access to private bookings or that payments/refunds/changes are approved. Never request full card data, security codes or passwords. Escalate booking-specific changes, money issues, complaints, safety, privacy and uncertain answers to the property team.",
+    "Property knowledge:\n" + policyContext(locale),
+    "Guest language: " + locale,
+    "Guest question: " + message,
+  ].join("\n\n");
+  try {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: "New Villa Memaj support request " + reference + " (" + locale + "). Please open the private CRM Support Inbox to read and respond."
-      }),
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 320, temperature: 0.2 } }),
       cache: "no-store",
-      signal: AbortSignal.timeout(3500),
+      signal: AbortSignal.timeout(12000),
     });
+    if (!response.ok) return null;
+    const data = await response.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+    const answer = data.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("\n").trim() ?? "";
+    return answer ? { provider: model, answer: answer.slice(0, 4000) } : null;
   } catch {
-    // Support requests are durably stored and owner email remains the fallback.
+    return null;
   }
 }
 
 export async function POST(request: Request) {
-  let input: SupportInput;
-  try {
-    input = await request.json() as SupportInput;
-  } catch {
-    return NextResponse.json({ ok: false, error: "invalid_request" }, { status: 400 });
-  }
+  let body: { message?: unknown; locale?: unknown; conversationId?: unknown; requestHuman?: unknown; contactEmail?: unknown };
+  try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid request body." }, { status: 400 }); }
 
-  // Quietly discard bot-trap submissions; never reflect the trap value.
-  if (text(input.website, 300)) {
-    return NextResponse.json({ ok: true, reply: genericReply("en"), reference: null });
-  }
+  const message = typeof body.message === "string" ? body.message.trim().slice(0, 3000) : "";
+  const locale = typeof body.locale === "string" && isLocale(body.locale) ? body.locale as Locale : "en";
+  let requestedId = typeof body.conversationId === "string" && uuidPattern.test(body.conversationId) ? body.conversationId : randomUUID();
+  const requestHuman = body.requestHuman === true;
+  const contactEmail = typeof body.contactEmail === "string" && emailPattern.test(body.contactEmail.trim()) ? body.contactEmail.trim().toLowerCase() : null;
 
-  const message = text(input.message, MAX_MESSAGE);
-  const name = text(input.name, 100) || null;
-  const email = text(input.email, 254).toLowerCase();
-  const phone = text(input.phone, 40) || null;
-  const localeCandidate = text(input.locale, 8);
-  const locale = LOCALES.has(localeCandidate) ? localeCandidate : "en";
-  const requestedThreadId = text(input.threadId, 80);
-  if (requestedThreadId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedThreadId)) {
-    return NextResponse.json({ ok: false, error: "invalid_thread" }, { status: 400 });
-  }
-
-  if (message.length < 8) {
-    return NextResponse.json({ ok: false, error: "message_too_short" }, { status: 400 });
-  }
-  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    return NextResponse.json({ ok: false, error: "invalid_email" }, { status: 400 });
-  }
+  if (message.length < 2) return NextResponse.json({ error: "Please enter a question." }, { status: 400 });
+  if (requestHuman && body.contactEmail && !contactEmail) return NextResponse.json({ error: "Enter a valid email address or leave it blank." }, { status: 400 });
 
   const supabase = createSupabaseServiceClient();
-  if (!supabase) {
-    return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
-  }
+  if (!supabase) return NextResponse.json({ error: "Guest support is temporarily unavailable. Please email info@villamemaj.com." }, { status: 503 });
 
-  // Only trust the platform-provided Vercel client-IP header. Other forwarding headers
-  // may be supplied by callers and could let an attacker evade the per-IP request limit.
-  const forwarded = request.headers.get("x-vercel-forwarded-for") || "unknown";
-  const ip = forwarded.split(",")[0].trim().slice(0, 100) || "unknown";
-  const ipHash = createHash("sha256").update(ip).digest("hex");
+  const forwarded = request.headers.get("x-real-ip")?.trim() || request.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() || "unknown";
+  const salt = process.env.SUPPORT_RATE_LIMIT_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(-16) || process.env.CRON_SECRET || "support-rate-limit";
+  const fingerprint = createHash("sha256").update(salt + ":" + forwarded).digest("hex");
+  const { data: allowed, error: limitError } = await supabase.rpc("consume_support_rate_limit", {
+    p_fingerprint_hash: fingerprint,
+    p_window_seconds: 60,
+    p_max_hits: 8,
+  });
+  if (limitError || allowed !== true) return NextResponse.json({ error: "Please wait a minute before sending another question." }, { status: 429 });
 
-  const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-  type SupportThread = { id: string; public_reference: string; guest_email: string | null; guest_name: string | null };
-  let thread: SupportThread;
-
-  if (requestedThreadId) {
-    const { data: existingThread, error: existingError } = await supabase
-      .from("hotel_guest_support_threads")
-      .select("id,public_reference,guest_email,guest_name,status")
-      .eq("id", requestedThreadId)
-      .eq("request_ip_hash", ipHash)
-      .in("status", ["open", "waiting_for_guest", "waiting_for_staff"])
-      .maybeSingle();
-
-    if (existingError || !existingThread) {
-      return NextResponse.json({ ok: false, error: "thread_not_found" }, { status: 404 });
-    }
-
-    const { count: messageCount, error: messageCountError } = await supabase
-      .from("hotel_guest_support_messages")
-      .select("id", { count: "exact", head: true })
-      .eq("thread_id", requestedThreadId)
-      .eq("sender_role", "guest")
-      .gte("created_at", cutoff);
-
-    if (messageCountError) {
-      return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
-    }
-    if ((messageCount ?? 0) >= 10) {
-      return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
-    }
-
-    thread = existingThread as SupportThread;
-    await supabase.from("hotel_guest_support_threads").update({
-      status: "open",
-      last_message_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }).eq("id", thread.id);
-  } else {
-    const { count, error: rateError } = await supabase
-      .from("hotel_guest_support_threads")
-      .select("id", { count: "exact", head: true })
-      .eq("request_ip_hash", ipHash)
-      .gte("created_at", cutoff);
-
-    if (rateError) {
-      console.error("Support rate-limit query failed", { code: rateError.code });
-      return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
-    }
-    if ((count ?? 0) >= 8) {
-      return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
-    }
-
-    const initialSubject = message.split(/\r?\n/, 1)[0].slice(0, 120) || "Guest question";
-    const { data: newThread, error: threadError } = await supabase
-      .from("hotel_guest_support_threads")
-      .insert({
-        guest_name: name,
-        guest_email: email || null,
-        guest_phone: phone,
-        locale,
-        subject: initialSubject,
-        source: "website_chat",
-        status: "open",
-        request_ip_hash: ipHash,
-        last_message_at: new Date().toISOString(),
-      })
-      .select("id,public_reference,guest_email,guest_name")
-      .single();
-
-    if (threadError || !newThread) {
-      console.error("Support thread creation failed", { code: threadError?.code });
-      return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
-    }
-    thread = newThread as SupportThread;
-  }
-
-  const subject = message.split(/\r?\n/, 1)[0].slice(0, 120) || "Guest question";
-  const { data: guestMessage, error: messageError } = await supabase
-    .from("hotel_guest_support_messages")
-    .insert({
-      thread_id: thread.id,
-      sender_role: "guest",
-      content: message,
-      delivery_channel: "web_chat",
-    })
-    .select("id")
-    .single();
-
-  if (messageError || !guestMessage) {
-    console.error("Support message creation failed", { code: messageError?.code, reference: thread.public_reference });
-    return NextResponse.json({ ok: false, error: "support_temporarily_unavailable" }, { status: 503 });
-  }
-
-  const { data: policy } = await supabase
-    .from("hotel_house_policies")
-    .select("notification_emails,contact_email,check_in_time,check_out_time,smoking_allowed,pets_allowed,children_allowed,parties_allowed,quiet_hours,children_policy,internet_information,parking_information,damage_policy,additional_fees_note,arrival_instructions_en,arrival_instructions_el,local_guide_en,local_guide_el")
-    .limit(1)
+  const { data: existingConversation, error: existingConversationError } = await supabase
+    .from("guest_support_conversations")
+    .select("id,client_fingerprint_hash")
+    .eq("id", requestedId)
     .maybeSingle();
+  if (existingConversationError) return NextResponse.json({ error: "Could not start the support conversation." }, { status: 500 });
+  if (existingConversation && existingConversation.client_fingerprint_hash !== fingerprint) {
+    // A conversation id copied from another browser must not allow cross-guest writes.
+    requestedId = randomUUID();
+  }
 
-  const recipients = Array.from(new Set([
-    ...((policy?.notification_emails as string[] | null) ?? []),
-    typeof policy?.contact_email === "string" ? policy.contact_email : "",
-  ].map((value) => value.trim().toLowerCase()).filter((value) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value))));
+  const human = requestHuman || needsHuman(message);
+  const chosenContact = contactEmail;
+  const { error: conversationError } = await supabase.from("guest_support_conversations").upsert({
+    id: requestedId,
+    client_fingerprint_hash: fingerprint,
+    locale,
+    status: human ? "waiting_staff" : "open",
+    requested_human: human,
+    guest_contact_email: chosenContact,
+    last_message_at: new Date().toISOString(),
+  }, { onConflict: "id", ignoreDuplicates: true });
 
-  for (const recipient of recipients) {
-    const { error } = await supabase.from("email_outbox").insert({
-      kind: "guest_support_message",
-      to_email: recipient,
-      subject: "Guest support " + thread.public_reference + ": " + subject,
-      body_text: [
-        "Reference: " + thread.public_reference,
-        "Language: " + locale,
-        "Name: " + (thread.guest_name || name || "not provided"),
-        "Email: " + (thread.guest_email || email || "not provided"),
-        "Phone: " + (phone || "not provided"),
-        "",
-        message,
-        "",
-        "Open the CRM support inbox to reply. Do not send payment credentials over chat.",
-      ].join("\n"),
-      dedupe_key: "support:" + thread.id + ":message:" + guestMessage.id + ":owner:" + recipient,
+  if (conversationError) return NextResponse.json({ error: "Could not start the support conversation." }, { status: 500 });
+
+  await supabase.from("guest_support_conversations").update({
+    locale,
+    last_message_at: new Date().toISOString(),
+    ...(human ? { status: "waiting_staff", requested_human: true } : {}),
+    ...(chosenContact ? { guest_contact_email: chosenContact } : {}),
+  }).eq("id", requestedId);
+
+  const { error: guestMessageError } = await supabase.from("guest_support_messages").insert({
+    conversation_id: requestedId,
+    role: "guest",
+    message,
+    needs_staff: human,
+  });
+  if (guestMessageError) return NextResponse.json({ error: "Could not save your message." }, { status: 500 });
+
+  const generated = await answerWithOpenAI(message, locale) ?? await answerWithGemini(message, locale);
+  const answer = generated?.answer || fallbackAnswer(message, locale);
+  const providerName = generated?.provider || "property-faq-fallback";
+  const escalate = human || (!generated && needsHuman(message));
+  await supabase.from("guest_support_messages").insert({
+    conversation_id: requestedId,
+    role: "assistant",
+    message: answer,
+    ai_provider: providerName,
+    needs_staff: escalate,
+  });
+  await supabase.from("guest_support_conversations").update({ last_message_at: new Date().toISOString(), ai_provider: providerName }).eq("id", requestedId);
+
+  if (escalate) {
+    const { error } = await supabase.from("owner_notification_outbox").insert({
+      kind: "support_request_" + randomUUID(),
+      payload: {
+        title: "Guest support needs staff",
+        conversation_id: requestedId,
+        locale,
+        message: message.slice(0, 700),
+        contact_email: chosenContact,
+        crm_url: "https://villamemaj-2026-website.vercel.app/admin/support",
+      },
     });
-    if (error) console.error("Support owner alert queue failed", { code: error.code, reference: thread.public_reference });
+    if (error) console.error("Support escalation queue insert failed", { conversationId: requestedId, code: error.code });
   }
-
-  await notifySlack(process.env.SLACK_WEBHOOK_URL, thread.public_reference, locale);
-
-  // The assistant may answer simple property questions, but it cannot query or promise
-  // live availability, change bookings, cancel reservations, issue refunds or take payments.
-  // If no AI credential is configured, the durable human handoff still works.
-  let reply = genericReply(locale);
-  let aiAnswered = false;
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  const model = process.env.GUEST_SUPPORT_AI_MODEL?.trim() || "gpt-4.1-mini";
-
-  if (apiKey) {
-    try {
-      const rooms = await getRooms();
-      const propertyFacts = {
-        checkIn: policy?.check_in_time ?? null,
-        checkOut: policy?.check_out_time ?? null,
-        smokingAllowed: policy?.smoking_allowed ?? null,
-        petsAllowed: policy?.pets_allowed ?? null,
-        childrenAllowed: policy?.children_allowed ?? null,
-        partiesAllowed: policy?.parties_allowed ?? null,
-        quietHours: policy?.quiet_hours ?? null,
-        childrenPolicy: policy?.children_policy ?? null,
-        internet: policy?.internet_information ?? null,
-        parking: policy?.parking_information ?? null,
-        damagePolicy: policy?.damage_policy ?? null,
-        extraFees: policy?.additional_fees_note ?? null,
-        arrivalInstructions: locale === "el" ? policy?.arrival_instructions_el : policy?.arrival_instructions_en,
-        localGuide: locale === "el" ? policy?.local_guide_el : policy?.local_guide_en,
-        roomNames: rooms.map((room) => ({ name: locale === "el" ? room.name_el : room.name_en })),
-      };
-
-      const { data: recentHistory } = await supabase
-        .from("hotel_guest_support_messages")
-        .select("sender_role,content")
-        .eq("thread_id", thread.id)
-        .in("sender_role", ["guest", "assistant"])
-        .order("created_at", { ascending: false })
-        .limit(10);
-      const conversationInput = (recentHistory ?? []).reverse().map((item) => ({
-        role: item.sender_role === "assistant" ? "assistant" : "user",
-        content: item.content,
-      }));
-
-      const instructions = [
-        "You are the guest-support assistant for Villa Memaj, a small accommodation property in Albania.",
-        "Reply in " + (locale === "el" ? "Greek" : locale === "fr" ? "French" : locale === "sq" ? "Albanian" : locale === "de" ? "German" : "English") + ".",
-        "Use only the supplied property facts. If a fact is blank, say the team must confirm it.",
-        "Never invent live availability, prices, transport schedules, attraction opening hours, legal advice, cancellation eligibility or refund outcomes.",
-        "Do not claim to make or change reservations, take payments, cancel bookings or approve refunds. Direct booking and cancellation requests to the website forms or the staff team.",
-        "Never ask for full card data, security codes, passwords or one-time banking codes.",
-        "Keep the answer warm, short and helpful (max 140 words). If unsure, invite the guest to share a booking reference with staff.",
-        "Verified property facts: " + JSON.stringify(propertyFacts),
-      ].join("\n");
-
-      const response = await fetch("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + apiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          instructions,
-          input: conversationInput,
-          max_output_tokens: 350,
-          store: false,
-        }),
-        cache: "no-store",
-        signal: AbortSignal.timeout(9000),
-      });
-
-      const data = await response.json().catch(() => null) as unknown;
-      const answer = response.ok ? extractResponseText(data) : "";
-      if (answer && answer.length <= 2500) {
-        reply = answer;
-        aiAnswered = true;
-      } else {
-        console.error("Guest-support AI returned no usable answer", { status: response.status, reference: thread.public_reference });
-      }
-    } catch {
-      console.error("Guest-support AI request failed", { reference: thread.public_reference });
-    }
-  }
-
-  const { error: assistantError } = await supabase
-    .from("hotel_guest_support_messages")
-    .insert({
-      thread_id: thread.id,
-      sender_role: aiAnswered ? "assistant" : "system",
-      content: reply,
-      model: aiAnswered ? model : null,
-      delivery_channel: "web_chat",
-      metadata: { automated: aiAnswered, handoff_required: !aiAnswered },
-    });
-
-  if (assistantError) {
-    console.error("Support reply storage failed", { code: assistantError.code, reference: thread.public_reference });
-  }
-
-  await supabase
-    .from("hotel_guest_support_threads")
-    .update({
-      status: aiAnswered ? "waiting_for_guest" : "waiting_for_staff",
-      last_message_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", thread.id);
 
   return NextResponse.json({
-    ok: true,
-    reference: thread.public_reference,
-    threadId: thread.id,
-    reply,
-    handedOff: !aiAnswered,
+    conversationId: requestedId,
+    answer,
+    provider: providerName,
+    needsStaff: escalate,
+    message: escalate ? "Your request has been flagged for the property team. For urgent matters, contact the property directly." : undefined,
   });
 }

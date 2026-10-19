@@ -35,18 +35,14 @@ type PolicyRow = {
   max_stay_nights: number;
   house_rules_en: string;
   house_rules_el: string;
+  public_review_url: string;
   taxes_included: boolean;
   tax_label: string | null;
   tax_rate: number | null;
   damage_deposit: number;
-  damage_deposit_currency: "EUR" | "ALL";
   extra_fees: unknown;
   terms_en: string;
   terms_el: string;
-  arrival_instructions_en: string;
-  arrival_instructions_el: string;
-  local_guide_en: string;
-  local_guide_el: string;
   privacy_en: string;
   privacy_el: string;
 };
@@ -95,7 +91,19 @@ export default async function PropertyPoliciesPage({
   const params = await searchParams;
   const { data, error } = await supabase
     .from("hotel_house_policies")
-    .select("*")
+.select([
+      "id", "check_in_time", "check_out_time", "smoking_allowed", "pets_allowed",
+      "children_allowed", "parties_allowed", "quiet_hours", "children_policy",
+      "child_rates_configured", "cots_available", "extra_beds_available",
+      "guest_address_required", "guest_phone_required", "minimum_check_in_age",
+      "curfew", "internet_information", "parking_information", "damage_policy",
+      "additional_fees_note", "accepted_payment_methods", "monthly_stays_allowed",
+      "max_stay_nights", "house_rules_en", "house_rules_el", "taxes_included",
+      "tax_label", "tax_rate", "damage_deposit", "damage_deposit_currency",
+      "extra_fees", "terms_en", "terms_el", "arrival_instructions_en",
+      "arrival_instructions_el", "local_guide_en", "local_guide_el", "privacy_en",
+      "privacy_el", "public_review_url"
+    ].join(", "))
     .limit(1)
     .maybeSingle();
 
@@ -180,15 +188,8 @@ export default async function PropertyPoliciesPage({
             <div className="admin-policy-fields mt-5">
               <Field label="Tax label" name="tax_label" defaultValue={row.tax_label} hint="Optional; verify with the accountant before publishing." />
               <Field label="Tax rate (%)" name="tax_rate" type="number" defaultValue={row.tax_rate} hint="Optional. Leave blank if not applicable or unknown." />
+              <Field label="Public guest review URL" name="public_review_url" defaultValue={row.public_review_url} hint="Official HTTPS public listing URL only. Booking.com API review text is not copied to the public site." />
               <Field label="Damage deposit amount" name="damage_deposit" type="number" defaultValue={row.damage_deposit} hint="Use 0 if no deposit is collected." />
-              <label className="admin-policy-field">
-                <span>Damage deposit currency</span>
-                <select name="damage_deposit_currency" defaultValue={row.damage_deposit_currency || "EUR"} className="w-full rounded-lg border border-sand-dark bg-white px-3 py-3 text-sm text-ink">
-                  <option value="EUR">EUR — Euro</option>
-                  <option value="ALL">ALL — Albanian lek</option>
-                </select>
-                <small>This currency is included in the guest confirmation; confirm it with your accountant.</small>
-              </label>
             </div>
           </section>
 
@@ -210,17 +211,7 @@ export default async function PropertyPoliciesPage({
           </section>
 
           <section className="admin-policy-section">
-            <div className="admin-policy-section-heading"><span>06</span><div><h2>Arrival and local guide</h2><p>These instructions are inserted into the confirmation and pre-arrival welcome email. Keep them factual and current.</p></div></div>
-            <div className="admin-policy-fields">
-              <TextField label="Arrival instructions · English" name="arrival_instructions_en" defaultValue={row.arrival_instructions_en} hint="Share meeting point, door access and how to request assistance. Do not put access codes here if the email may be forwarded." />
-              <TextField label="Οδηγίες άφιξης · Ελληνικά" name="arrival_instructions_el" defaultValue={row.arrival_instructions_el} hint="Προσθέστε σημείο συνάντησης, πρόσβαση και στοιχεία επικοινωνίας." />
-              <TextField label="Local guide · English" name="local_guide_en" defaultValue={row.local_guide_en} hint="Use verified nearby attractions, beaches, transport, restaurants and seasonal caveats." />
-              <TextField label="Τοπικός οδηγός · Ελληνικά" name="local_guide_el" defaultValue={row.local_guide_el} hint="Προσθέστε ελεγμένες προτάσεις, παραλίες, μετακινήσεις και δραστηριότητες." />
-            </div>
-          </section>
-
-          <section className="admin-policy-section">
-            <div className="admin-policy-section-heading"><span>07</span><div><h2>Custom legal text additions</h2><p>Optional property-specific additions appended to the standard website Terms and Privacy pages. Have legal counsel review any changes before publication.</p></div></div>
+            <div className="admin-policy-section-heading"><span>06</span><div><h2>Custom legal text additions</h2><p>Optional property-specific additions appended to the standard website Terms and Privacy pages. Have legal counsel review any changes before publication.</p></div></div>
             <div className="admin-policy-fields">
               <TextField label="Additional booking terms · English" name="terms_en" defaultValue={row.terms_en} hint="Add only terms specific to this property. The base policy remains published." />
               <TextField label="Πρόσθετοι όροι κράτησης · Ελληνικά" name="terms_el" defaultValue={row.terms_el} hint="Προσθέστε μόνο ειδικούς όρους του καταλύματος." />

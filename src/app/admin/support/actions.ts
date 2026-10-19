@@ -2,75 +2,60 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { randomUUID } from "node:crypto";
 import { requireStaff } from "@/lib/admin/auth";
-import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
-export async function replyToSupportThread(formData: FormData) {
-  await requireStaff(["owner", "manager", "receptionist"]);
-  const threadId = String(formData.get("thread_id") ?? "").trim();
-  const body = String(formData.get("reply") ?? "").trim().slice(0, 4000);
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(threadId) || body.length < 2) {
-    redirect("/admin/support?error=validation");
-  }
+function formText(data: FormData, name: string, max: number) {
+  const value = data.get(name);
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
 
-  const service = createSupabaseServiceClient();
-  if (!service) redirect("/admin/support?error=config");
-  const { data: thread, error: threadError } = await service
-    .from("hotel_guest_support_threads")
-    .select("id,public_reference,guest_email,guest_name,status")
-    .eq("id", threadId)
+export async function replyToSupportConversation(formData: FormData) {
+  const { supabase, userId } = await requireStaff(["owner", "manager", "receptionist"]);
+  const id = formText(formData, "conversationId", 64);
+  const reply = formText(formData, "reply", 5000);
+  if (!/^[0-9a-f-]{36}$/i.test(id) || reply.length < 2) redirect("/admin/support?error=validation");
+
+  const { data: conversation, error: lookupError } = await supabase
+    .from("guest_support_conversations")
+    .select("id,guest_contact_email")
+    .eq("id", id)
     .maybeSingle();
-  if (threadError || !thread || thread.status === "closed") redirect("/admin/support?error=thread");
+  if (lookupError || !conversation) redirect("/admin/support?error=lookup");
 
-  const messageId = randomUUID();
-  const { error: insertError } = await service.from("hotel_guest_support_messages").insert({
-    id: messageId,
-    thread_id: thread.id,
-    sender_role: "staff",
-    content: body,
-    delivery_channel: "email",
-    metadata: { staff_reply: true },
+  const { error: messageError } = await supabase.from("guest_support_messages").insert({
+    conversation_id: id, role: "staff", message: reply, needs_staff: false,
   });
-  if (insertError) redirect("/admin/support?error=message");
+  if (messageError) redirect("/admin/support?error=reply");
 
-  if (thread.guest_email) {
-    const { error: emailError } = await service.from("email_outbox").insert({
-      kind: "guest_support_staff_reply",
-      to_email: thread.guest_email,
-      to_name: thread.guest_name,
-      subject: "Villa Memaj support reply " + thread.public_reference,
-      body_text: "Hello " + (thread.guest_name || "there") + ",\n\n" + body +
-        "\n\nSupport reference: " + thread.public_reference +
-        "\n\nVilla Memaj · info@villamemaj.com\nPlease do not send full payment-card details by email.",
-      dedupe_key: "support:" + thread.id + ":staff-reply:" + messageId,
+  if (conversation.guest_contact_email) {
+    const { error: emailError } = await supabase.from("email_outbox").insert({
+      booking_id: null,
+      kind: "support_reply_" + crypto.randomUUID(),
+      to_email: conversation.guest_contact_email,
+      to_name: null,
+      subject: "A reply from Villa Memaj",
+      body_text: reply + "\n\nVilla Memaj · info@villamemaj.com",
+      scheduled_for: new Date().toISOString(),
     });
     if (emailError) redirect("/admin/support?error=email");
   }
 
-  await service.from("hotel_guest_support_threads").update({
-    status: "waiting_for_guest",
-    last_message_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }).eq("id", thread.id);
-
+  await supabase.from("guest_support_conversations").update({
+    status: "open", requested_human: false, last_message_at: new Date().toISOString(),
+  }).eq("id", id);
+  void userId;
   revalidatePath("/admin/support");
-  redirect("/admin/support?sent=1");
+  redirect("/admin/support?replied=1");
 }
 
-export async function closeSupportThread(formData: FormData) {
-  await requireStaff(["owner", "manager", "receptionist"]);
-  const threadId = String(formData.get("thread_id") ?? "").trim();
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(threadId)) {
-    redirect("/admin/support?error=validation");
-  }
-  const service = createSupabaseServiceClient();
-  if (!service) redirect("/admin/support?error=config");
-  const { error } = await service.from("hotel_guest_support_threads").update({
-    status: "closed",
-    updated_at: new Date().toISOString(),
-  }).eq("id", threadId);
-  if (error) redirect("/admin/support?error=close");
+export async function resolveSupportConversation(formData: FormData) {
+  const { supabase } = await requireStaff(["owner", "manager"]);
+  const id = formText(formData, "conversationId", 64);
+  if (!/^[0-9a-f-]{36}$/i.test(id)) redirect("/admin/support?error=validation");
+  const { error } = await supabase.from("guest_support_conversations").update({
+    status: "resolved", requested_human: false, resolved_at: new Date().toISOString(),
+  }).eq("id", id);
+  if (error) redirect("/admin/support?error=resolve");
   revalidatePath("/admin/support");
-  redirect("/admin/support?closed=1");
+  redirect("/admin/support?resolved=1");
 }

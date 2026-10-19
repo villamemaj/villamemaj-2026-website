@@ -1,4 +1,3 @@
-import "server-only";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { getEmailProvider } from "./provider";
 
@@ -43,7 +42,7 @@ export async function dispatchQueuedEmails(limit = 25, bookingId?: string): Prom
   }
 
   const { data, error } = bookingId
-    ? await supabase.rpc("claim_outbox_emails_for_booking", { p_booking_id: bookingId, p_limit: limit })
+    ? await supabase.rpc("claim_booking_email_outbox", { p_booking_id: bookingId, p_limit: limit })
     : await supabase.rpc("claim_outbox_emails", { p_limit: limit });
   if (error) {
     return { configured: true, provider: provider.name, sent: 0, failed: 0, reason: error.message };

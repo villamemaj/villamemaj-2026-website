@@ -1,6 +1,5 @@
 import type { Locale } from "@/lib/site";
-
-export type PolicyLocale = "el" | "en";
+import { legalTranslations, legalFAQTranslations } from "@/lib/legal-translations";
 
 export type PolicySection = {
   heading: string;
@@ -16,7 +15,7 @@ export type PolicyDocument = {
   sections: PolicySection[];
 };
 
-const documents: Record<string, Record<PolicyLocale, PolicyDocument>> = {
+const documents: Record<string, Partial<Record<Locale, PolicyDocument>>> = {
   terms: {
     en: {
       label: "Guest information",
@@ -133,7 +132,8 @@ const documents: Record<string, Record<PolicyLocale, PolicyDocument>> = {
         ] },
         { heading: "4. Service providers and recipients", paragraphs: [
           "Information is made available only to people and service providers who need it for the stated purposes. These may include the website host, database and CRM provider, email delivery provider, payment provider when online payment is offered, and a booking platform or channel manager where your reservation was made or where a permitted integration is configured. A platform's own privacy notice applies to its separate processing.",
-          "The online payment route, when enabled, uses the hosted checkout page of the provider identified at the time of payment. We do not intentionally place secret payment credentials in public page code. Providers may process information in other countries; the operator must document applicable transfer safeguards and processor terms in its compliance records."
+          "The online payment route, when enabled, uses the hosted checkout page of the provider identified at the time of payment. We do not intentionally place secret payment credentials in public page code. Providers may process information in other countries; the operator must document applicable transfer safeguards and processor terms in its compliance records.",
+          "If AI-assisted guest support is enabled, the question and any text you submit in the chat may be processed by the AI provider configured for the service (OpenAI or Google Gemini) to generate a reply. Chat messages are stored in the support inbox and may be reviewed by authorised staff when you request help or a question is escalated. Do not enter payment-card details, passwords, identity-document numbers or unnecessary sensitive information in chat. The operator must identify the selected provider and lawful transfer safeguards in its processor records before enabling AI."
         ] },
         { heading: "5. Retention", paragraphs: [
           "We keep information for the time needed to handle the enquiry and stay, maintain booking and payment evidence, comply with applicable tax and accounting duties, resolve disputes and protect legitimate rights. Records should then be deleted or anonymised when no longer needed, subject to any mandatory retention period or legal hold. A documented retention schedule must be set by the operator against the applicable Albanian tax, accommodation and limitation rules."
@@ -153,11 +153,6 @@ const documents: Record<string, Record<PolicyLocale, PolicyDocument>> = {
         ] },
         { heading: "10. Contact and updates", paragraphs: [
           "For privacy requests, email info@villamemaj.com and identify the reservation only by its booking reference; do not email full payment-card details. We may update this policy when practices or laws change. The date above identifies the latest publication date of this page, not a guarantee that every legal compliance task has been independently certified."
-        ] },
-        { heading: "11. Guest support chat and automated assistance", paragraphs: [
-          "Website support conversations are recorded in the private CRM inbox so staff can answer, track escalations and handle complaints. When an AI support assistant is enabled, the message and limited property information relevant to the query may be sent to the configured AI service provider to generate a reply. The assistant is not used to take payments, change reservations or decide cancellation/refund requests. Messages requiring human review may be forwarded to staff through configured notification services.",
-          "Before enabling automated assistance, the operator should identify the actual service providers, relevant international transfers, retention periods and any required data-protection assessment in the compliance records. Guest support messages may be retained for handling the request, follow-up and dispute/security purposes, then deleted or anonymised under a documented retention schedule. Do not send payment-card details, passwords, identity-document images or other sensitive data through chat.",
-          "SMS and WhatsApp reminders are sent only where the guest has explicitly selected the relevant messaging channel. This consent is optional, is separate from a booking, and may be withdrawn."
         ] }
       ]
     },
@@ -180,7 +175,8 @@ const documents: Record<string, Record<PolicyLocale, PolicyDocument>> = {
         ] },
         { heading: "4. Πάροχοι υπηρεσιών και αποδέκτες", paragraphs: [
           "Τα στοιχεία κοινοποιούνται μόνο σε πρόσωπα και παρόχους που τα χρειάζονται για τους δηλωμένους σκοπούς. Αυτοί μπορεί να περιλαμβάνουν φιλοξενία ιστοτόπου, βάση δεδομένων και CRM, αποστολή email, πάροχο πληρωμών όπου προσφέρεται ηλεκτρονική πληρωμή και πλατφόρμα κρατήσεων ή channel manager όπου έγινε η κράτηση ή έχει ρυθμιστεί επιτρεπόμενη σύνδεση.",
-          "Όταν ενεργοποιείται η ηλεκτρονική πληρωμή, χρησιμοποιείται η φιλοξενούμενη σελίδα πληρωμής του παρόχου που εμφανίζεται εκείνη τη στιγμή. Δεν τοποθετούμε σκόπιμα μυστικά κλειδιά πληρωμών σε δημόσιο κώδικα. Οι πάροχοι μπορεί να επεξεργάζονται στοιχεία σε άλλες χώρες· ο υπεύθυνος πρέπει να τεκμηριώσει τις εφαρμοστέες εγγυήσεις διαβίβασης και τις συμβάσεις επεξεργασίας."
+          "Όταν ενεργοποιείται η ηλεκτρονική πληρωμή, χρησιμοποιείται η φιλοξενούμενη σελίδα πληρωμής του παρόχου που εμφανίζεται εκείνη τη στιγμή. Δεν τοποθετούμε σκόπιμα μυστικά κλειδιά πληρωμών σε δημόσιο κώδικα. Οι πάροχοι μπορεί να επεξεργάζονται στοιχεία σε άλλες χώρες· ο υπεύθυνος πρέπει να τεκμηριώσει τις εφαρμοστέες εγγυήσεις διαβίβασης και τις συμβάσεις επεξεργασίας.",
+          "Αν ενεργοποιηθεί υποστήριξη με τεχνητή νοημοσύνη, το ερώτημα και το κείμενο που στέλνετε στη συνομιλία μπορεί να υποβληθούν σε επεξεργασία από τον πάροχο AI που έχει ρυθμιστεί (OpenAI ή Google Gemini) για να δημιουργηθεί απάντηση. Τα μηνύματα αποθηκεύονται στο inbox υποστήριξης και μπορεί να ελεγχθούν από εξουσιοδοτημένο προσωπικό όταν ζητάτε βοήθεια ή το αίτημα κλιμακώνεται. Μην εισάγετε στοιχεία κάρτας, κωδικούς πρόσβασης, αριθμούς εγγράφων ταυτότητας ή άλλα μη απαραίτητα ευαίσθητα στοιχεία. Πριν ενεργοποιηθεί η AI, ο υπεύθυνος πρέπει να τεκμηριώσει τον επιλεγμένο πάροχο και τις νόμιμες εγγυήσεις διαβίβασης."
         ] },
         { heading: "5. Διατήρηση", paragraphs: [
           "Διατηρούμε στοιχεία όσο χρειάζεται για το αίτημα και τη διαμονή, την τεκμηρίωση κρατήσεων και πληρωμών, τις φορολογικές και λογιστικές υποχρεώσεις, την επίλυση διαφορών και την προστασία νόμιμων δικαιωμάτων. Έπειτα διαγράφονται ή ανωνυμοποιούνται όταν δεν χρειάζονται, με την επιφύλαξη υποχρεωτικών περιόδων διατήρησης ή νομικής δέσμευσης. Ο φορέας πρέπει να καθορίσει τεκμηριωμένο χρονοδιάγραμμα διατήρησης σύμφωνα με τους εφαρμοστέους αλβανικούς κανόνες."
@@ -200,11 +196,6 @@ const documents: Record<string, Record<PolicyLocale, PolicyDocument>> = {
         ] },
         { heading: "10. Επικοινωνία και ενημερώσεις", paragraphs: [
           "Για αιτήματα απορρήτου, στείλτε email στο info@villamemaj.com και αναφέρετε μόνο τον κωδικό κράτησης· μην στέλνετε πλήρη στοιχεία κάρτας. Η πολιτική μπορεί να αλλάζει όταν αλλάζουν οι πρακτικές ή η νομοθεσία. Η ημερομηνία παραπάνω είναι η ημερομηνία τελευταίας δημοσίευσης, όχι εγγύηση ανεξάρτητης πιστοποίησης όλων των υποχρεώσεων."
-        ] },
-        { heading: "11. Συνομιλία υποστήριξης και αυτοματοποιημένη βοήθεια", paragraphs: [
-          "Οι συνομιλίες υποστήριξης του ιστοτόπου καταγράφονται στο ιδιωτικό inbox του CRM ώστε το προσωπικό να απαντά, να παρακολουθεί παραπομπές και να χειρίζεται παράπονα. Όταν είναι ενεργοποιημένος βοηθός τεχνητής νοημοσύνης, το μήνυμα και περιορισμένες πληροφορίες του καταλύματος που σχετίζονται με το ερώτημα μπορεί να αποστέλλονται στον ρυθμισμένο πάροχο τεχνητής νοημοσύνης για τη δημιουργία απάντησης. Ο βοηθός δεν λαμβάνει πληρωμές, δεν αλλάζει κρατήσεις και δεν αποφασίζει ακυρώσεις ή επιστροφές. Μηνύματα που χρειάζονται ανθρώπινο έλεγχο μπορούν να προωθούνται στο προσωπικό μέσω ρυθμισμένων ειδοποιήσεων.",
-          "Πριν ενεργοποιηθεί αυτοματοποιημένη βοήθεια, ο φορέας εκμετάλλευσης πρέπει να καταγράψει τους πραγματικούς παρόχους, τις σχετικές διεθνείς διαβιβάσεις, τις περιόδους διατήρησης και τυχόν απαιτούμενη αξιολόγηση προστασίας δεδομένων. Τα μηνύματα υποστήριξης μπορεί να διατηρούνται για τη διεκπεραίωση του αιτήματος, την παρακολούθηση και την ασφάλεια ή επίλυση διαφορών και στη συνέχεια να διαγράφονται ή να ανωνυμοποιούνται σύμφωνα με τεκμηριωμένο πρόγραμμα διατήρησης. Μην αποστέλλετε στοιχεία κάρτας, κωδικούς, εικόνες ταυτότητας ή άλλα ευαίσθητα στοιχεία μέσω συνομιλίας.",
-          "Υπενθυμίσεις SMS και WhatsApp αποστέλλονται μόνο όταν ο επισκέπτης έχει επιλέξει ρητά το αντίστοιχο κανάλι. Η συγκατάθεση είναι προαιρετική, χωριστή από την κράτηση και μπορεί να ανακληθεί."
         ] }
       ]
     }
@@ -326,11 +317,10 @@ const documents: Record<string, Record<PolicyLocale, PolicyDocument>> = {
 };
 
 export function getPolicyDocument(slug: string, locale: Locale): PolicyDocument | null {
-  const contentLocale: PolicyLocale = locale === "el" ? "el" : "en";
-  return documents[slug]?.[contentLocale] ?? null;
+  return legalTranslations[locale]?.[slug] ?? documents[slug]?.[locale] ?? documents[slug]?.en ?? documents[slug]?.el ?? null;
 }
 
-export const policyLinks: Record<PolicyLocale, { href: string; label: string; description: string }[]> = {
+export const policyLinks: Partial<Record<Locale, { href: string; label: string; description: string }[]>> = {
   en: [
     { href: "/terms", label: "Terms & conditions", description: "Reservation terms, guest responsibilities and applicable consumer rights." },
     { href: "/privacy", label: "Privacy policy", description: "What booking information is handled and why." },
@@ -346,11 +336,47 @@ export const policyLinks: Record<PolicyLocale, { href: string; label: string; de
     { href: "/house-rules", label: "Κανόνες καταλύματος", description: "Ώρες άφιξης, παιδιά, κάπνισμα, κατοικίδια και στάθμευση." },
     { href: "/payments", label: "Επιλογές πληρωμής", description: "Μέθοδοι πληρωμής, ασφαλές checkout και επιβεβαιώσεις." },
     { href: "/faq", label: "Συχνές ερωτήσεις", description: "Σύντομες απαντήσεις πριν και κατά τη διαμονή." }
+  ],
+  fr: [
+    { href: "/terms", label: "Conditions de réservation", description: "Conditions de réservation, responsabilités et droits des consommateurs." },
+    { href: "/privacy", label: "Politique de confidentialité", description: "Données de réservation traitées et raisons." },
+    { href: "/cancellation", label: "Annulation et remboursements", description: "Délais, annulations et remboursements selon le tarif." },
+    { href: "/house-rules", label: "Règles du logement", description: "Arrivée, enfants, tabac, animaux et stationnement." },
+    { href: "/payments", label: "Options de paiement", description: "Méthodes disponibles et paiement sécurisé." },
+    { href: "/faq", label: "Questions fréquentes", description: "Réponses avant et pendant le séjour." }
+  ],
+  sq: [
+    { href: "/terms", label: "Kushtet e rezervimit", description: "Kushtet, përgjegjësitë dhe të drejtat e konsumatorit." },
+    { href: "/privacy", label: "Politika e privatësisë", description: "Të dhënat që përpunohen dhe arsyet." },
+    { href: "/cancellation", label: "Anulimet dhe rimbursimet", description: "Afatet dhe kushtet e anulimit sipas tarifës." },
+    { href: "/house-rules", label: "Rregullat e akomodimit", description: "Regjistrimi, fëmijët, duhani, kafshët dhe parkimi." },
+    { href: "/payments", label: "Mënyrat e pagesës", description: "Mënyrat e pranueshme dhe pagesa e sigurt." },
+    { href: "/faq", label: "Pyetje të shpeshta", description: "Përgjigje para dhe gjatë qëndrimit." }
+  ],
+  de: [
+    { href: "/terms", label: "Buchungsbedingungen", description: "Buchungsbedingungen, Pflichten und Verbraucherrechte." },
+    { href: "/privacy", label: "Datenschutzerklärung", description: "Welche Buchungsdaten verarbeitet werden und warum." },
+    { href: "/cancellation", label: "Stornierung und Rückerstattung", description: "Fristen und Erstattungen je nach Tarif." },
+    { href: "/house-rules", label: "Hausordnung", description: "Anreise, Kinder, Rauchen, Haustiere und Parken." },
+    { href: "/payments", label: "Zahlungsoptionen", description: "Verfügbare Methoden und sichere Zahlung." },
+    { href: "/faq", label: "Häufige Fragen", description: "Antworten vor und während des Aufenthalts." }
+  ],
+  it: [
+    { href: "/terms", label: "Termini e condizioni", description: "Condizioni di prenotazione, responsabilità e diritti dei consumatori." },
+    { href: "/privacy", label: "Informativa sulla privacy", description: "Quali dati di prenotazione vengono trattati e perché." },
+    { href: "/cancellation", label: "Cancellazioni e rimborsi", description: "Scadenze e condizioni di cancellazione per tariffa." },
+    { href: "/house-rules", label: "Regole della struttura", description: "Arrivo, bambini, fumo, animali e parcheggio." },
+    { href: "/payments", label: "Opzioni di pagamento", description: "Metodi disponibili e pagamento sicuro." },
+    { href: "/faq", label: "Domande frequenti", description: "Risposte prima e durante il soggiorno." }
   ]
 };
 
+export function getPolicyLinks(locale: Locale) {
+  return policyLinks[locale] ?? policyLinks.en ?? [];
+}
+
 export type FAQItem = { q: string; a: string };
-export const faq: Record<PolicyLocale, FAQItem[]> = {
+export const faq: Partial<Record<Locale, FAQItem[]>> = {
   en: [
     { q: "What are the check-in and check-out times?", a: "The current property information lists check-in from 12:00 to 23:00 and check-out from 08:00 to 10:00. Please follow any specific time confirmed for your reservation." },
     { q: "Are children allowed?", a: "Yes. Children of any age are currently allowed. No child-specific rates, cots or extra beds are currently listed as available; ask before booking if you need one." },
@@ -378,3 +404,7 @@ export const faq: Record<PolicyLocale, FAQItem[]> = {
     { q: "Πώς επικοινωνώ με το κατάλυμα;", a: "Στείλτε email στο info@villamemaj.com με τον κωδικό κράτησης. Μην στέλνετε πλήρη στοιχεία κάρτας." }
   ]
 };
+
+export function getFAQItems(locale: Locale): FAQItem[] {
+  return legalFAQTranslations[locale] ?? faq[locale] ?? faq.en ?? [];
+}

@@ -1,131 +1,41 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { isLocale } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type ReviewInput = {
-  token?: unknown;
-  displayName?: unknown;
-  rating?: unknown;
-  title?: unknown;
-  review?: unknown;
-  locale?: unknown;
-};
-
-function text(value: unknown, max: number): string {
-  return typeof value === "string" ? value.trim().slice(0, max) : "";
-}
-
 export async function POST(request: Request) {
-  let input: ReviewInput;
-  try {
-    input = await request.json() as ReviewInput;
-  } catch {
-    return NextResponse.json({ ok: false, error: "invalid_request" }, { status: 400 });
-  }
+  let body: { displayName?: unknown; title?: unknown; body?: unknown; rating?: unknown; locale?: unknown; consentToPublish?: unknown };
+  try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid request." }, { status: 400 }); }
 
-  const token = text(input.token, 80);
-  const displayName = text(input.displayName, 60) || "Verified guest";
-  const title = text(input.title, 120);
-  const review = text(input.review, 3000);
-  const rating = Number(input.rating);
-  const localeCandidate = text(input.locale, 8);
-  const locale = ["el", "en", "fr", "sq", "de"].includes(localeCandidate) ? localeCandidate : "en";
-
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token)) {
-    return NextResponse.json({ ok: false, error: "invalid_or_expired_link" }, { status: 400 });
+  const displayName = typeof body.displayName === "string" ? body.displayName.trim().slice(0, 120) : "";
+  const title = typeof body.title === "string" ? body.title.trim().slice(0, 160) : "";
+  const review = typeof body.body === "string" ? body.body.trim().slice(0, 3000) : "";
+  const rating = Number(body.rating);
+  const locale = typeof body.locale === "string" && isLocale(body.locale) ? body.locale : "en";
+  if (displayName.length < 1 || review.length < 10 || !Number.isInteger(rating) || rating < 1 || rating > 5 || body.consentToPublish !== true) {
+    return NextResponse.json({ error: "A name, review, rating and publication consent are required." }, { status: 400 });
   }
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5 || title.length < 4 || review.length < 20) {
-    return NextResponse.json({ ok: false, error: "validation" }, { status: 400 });
+  if (/\\b(?:VM-\\d{2}-\\d+|booking reference|card number|password|passport number)\\b/i.test(review)) {
+    return NextResponse.json({ error: "Please remove booking references or sensitive personal information before submitting." }, { status: 400 });
   }
 
   const supabase = createSupabaseServiceClient();
-  if (!supabase) return NextResponse.json({ ok: false, error: "temporarily_unavailable" }, { status: 503 });
+  if (!supabase) return NextResponse.json({ error: "Review submission is temporarily unavailable." }, { status: 503 });
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+  const salt = process.env.SUPPORT_RATE_LIMIT_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(-16) || process.env.CRON_SECRET || "review-rate-limit";
+  const fingerprint = createHash("sha256").update(salt + ":" + forwarded).digest("hex");
+  const { data: allowed, error: limitError } = await supabase.rpc("consume_support_rate_limit", {
+    p_fingerprint_hash: fingerprint, p_window_seconds: 3600, p_max_hits: 4,
+  });
+  if (limitError || allowed !== true) return NextResponse.json({ error: "Please wait before submitting another review." }, { status: 429 });
 
-  // Review link is unique per booking and works only after staff records check-out.
-  const { data: booking, error: bookingError } = await supabase
-    .from("hotel_bookings")
-    .select("id,guest_language,status,checked_out_at,review_token")
-    .eq("review_token", token)
-    .maybeSingle();
-
-  if (bookingError || !booking || (booking.status !== "checked_out" && !booking.checked_out_at)) {
-    return NextResponse.json({ ok: false, error: "invalid_or_expired_link" }, { status: 404 });
-  }
-
-  const { data: existing } = await supabase
-    .from("hotel_guest_reviews")
-    .select("id")
-    .eq("booking_id", booking.id)
-    .maybeSingle();
-  if (existing) {
-    return NextResponse.json({ ok: false, error: "already_submitted" }, { status: 409 });
-  }
-
-  const { data: created, error: createError } = await supabase
-    .from("hotel_guest_reviews")
-    .insert({
-      booking_id: booking.id,
-      guest_display_name: displayName,
-      rating,
-      title,
-      review_text: review,
-      locale,
-      status: "pending",
-    })
-    .select("id")
-    .single();
-
-  if (createError || !created) {
-    if (createError?.code === "23505") {
-      return NextResponse.json({ ok: false, error: "already_submitted" }, { status: 409 });
-    }
-    console.error("Guest review submission failed", { code: createError?.code });
-    return NextResponse.json({ ok: false, error: "temporarily_unavailable" }, { status: 503 });
-  }
-
-  const { data: settings } = await supabase
-    .from("hotel_house_policies")
-    .select("notification_emails,contact_email")
-    .limit(1)
-    .maybeSingle();
-  const recipients = Array.from(new Set([
-    ...((settings?.notification_emails as string[] | null) ?? []),
-    typeof settings?.contact_email === "string" ? settings.contact_email : "",
-  ].map((email) => email.trim().toLowerCase()).filter((email) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))));
-
-  for (const recipient of recipients) {
-    const { error } = await supabase.from("email_outbox").insert({
-      kind: "guest_review_moderation",
-      to_email: recipient,
-      subject: "Review awaiting approval · " + rating + "/5",
-      body_text: [
-        "A guest review is waiting for moderation.",
-        "Rating: " + rating + "/5",
-        "Title: " + title,
-        "Display name: " + displayName,
-        "",
-        review,
-        "",
-        "Open the Extranet Guest Reviews workspace to publish or reject this review.",
-      ].join("\n"),
-      dedupe_key: "review:" + created.id + ":moderation:" + recipient,
-    });
-    if (error) console.error("Review moderation email queue failed", { code: error.code });
-  }
-
-  return NextResponse.json({
-    ok: true,
-    status: "pending_moderation",
-    message: locale === "el"
-      ? "Ευχαριστούμε! Η αξιολόγησή σας θα δημοσιευτεί μετά από έλεγχο."
-      : locale === "fr"
-        ? "Merci ! Votre avis sera publié après modération."
-        : locale === "sq"
-          ? "Faleminderit! Vlerësimi do të publikohet pas moderimit."
-          : locale === "de"
-            ? "Vielen Dank! Ihre Bewertung wird nach Prüfung veröffentlicht."
-            : "Thank you! Your review will be published after moderation.",
-  }, { status: 201 });
+  const { error } = await supabase.from("guest_testimonials").insert({
+    display_name: displayName, title, body: review, rating, locale,
+    source: "direct_guest", consent_to_publish: true, is_published: false,
+  });
+  if (error) return NextResponse.json({ error: "Could not save the review for moderation." }, { status: 500 });
+  return NextResponse.json({ ok: true });
 }
