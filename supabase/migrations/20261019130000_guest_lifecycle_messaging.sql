@@ -198,9 +198,14 @@ declare
   v_total text;
   v_deposit text;
   v_balance text;
+  v_status_changed boolean := TG_OP = 'INSERT';
+  v_checked_out_changed boolean := TG_OP = 'INSERT';
 begin
-  if TG_OP = 'UPDATE' and old.status is not distinct from new.status
-     and old.checked_out_at is not distinct from new.checked_out_at then
+  if TG_OP = 'UPDATE' then
+    v_status_changed := old.status is distinct from new.status;
+    v_checked_out_changed := old.checked_out_at is distinct from new.checked_out_at;
+  end if;
+  if not v_status_changed and not v_checked_out_changed then
     return new;
   end if;
 
@@ -209,16 +214,33 @@ begin
   select name_en, name_el into v_room_en, v_room_el
   from public.hotel_rooms where id = new.room_id;
 
-  if new.status = 'cancelled' then
+  if new.status = 'cancelled' and v_status_changed then
     update public.email_outbox
     set status = 'skipped'
     where booking_id = new.id and status = 'pending'
       and kind in ('booking_reminder_14d', 'booking_reminder_7d', 'booking_welcome_24h', 'booking_thank_you_review');
+    update public.hotel_guest_message_outbox
+    set status = 'skipped'
+    where booking_id = new.id and status = 'pending'
+      and kind in ('booking_reminder_14d', 'booking_reminder_7d', 'booking_welcome_24h', 'booking_thank_you_review');
+
+    insert into public.email_outbox
+      (booking_id, kind, to_email, to_name, subject, body_text, dedupe_key)
+    values
+      (new.id, 'booking_cancelled_guest', new.guest_email, new.guest_name,
+       case when v_lang = 'el' then 'Ακύρωση κράτησης ' || coalesce(new.code, '') else 'Booking cancellation ' || coalesce(new.code, '') end,
+       case when v_lang = 'el'
+         then 'Η κράτηση ' || coalesce(new.code, '') || ' σημειώθηκε ως ακυρωμένη.' || E'\n'
+           || 'Αν δεν ζητήσατε την ακύρωση ή χρειάζεστε διευκρινίσεις, επικοινωνήστε μαζί μας.'
+         else 'Booking ' || coalesce(new.code, '') || ' has been marked as cancelled.' || E'\n'
+           || 'If you did not request this or need clarification, please contact the property.'
+       end,
+       'booking:' || new.id::text || ':cancelled:guest:' || to_char(coalesce(new.cancelled_at, now()), 'YYYYMMDDHH24MISS'))
+    on conflict (dedupe_key) where dedupe_key is not null do nothing;
     return new;
   end if;
 
-  if new.status = 'confirmed'
-     and (TG_OP = 'INSERT' or old.status is distinct from 'confirmed') then
+  if new.status = 'confirmed' and v_status_changed then
     v_nights := coalesce(new.nights, new.check_out - new.check_in);
     v_total := to_char(coalesce(new.total_price, 0), 'FM9999999990.00');
     v_deposit := to_char(coalesce(new.deposit_amount, 0), 'FM9999999990.00');
@@ -408,8 +430,8 @@ begin
 
   -- A thank-you/review invitation is sent only after staff marks checkout, never just because
   -- a check-out date is in the past. The review token is opaque and unique to this booking.
-  if (new.status = 'checked_out' and (TG_OP = 'INSERT' or old.status is distinct from 'checked_out'))
-     or (new.checked_out_at is not null and (TG_OP = 'INSERT' or old.checked_out_at is null)) then
+  if (new.status = 'checked_out' and v_status_changed)
+     or (new.checked_out_at is not null and v_checked_out_changed) then
     v_due := coalesce(new.checked_out_at, (new.check_out + time '11:00') at time zone 'Europe/Tirane') + interval '1 day';
     v_thanks := case when v_lang = 'el' then
       'Σας ευχαριστούμε που μείνατε στη Villa Memaj.' || E'\n\n'
@@ -454,17 +476,27 @@ declare
   v_room text;
   ch text;
   v_due_body text;
+  v_status_changed boolean := TG_OP = 'INSERT';
+  v_optin_changed boolean := TG_OP = 'INSERT';
+  v_checked_out_changed boolean := TG_OP = 'INSERT';
 begin
+  if TG_OP = 'UPDATE' then
+    v_status_changed := old.status is distinct from new.status;
+    v_optin_changed := old.sms_opt_in is distinct from new.sms_opt_in
+      or old.whatsapp_opt_in is distinct from new.whatsapp_opt_in;
+    v_checked_out_changed := old.checked_out_at is distinct from new.checked_out_at;
+  end if;
+
   select * into v_cfg from public.hotel_house_policies limit 1;
   select case when new.guest_language = 'el' then name_el else name_en end
     into v_room from public.hotel_rooms where id = new.room_id;
 
-  if new.status = 'cancelled' then
+  if new.status = 'cancelled' and v_status_changed then
     update public.hotel_guest_message_outbox
     set status = 'skipped'
     where booking_id = new.id and status = 'pending'
       and kind in ('booking_reminder_14d', 'booking_reminder_7d', 'booking_welcome_24h', 'booking_thank_you_review');
-    if (TG_OP = 'INSERT' or old.status is distinct from 'cancelled') then
+    if v_status_changed then
       v_kind := 'booking_cancelled';
       v_body := case when new.guest_language = 'el'
         then 'Η κράτηση ' || coalesce(new.code, '') || ' σημειώθηκε ως ακυρωμένη. Για διευκρινίσεις, ελέγξτε το email σας ή επικοινωνήστε με τη Villa Memaj.'
@@ -474,9 +506,7 @@ begin
       return new;
     end if;
   elsif new.status in ('request', 'hold') then
-    if TG_OP = 'UPDATE' and old.status is not distinct from new.status
-       and old.sms_opt_in is not distinct from new.sms_opt_in
-       and old.whatsapp_opt_in is not distinct from new.whatsapp_opt_in then
+    if not v_status_changed and not v_optin_changed then
       return new;
     end if;
     v_kind := 'booking_request_received';
@@ -484,14 +514,14 @@ begin
       then 'Villa Memaj: λάβαμε το αίτημα ' || coalesce(new.code, '') || '. Δεν αποτελεί ακόμη επιβεβαίωση κράτησης. Θα επικοινωνήσουμε μαζί σας.'
       else 'Villa Memaj: we received request ' || coalesce(new.code, '') || '. This is not yet a confirmed booking. Our team will follow up.'
     end;
-  elsif new.status = 'confirmed' and (TG_OP = 'INSERT' or old.status is distinct from 'confirmed') then
+  elsif new.status = 'confirmed' and v_status_changed then
     v_kind := 'booking_confirmed';
     v_body := case when new.guest_language = 'el'
       then 'Villa Memaj: η κράτηση ' || coalesce(new.code, '') || ' επιβεβαιώθηκε για ' || new.check_in || ' έως ' || new.check_out || '. Ελέγξτε το email σας για όρους και οδηγίες.'
       else 'Villa Memaj: booking ' || coalesce(new.code, '') || ' is confirmed for ' || new.check_in || ' to ' || new.check_out || '. Check your email for terms and arrival details.'
     end;
-  elsif (new.status = 'checked_out' and (TG_OP = 'INSERT' or old.status is distinct from 'checked_out'))
-     or (new.checked_out_at is not null and (TG_OP = 'INSERT' or old.checked_out_at is null)) then
+  elsif (new.status = 'checked_out' and v_status_changed)
+     or (new.checked_out_at is not null and v_checked_out_changed) then
     v_kind := 'booking_thank_you_review';
     v_body := case when new.guest_language = 'el'
       then 'Villa Memaj: ευχαριστούμε για τη διαμονή σας! Θα λάβετε email με σύνδεσμο για αξιολόγηση.'
@@ -517,7 +547,7 @@ begin
   end loop;
 
   -- Only schedule reminders for a newly confirmed booking, and only for future send times.
-  if new.status = 'confirmed' and (TG_OP = 'INSERT' or old.status is distinct from 'confirmed') then
+  if new.status = 'confirmed' and v_status_changed then
     foreach ch in array array['sms', 'whatsapp'] loop
       if (ch = 'sms' and new.sms_opt_in) or (ch = 'whatsapp' and new.whatsapp_opt_in) then
         foreach v_suffix in array array['14d','7d','24h'] loop
