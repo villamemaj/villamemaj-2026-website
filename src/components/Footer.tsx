@@ -15,16 +15,19 @@ export default function Footer({ locale, dict }: FooterProps) {
     { href: `/${locale}/gallery`, label: dict.nav.gallery },
     { href: `/${locale}/booking`, label: dict.nav.booking },
     { href: `/${locale}/contact`, label: dict.nav.contact },
+    { href: `/${locale}/flights`, label: locale === "el" ? "Πτήσεις" : locale === "fr" ? "Vols" : locale === "sq" ? "Fluturime" : locale === "de" ? "Flüge" : locale === "it" ? "Voli" : "Flights" },
+    { href: `/${locale}/reviews`, label: locale === "el" ? "Κριτικές επισκεπτών" : locale === "fr" ? "Avis voyageurs" : locale === "sq" ? "Vlerësimet" : locale === "de" ? "Gästebewertungen" : locale === "it" ? "Recensioni" : "Guest reviews" },
   ];
-  const policyLinks = [
-    { href: `/${locale}/policies`, label: locale === "el" ? "Πληροφορίες & πολιτικές" : "Guest information" },
-    { href: `/${locale}/faq`, label: locale === "el" ? "Συχνές ερωτήσεις" : "FAQ" },
-    { href: `/${locale}/terms`, label: locale === "el" ? "Όροι κράτησης" : "Terms & conditions" },
-    { href: `/${locale}/cancellation`, label: locale === "el" ? "Ακύρωση & επιστροφές" : "Cancellations & refunds" },
-    { href: `/${locale}/privacy`, label: locale === "el" ? "Πολιτική απορρήτου" : "Privacy policy" },
-    { href: `/${locale}/house-rules`, label: locale === "el" ? "Κανόνες καταλύματος" : "House rules" },
-    { href: `/${locale}/payments`, label: locale === "el" ? "Επιλογές πληρωμής" : "Payment options" },
-  ];
+  const guestLabels: Record<Locale, string[]> = {
+    el: ["Πληροφορίες & πολιτικές", "Συχνές ερωτήσεις", "Όροι κράτησης", "Ακύρωση & επιστροφές", "Πολιτική απορρήτου", "Κανόνες καταλύματος", "Επιλογές πληρωμής"],
+    en: ["Guest information", "FAQ", "Terms & conditions", "Cancellations & refunds", "Privacy policy", "House rules", "Payment options"],
+    fr: ["Informations voyageurs", "FAQ", "Conditions de réservation", "Annulations et remboursements", "Confidentialité", "Règles du logement", "Paiements"],
+    sq: ["Informacion për vizitorët", "Pyetje të shpeshta", "Kushtet e rezervimit", "Anulime dhe rimbursime", "Privatësia", "Rregullat e akomodimit", "Pagesat"],
+    de: ["Gästeinformationen", "FAQ", "Buchungsbedingungen", "Stornierung & Erstattung", "Datenschutz", "Hausordnung", "Zahlungsoptionen"],
+    it: ["Informazioni per gli ospiti", "FAQ", "Termini e condizioni", "Cancellazioni e rimborsi", "Privacy", "Regole della struttura", "Pagamenti"],
+  };
+  const policyPaths = ["/policies", "/faq", "/terms", "/cancellation", "/privacy", "/house-rules", "/payments"];
+  const policyLinks = policyPaths.map((path, index) => ({ href: `/${locale}${path}`, label: guestLabels[locale][index] }));
 
   return (
     <footer className="mt-auto bg-olive-dark text-cream/90">
@@ -52,7 +55,7 @@ export default function Footer({ locale, dict }: FooterProps) {
         </div>
 
         <div>
-          <p className="section-label text-gold-soft">{locale === "el" ? "Πληροφορίες επισκεπτών" : "Guest information"}</p>
+          <p className="section-label text-gold-soft">{guestLabels[locale][0]}</p>
           <ul className="mt-4 space-y-2 text-sm">
             {policyLinks.map((link) => (
               <li key={link.href}><Link href={link.href} className="text-cream/80 hover:text-cream">{link.label}</Link></li>
