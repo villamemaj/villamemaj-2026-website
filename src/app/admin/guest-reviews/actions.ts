@@ -17,23 +17,31 @@ export async function moderateGuestReview(formData: FormData) {
 
   const supabase = createSupabaseServiceClient();
   if (!supabase) redirect("/admin/guest-reviews?error=config");
+
+  const { data: review, error: readError } = await supabase
+    .from("guest_testimonials")
+    .select("id,consent_to_publish")
+    .eq("id", reviewId)
+    .maybeSingle();
+  if (readError || !review) redirect("/admin/guest-reviews?error=not-found");
+  if (decision === "published" && !review.consent_to_publish) {
+    redirect("/admin/guest-reviews?error=consent");
+  }
+
+  const publish = decision === "published";
   const { error } = await supabase
-    .from("hotel_guest_reviews")
+    .from("guest_testimonials")
     .update({
-      status: decision,
+      moderation_status: decision,
+      is_published: publish,
+      approved_at: publish ? new Date().toISOString() : null,
+      approved_by: decision === "pending" ? null : userId,
       moderation_note: note || null,
-      moderated_by: userId,
-      published_at: decision === "published" ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString(),
     })
     .eq("id", reviewId);
   if (error) redirect("/admin/guest-reviews?error=save");
 
   revalidatePath("/admin/guest-reviews");
-  revalidatePath("/en/reviews");
-  revalidatePath("/el/reviews");
-  revalidatePath("/fr/reviews");
-  revalidatePath("/sq/reviews");
-  revalidatePath("/de/reviews");
+  for (const locale of ["en", "el", "fr", "sq", "de"]) revalidatePath("/" + locale + "/reviews");
   redirect("/admin/guest-reviews?saved=1");
 }
