@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import BookingForm from "@/components/BookingForm";
+import RoomPhotoGallery from "@/components/RoomPhotoGallery";
 import { getDictionary } from "@/lib/i18n";
 import { getRoomBySlug, getRooms } from "@/lib/data";
 import { isLocale, LOCALES, SITE_CONFIG, type Locale } from "@/lib/site";
@@ -44,6 +45,7 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ loc
         imageSrc={room.image_url || "/723811999.jpg"}
         imageAlt={name}
       />
+      {room.gallery_images?.length ? <RoomPhotoGallery images={room.gallery_images} locale={lang} roomName={name} /> : null}
       <section className="editorial-standard-content">
         <Link href={`/${lang}/rooms`} className="inline-flex items-center gap-2 text-sm font-semibold text-olive hover:underline">
           <span aria-hidden="true">←</span>{dict.room.backToRooms}
