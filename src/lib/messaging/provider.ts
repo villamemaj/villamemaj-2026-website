@@ -26,7 +26,9 @@ export function configuredGuestChannels(): GuestMessageChannel[] {
 
   const channels: GuestMessageChannel[] = [];
   if (process.env.TWILIO_SMS_FROM?.trim()) channels.push("sms");
-  if (process.env.TWILIO_WHATSAPP_FROM?.trim()) channels.push("whatsapp");
+  // Business-initiated WhatsApp reminders must use an approved template outside the
+  // customer-care window. Do not enable this channel from a sender number alone.
+  if (process.env.TWILIO_WHATSAPP_FROM?.trim() && process.env.TWILIO_WHATSAPP_TEMPLATE_SID?.trim()) channels.push("whatsapp");
   return channels;
 }
 
@@ -61,7 +63,17 @@ const twilioProvider: GuestMessageProvider = {
     const form = new URLSearchParams();
     form.set("To", message.channel === "whatsapp" ? `whatsapp:${toPhone}` : toPhone);
     form.set("From", message.channel === "whatsapp" ? `whatsapp:${fromPhone}` : fromPhone);
-    form.set("Body", message.body.slice(0, 1500));
+    if (message.channel === "whatsapp") {
+      const templateSid = process.env.TWILIO_WHATSAPP_TEMPLATE_SID?.trim();
+      if (!templateSid) {
+        return { ok: false, provider: "twilio", error: "An approved WhatsApp template is required for business-initiated messages." };
+      }
+      form.set("ContentSid", templateSid);
+      // Configure the approved template with a single {{1}} body variable for this message.
+      form.set("ContentVariables", JSON.stringify({ "1": message.body.slice(0, 900) }));
+    } else {
+      form.set("Body", message.body.slice(0, 1500));
+    }
 
     try {
       const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(sid)}/Messages.json`, {
