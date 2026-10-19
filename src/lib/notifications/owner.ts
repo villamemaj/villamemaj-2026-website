@@ -90,7 +90,7 @@ function ownerChannels() {
   return channels;
 }
 
-export async function dispatchOwnerNotifications(limit = 25): Promise<OwnerDispatchSummary> {
+export async function dispatchOwnerNotifications(limit = 25, bookingId?: string): Promise<OwnerDispatchSummary> {
   const channels = ownerChannels();
   if (!channels.length) {
     return { configured: false, reason: "Configure SLACK_WEBHOOK_URL or the Twilio WhatsApp variables to enable owner alerts.", sent: 0, failed: 0 };
@@ -98,7 +98,10 @@ export async function dispatchOwnerNotifications(limit = 25): Promise<OwnerDispa
   const supabase = createSupabaseServiceClient();
   if (!supabase) return { configured: false, reason: "SUPABASE_SERVICE_ROLE_KEY is not set", sent: 0, failed: 0 };
 
-  const { data, error } = await supabase.rpc("claim_owner_notifications", { p_limit: Math.max(1, Math.min(limit, 100)) });
+  const safeLimit = Math.max(1, Math.min(limit, 100));
+  const { data, error } = bookingId
+    ? await supabase.rpc("claim_booking_owner_notifications", { p_booking_id: bookingId, p_limit: safeLimit })
+    : await supabase.rpc("claim_owner_notifications", { p_limit: safeLimit });
   if (error) return { configured: true, channels: channels.map((c) => c.name), reason: "Could not claim owner notifications", sent: 0, failed: 0 };
 
   let sent = 0;
