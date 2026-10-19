@@ -12,6 +12,7 @@ alter table public.hotel_bookings
   add column if not exists whatsapp_opt_in boolean not null default false,
   add column if not exists messaging_consent_at timestamptz,
   add column if not exists messaging_consent_source text,
+  add column if not exists messaging_consent_text_version text,
   add column if not exists guest_language text not null default 'en',
   add column if not exists review_token uuid not null default gen_random_uuid();
 
@@ -633,6 +634,7 @@ begin
         whatsapp_opt_in = coalesce(p_whatsapp_opt_in, false),
         messaging_consent_at = case when v_consent then now() else null end,
         messaging_consent_source = case when v_consent then 'direct_booking_form' else null end,
+        messaging_consent_text_version = case when v_consent then 'transactional-contact-v1-2026-10-19' else null end,
         guest_language = case when p_guest_language in ('el','en','fr','sq','de') then p_guest_language else 'en' end
     where id = v_booking_id;
   end if;
