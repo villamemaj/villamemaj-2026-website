@@ -80,10 +80,6 @@ export default function Navbar({ locale, dict }: NavbarProps) {
   ];
 
   useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
     if (!open) return;
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
