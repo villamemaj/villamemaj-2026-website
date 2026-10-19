@@ -15,10 +15,19 @@ export default function Navbar({ locale, dict }: NavbarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const otherLocale: Locale = locale === "el" ? "en" : "el";
-  const segments = pathname.split("/");
-  segments[1] = otherLocale;
-  const switchHref = segments.join("/") || `/${otherLocale}`;
+  const supportedLocales: { code: Locale; label: string }[] = [
+    { code: "el", label: "Ελληνικά" },
+    { code: "en", label: "English" },
+    { code: "fr", label: "Français" },
+    { code: "sq", label: "Shqip" },
+    { code: "de", label: "Deutsch" },
+    { code: "it", label: "Italiano" },
+  ];
+  const localeHref = (code: Locale) => {
+    const segments = pathname.split("/");
+    segments[1] = code;
+    return segments.join("/") || `/${code}`;
+  };
 
   const links = [
     { href: `/${locale}`, label: dict.nav.home },
@@ -49,12 +58,14 @@ export default function Navbar({ locale, dict }: NavbarProps) {
               {link.label}
             </Link>
           ))}
-          <Link
-            href={switchHref}
-            className="rounded-full border border-olive/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-olive transition-colors hover:bg-olive hover:text-cream"
-          >
-            {otherLocale}
-          </Link>
+          <div className="flex items-center gap-2" aria-label="Language">
+            {supportedLocales.map((item) => (
+              <Link key={item.code} href={localeHref(item.code)} hrefLang={item.code} aria-current={locale === item.code ? "page" : undefined}
+                className={locale === item.code ? "rounded-full bg-olive px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-cream" : "rounded-full border border-olive/30 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-olive transition-colors hover:bg-olive hover:text-cream"}>
+                {item.code.toUpperCase()}
+              </Link>
+            ))}
+          </div>
         </nav>
 
         <button
@@ -87,13 +98,15 @@ export default function Navbar({ locale, dict }: NavbarProps) {
               {link.label}
             </Link>
           ))}
-          <Link
-            href={switchHref}
-            onClick={() => setOpen(false)}
-            className="mt-3 inline-block rounded-full border border-olive/30 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-olive"
-          >
-            {otherLocale}
-          </Link>
+          <div className="mt-4 flex flex-wrap gap-2" aria-label="Language">
+            {supportedLocales.map((item) => (
+              <Link key={item.code} href={localeHref(item.code)} hrefLang={item.code} onClick={() => setOpen(false)}
+                aria-current={locale === item.code ? "page" : undefined}
+                className={locale === item.code ? "rounded-full bg-olive px-3 py-1.5 text-xs font-semibold uppercase text-cream" : "rounded-full border border-olive/30 px-3 py-1.5 text-xs font-semibold uppercase text-olive"}>
+                {item.code.toUpperCase()}
+              </Link>
+            ))}
+          </div>
         </nav>
       )}
     </header>
