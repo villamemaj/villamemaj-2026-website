@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import BookingForm from "@/components/BookingForm";
 import { getDictionary } from "@/lib/i18n";
-import { getRooms } from "@/lib/data";
+import { getRooms, getSiteMediaImages } from "@/lib/data";
 import { isLocale, type Locale } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -20,7 +20,7 @@ export default async function BookingPage({ params, searchParams }: {
   if (!isLocale(locale)) return null;
   const lang = locale as Locale;
   const dict = await getDictionary(lang);
-  const rooms = await getRooms();
+  const [rooms, siteMedia] = await Promise.all([getRooms(), getSiteMediaImages(["booking_hero"])]);
   const initialRoom = rooms.find((room) => room.slug === roomSlug);
   const isValidDate = (value?: string) => {
     if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -43,7 +43,8 @@ export default async function BookingPage({ params, searchParams }: {
         eyebrow={lang === "el" ? "Η διαμονή σας ξεκινά εδώ" : "Your stay starts here"}
         title={dict.booking.title}
         subtitle={dict.booking.subtitle}
-        imageSrc="/902234060.jpg"
+        imageSrc={siteMedia.booking_hero?.image_url ?? "/902234060.jpg"}
+        imageAlt={(lang === "el" ? siteMedia.booking_hero?.alt_text_el : siteMedia.booking_hero?.alt_text_en) || dict.booking.title}
       />
       <section className="editorial-standard-content">
         <div className="booking-layout-premium">
