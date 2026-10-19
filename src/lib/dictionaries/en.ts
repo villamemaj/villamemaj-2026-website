@@ -10,7 +10,7 @@ const dictionary: Dictionary = {
     travel: "Travel",
     menu: "Open menu",
     closeMenu: "Close menu",
-    language: "Choose language",
+    language: "Choose language", mainNavigation: "Main navigation",
   },
   hero: {
     title: "Hospitality meets the sea",
