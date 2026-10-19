@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollEnhancer from "@/components/ScrollEnhancer";
 import GuestSupportChat from "@/components/GuestSupportChat";
+import CookieConsent from "@/components/CookieConsent";
 import { getDictionary } from "@/lib/i18n";
 import { isLocale, LOCALES, SITE_CONFIG, type Locale } from "@/lib/site";
 
@@ -46,6 +47,7 @@ export default async function LocaleLayout({
       <main className="flex-1">{children}</main>
       <Footer locale={locale as Locale} dict={dict} />
       <GuestSupportChat locale={locale as Locale} />
+      <CookieConsent locale={locale as Locale} />
     </div>
   );
 }
