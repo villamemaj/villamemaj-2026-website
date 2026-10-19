@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import { getPublicHousePolicySettings } from "@/lib/data";
-import { faq, policyLinks } from "@/lib/legal-content";
+import { faq, getPolicyLinks } from "@/lib/legal-content";
 import { isLocale, type Locale } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -108,7 +108,7 @@ export default async function FAQPage({ params }: { params: Promise<{ locale: st
           <div className="faq-legal-links">
             <p className="section-label">{lang === "el" ? "Αναλυτικές πληροφορίες" : "Read the full details"}</p>
             <div className="flex flex-wrap gap-x-4 gap-y-2">
-              {policyLinks[lang].filter((item) => item.href !== "/faq").map((item) => (
+              {getPolicyLinks(lang).filter((item) => item.href !== "/faq").map((item) => (
                 <Link key={item.href} href={`/${lang}${item.href}`} className="text-sm font-semibold text-olive underline underline-offset-4">{item.label}</Link>
               ))}
             </div>
