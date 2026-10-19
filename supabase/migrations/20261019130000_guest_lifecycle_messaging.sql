@@ -655,3 +655,78 @@ $function$;
 
 revoke all on function public.claim_outbox_emails_for_booking(uuid, integer) from public, anon, authenticated;
 grant execute on function public.claim_outbox_emails_for_booking(uuid, integer) to service_role;
+
+
+create or replace function public.claim_guest_messages_configured(p_limit integer default 20, p_channels text[] default array['sms','whatsapp'])
+returns setof public.hotel_guest_message_outbox
+language plpgsql
+security definer
+set search_path = public
+as $function$
+begin
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'service_role required' using errcode = '42501';
+  end if;
+
+  update public.hotel_guest_message_outbox
+  set status = 'pending'
+  where status = 'sending' and claimed_at < now() - interval '10 minutes';
+
+  return query
+  with batch as (
+    select id
+    from public.hotel_guest_message_outbox
+    where status = 'pending' and scheduled_for <= now()
+      and channel = any(coalesce(p_channels, array[]::text[]))
+    order by scheduled_for
+    limit greatest(1, least(coalesce(p_limit, 20), 100))
+    for update skip locked
+  )
+  update public.hotel_guest_message_outbox m
+  set status = 'sending', attempts = m.attempts + 1, claimed_at = now()
+  from batch b
+  where m.id = b.id
+  returning m.*;
+end
+$function$;
+
+create or replace function public.claim_guest_messages_for_booking_configured(
+  p_booking_id uuid,
+  p_limit integer default 10,
+  p_channels text[] default array['sms','whatsapp']
+)
+returns setof public.hotel_guest_message_outbox
+language plpgsql
+security definer
+set search_path = public
+as $function$
+begin
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'service_role required' using errcode = '42501';
+  end if;
+
+  return query
+  with batch as (
+    select id
+    from public.hotel_guest_message_outbox
+    where booking_id = p_booking_id
+      and status = 'pending'
+      and scheduled_for <= now()
+      and created_at > now() - interval '15 minutes'
+      and channel = any(coalesce(p_channels, array[]::text[]))
+    order by scheduled_for
+    limit greatest(1, least(coalesce(p_limit, 10), 20))
+    for update skip locked
+  )
+  update public.hotel_guest_message_outbox m
+  set status = 'sending', attempts = m.attempts + 1, claimed_at = now()
+  from batch b
+  where m.id = b.id
+  returning m.*;
+end
+$function$;
+
+revoke all on function public.claim_guest_messages_configured(integer, text[]) from public, anon, authenticated;
+revoke all on function public.claim_guest_messages_for_booking_configured(uuid, integer, text[]) from public, anon, authenticated;
+grant execute on function public.claim_guest_messages_configured(integer, text[]) to service_role;
+grant execute on function public.claim_guest_messages_for_booking_configured(uuid, integer, text[]) to service_role;
