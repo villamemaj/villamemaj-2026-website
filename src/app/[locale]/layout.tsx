@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Geist } from "next/font/google";
 import { notFound } from "next/navigation";
+import { Analytics } from "@vercel/analytics/next";
 import "../globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -61,6 +62,7 @@ export default async function LocaleLayout({
         <Navbar locale={locale as Locale} dict={dict} />
         <main className="flex-1">{children}</main>
         <Footer locale={locale as Locale} dict={dict} />
+        <Analytics />
       </body>
     </html>
   );
