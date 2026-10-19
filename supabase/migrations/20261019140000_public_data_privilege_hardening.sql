@@ -20,6 +20,10 @@ create policy house_policies_authenticated_staff_read
   using (private.has_hotel_role(array['owner','manager','receptionist','housekeeping','accountant']));
 
 grant select (
+  contact_email,
+  contact_phone,
+  address_en,
+  address_el,
   check_in_time,
   check_out_time,
   smoking_allowed,
