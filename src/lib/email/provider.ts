@@ -1,3 +1,4 @@
+import "server-only";
 export interface EmailMessage {
   id: string;
   to: string;
