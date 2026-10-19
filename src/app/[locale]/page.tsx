@@ -61,9 +61,28 @@ export default async function HomePage({
   const sharedAmenities = (["wifi", "ac", "balcony"] as const)
     .filter((amenity) => rooms.length > 0 && rooms.every((room) => room.amenities.includes(amenity)));
 
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || SITE_CONFIG.url).replace(/\\/+$/, "");
+  const roomPrices = rooms.map((room) => Number(room.price_per_night)).filter((price) => Number.isFinite(price) && price > 0);
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    name: SITE_CONFIG.name,
+    url: siteUrl,
+    description: dict.hero.subtitle,
+    image: siteMedia.home_hero?.image_url || siteUrl + "/723811999.jpg",
+    email: SITE_CONFIG.email,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Vlorë",
+      addressCountry: "AL",
+    },
+    ...(roomPrices.length ? { priceRange: "EUR " + Math.min(...roomPrices) + "–" + Math.max(...roomPrices) + " per night" } : {}),
+  };
+
   return (
     <div className="premium-home overflow-clip">
-      <section className="premium-hero relative isolate flex min-h-[calc(100svh-4rem)] items-center overflow-hidden text-cream">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
+      <section className="premium-hero relative isolate flex min-h-[calc(100svh-4.5rem)] items-center overflow-hidden text-cream">
         <Image
           src={siteMedia.home_hero?.image_url ?? "/723811999.jpg"}
           alt={(greek ? siteMedia.home_hero?.alt_text_el : siteMedia.home_hero?.alt_text_en) || (greek ? "Εξωτερική όψη της βίλας" : "Villa exterior at the coast")}
