@@ -13,6 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     fr: { title: "Vols et préparation du voyage", description: "Préparez votre voyage à Villa Memaj et recherchez des vols avec Skyscanner." },
     sq: { title: "Fluturimet dhe udhëtimi", description: "Planifikoni udhëtimin drejt Villa Memaj dhe kërkoni fluturime me Skyscanner." },
     de: { title: "Flüge & Reiseplanung", description: "Planen Sie Ihre Reise zur Villa Memaj und suchen Sie Flüge mit Skyscanner." },
+    it: { title: "Voli e pianificazione del viaggio", description: "Organizza il tuo viaggio a Villa Memaj e cerca voli con Skyscanner." },
   }[rawLocale];
   return { title: copy.title, description: copy.description };
 }
@@ -91,6 +92,21 @@ const COPY: Record<Locale, {
     ],
     support: "Brauchen Sie Hilfe bei der Anreiseplanung? Kontaktieren Sie uns, bevor Sie Transfers oder Check-in-Zeiten bestätigen.",
   },
+  it: {
+    eyebrow: "Pianifica il tuo viaggio",
+    title: "Il tuo viaggio inizia qui",
+    subtitle: "Trova voli e organizza il tuo arrivo prima del soggiorno a Villa Memaj.",
+    sectionTitle: "Cerca voli",
+    intro: "Usa la ricerca Skyscanner qui sotto per confrontare le opzioni disponibili. Rotte, prezzi e condizioni dei biglietti sono forniti da Skyscanner e dai suoi partner di viaggio.",
+    stepTitles: ["Scegli la rotta", "Controlla l'intero viaggio", "Conferma il soggiorno"],
+    stepTexts: [
+      "Inserisci la città o l'aeroporto di partenza e la destinazione. L'aeroporto più adatto dipende dalla posizione esatta della struttura e dai collegamenti successivi.",
+      "Prima di acquistare, controlla gli orari di arrivo, i bagagli, le condizioni di modifica, il prezzo totale e il trasporto dall'aeroporto.",
+      "Coordina l'orario di arrivo e il trasferimento con il team di Villa Memaj, soprattutto se il volo atterra tardi o richiede un altro collegamento."
+    ],
+    support: "Hai bisogno di aiuto per organizzare l'arrivo? Contattaci prima di confermare trasferimenti o orari di check-in."
+  },
+
 };
 
 export default async function TravelPage({ params }: { params: Promise<{ locale: string }> }) {
