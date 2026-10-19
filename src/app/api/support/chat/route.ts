@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { getPublicHousePolicySettings, getRooms } from "@/lib/data";
+import { getRooms } from "@/lib/data";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
