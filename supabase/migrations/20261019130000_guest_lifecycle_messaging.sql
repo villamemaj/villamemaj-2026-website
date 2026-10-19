@@ -14,6 +14,22 @@ alter table public.guest_support_conversations
   add column if not exists guest_name text,
   add column if not exists guest_phone text;
 
+-- A checkout review link reveals no booking details and expires only by being rotated.
+alter table public.hotel_bookings
+  add column if not exists review_token uuid not null default gen_random_uuid();
+create unique index if not exists hotel_bookings_review_token_key
+  on public.hotel_bookings(review_token);
+
+-- Booking-linked testimonials reuse the existing consent/moderation table.
+alter table public.guest_testimonials
+  add column if not exists booking_id uuid references public.hotel_bookings(id) on delete set null,
+  add column if not exists moderation_status text not null default 'pending'
+    check (moderation_status in ('pending','published','rejected'));
+create unique index if not exists guest_testimonials_booking_id_key
+  on public.guest_testimonials(booking_id) where booking_id is not null;
+update public.guest_testimonials
+set moderation_status = case when is_published and consent_to_publish then 'published' else 'pending' end;
+
 -- The public site may read only explicit guest-facing policy columns.
 -- In particular, notification_emails and updated_by remain private.
 revoke all on public.hotel_house_policies from anon;
@@ -31,3 +47,24 @@ grant select (
 
 -- Public policies are row-filtered by the existing RLS policy; server-only email
 -- and SMS outboxes remain inaccessible to anon/authenticated roles.
+
+
+-- Extend the existing scheduled post-checkout message to include the unique first-party review form.
+-- Dynamic replace preserves the rest of the live lifecycle function unchanged.
+do $review_link_patch$
+declare
+  definition text;
+  old_fragment text := $$'If you wish to leave a public review, use the property review link: ' || v_cfg.public_review_url;$$;
+  new_fragment text := $$'If you wish to leave a public review, use the property review link: ' || v_cfg.public_review_url;
+      v_body := v_body || E'\n' || 'Share feedback with Villa Memaj: https://villamemaj-2026-website.vercel.app/en/review?token=' || b.review_token::text;$$;
+begin
+  select pg_get_functiondef('public.queue_guest_lifecycle_messages()'::regprocedure) into definition;
+  if position(new_fragment in definition) > 0 then
+    return;
+  end if;
+  if position(old_fragment in definition) = 0 then
+    raise exception 'Expected review-link fragment not found in queue_guest_lifecycle_messages()';
+  end if;
+  execute replace(definition, old_fragment, new_fragment);
+end
+$review_link_patch$;
