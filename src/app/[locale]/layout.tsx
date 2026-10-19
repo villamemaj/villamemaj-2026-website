@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollEnhancer from "@/components/ScrollEnhancer";
 import SupportChat from "@/components/SupportChat";
 import CookieConsent from "@/components/CookieConsent";
+import ConsentAwareSpeedInsights from "@/components/ConsentAwareSpeedInsights";
 import { getDictionary } from "@/lib/i18n";
 import { isLocale, LOCALES, SITE_CONFIG, type Locale } from "@/lib/site";
 
@@ -49,7 +49,7 @@ export default async function LocaleLayout({
       <Footer locale={locale as Locale} dict={dict} />
       <SupportChat locale={locale as Locale} />
       <CookieConsent locale={locale as Locale} />
-      <SpeedInsights />
+      <ConsentAwareSpeedInsights />
     </div>
   );
 }
