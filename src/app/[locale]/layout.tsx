@@ -1,24 +1,11 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Geist } from "next/font/google";
 import { notFound } from "next/navigation";
-import "../globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollEnhancer from "@/components/ScrollEnhancer";
 import GuestSupportChat from "@/components/GuestSupportChat";
 import { getDictionary } from "@/lib/i18n";
 import { isLocale, LOCALES, SITE_CONFIG, type Locale } from "@/lib/site";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const displayFont = Cormorant_Garamond({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -53,17 +40,12 @@ export default async function LocaleLayout({
   const dict = await getDictionary(locale as Locale);
 
   return (
-    <html
-      lang={locale}
-      className={`${geistSans.variable} ${displayFont.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-full flex-col">
-        <ScrollEnhancer />
-        <Navbar locale={locale as Locale} dict={dict} />
-        <main className="flex-1">{children}</main>
-        <Footer locale={locale as Locale} dict={dict} />
-        <GuestSupportChat locale={locale as Locale} />
-      </body>
-    </html>
+    <div lang={locale} className="flex min-h-full flex-1 flex-col">
+      <ScrollEnhancer />
+      <Navbar locale={locale as Locale} dict={dict} />
+      <main className="flex-1">{children}</main>
+      <Footer locale={locale as Locale} dict={dict} />
+      <GuestSupportChat locale={locale as Locale} />
+    </div>
   );
 }
