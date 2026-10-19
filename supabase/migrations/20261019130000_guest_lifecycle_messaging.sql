@@ -433,6 +433,16 @@ begin
   -- a check-out date is in the past. The review token is opaque and unique to this booking.
   if (new.status = 'checked_out' and v_status_changed)
      or (new.checked_out_at is not null and v_checked_out_changed) then
+    -- If a reservation ends early, suppress any future pre-arrival messages.
+    update public.email_outbox
+    set status = 'skipped'
+    where booking_id = new.id and status = 'pending'
+      and kind in ('booking_reminder_14d', 'booking_reminder_7d', 'booking_welcome_24h');
+    update public.hotel_guest_message_outbox
+    set status = 'skipped'
+    where booking_id = new.id and status = 'pending'
+      and kind in ('booking_reminder_14d', 'booking_reminder_7d', 'booking_welcome_24h');
+
     v_due := coalesce(new.checked_out_at, (new.check_out + time '11:00') at time zone 'Europe/Tirane') + interval '1 day';
     v_thanks := case when v_lang = 'el' then
       'Σας ευχαριστούμε που μείνατε στη Villa Memaj.' || E'\n\n'
@@ -523,6 +533,10 @@ begin
     end;
   elsif (new.status = 'checked_out' and v_status_changed)
      or (new.checked_out_at is not null and v_checked_out_changed) then
+    update public.hotel_guest_message_outbox
+    set status = 'skipped'
+    where booking_id = new.id and status = 'pending'
+      and kind in ('booking_reminder_14d', 'booking_reminder_7d', 'booking_welcome_24h');
     v_kind := 'booking_thank_you_review';
     v_body := case when new.guest_language = 'el'
       then 'Villa Memaj: ευχαριστούμε για τη διαμονή σας! Θα λάβετε email με σύνδεσμο για αξιολόγηση.'
