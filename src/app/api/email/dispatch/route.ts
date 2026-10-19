@@ -11,8 +11,7 @@ export const maxDuration = 60;
 function authorised(request: Request): boolean {
   const secret = process.env.CRON_SECRET?.trim();
   if (!secret) return false;
-  if (request.headers.get("authorization") === "Bearer " + secret) return true;
-  try { return new URL(request.url).searchParams.get("secret") === secret; } catch { return false; }
+  return request.headers.get("authorization") === "Bearer " + secret;
 }
 
 async function handle(request: Request) {
