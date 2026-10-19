@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import EditorialPageHero from "@/components/EditorialPageHero";
 import FlightFinder from "@/components/FlightFinder";
+import { getSiteMediaImages } from "@/lib/data";
 import { isLocale } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -15,7 +16,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function FlightsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
+  const siteMedia = await getSiteMediaImages(["flights_hero"]);
   const title: Record<string, string> = { en: "Find your flight.", el: "Βρείτε την πτήση σας.", fr: "Trouvez votre vol.", sq: "Gjeni fluturimin tuaj.", de: "Finden Sie Ihren Flug.", it: "Trova il tuo volo." };
+  const eyebrow: Record<string, string> = {
+    en: "Plan your journey",
+    el: "Οργανώστε το ταξίδι σας",
+    fr: "Préparez votre voyage",
+    sq: "Planifikoni udhëtimin",
+    de: "Planen Sie Ihre Reise",
+    it: "Organizza il viaggio",
+  };
   const subtitle: Record<string, string> = {
     en: "Plan your journey to Albania. Compare flight options through Skyscanner, then return to Villa Memaj to plan your stay.",
     el: "Οργανώστε το ταξίδι σας στην Αλβανία. Συγκρίνετε πτήσεις μέσω Skyscanner και επιστρέψτε στη Villa Memaj για τη διαμονή σας.",
@@ -34,7 +44,7 @@ export default async function FlightsPage({ params }: { params: Promise<{ locale
   };
   return (
     <div className="editorial-page flights-page">
-      <EditorialPageHero locale={locale} eyebrow="Plan your journey" title={title[locale]} subtitle={subtitle[locale]} imageSrc="/723812114.jpg" />
+      <EditorialPageHero locale={locale} eyebrow={eyebrow[locale]} title={title[locale]} subtitle={subtitle[locale]} imageSrc={siteMedia.flights_hero?.image_url ?? "/723812114.jpg"} imageAlt={(locale === "el" ? siteMedia.flights_hero?.alt_text_el : siteMedia.flights_hero?.alt_text_en) || title[locale]} />
       <section className="editorial-standard-content">
         <div className="flight-finder-layout">
           <div className="flight-finder-intro reveal-from-left">
