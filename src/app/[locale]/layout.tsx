@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollEnhancer from "@/components/ScrollEnhancer";
 import { getDictionary } from "@/lib/i18n";
-import { isLocale, SITE_CONFIG, type Locale } from "@/lib/site";
+import { isLocale, LOCALES, SITE_CONFIG, type Locale } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,7 +20,7 @@ const displayFont = Cormorant_Garamond({
 });
 
 export function generateStaticParams() {
-  return [{ locale: "el" }, { locale: "en" }];
+  return LOCALES.map((locale) => ({ locale }));
 }
 
 export async function generateMetadata({
