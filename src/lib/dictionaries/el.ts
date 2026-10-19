@@ -50,6 +50,10 @@ const dictionary: Dictionary = {
   editorialHome: {
     heroKicker: "VILLA MEMAJ",
     heroNote: "Μια πιο προσωπική απόδραση στην ακτή της Αυλώνας.",
+    heroPhotoCaption: "Μια πιο προσωπική απόδραση",
+    spacesLabel: "Οι χώροι μας",
+    spacesCaption: "Σχεδιασμένοι για να νιώθετε άνετα",
+    madeWithCare: "ΜΕ ΦΡΟΝΤΙΔΑ",
     scroll: "Συνεχίστε για να ανακαλύψετε",
     location: "ΑΥΛΩΝΑ · ΑΛΒΑΝΙΑ",
     introMeta: "Προσωπική φιλοξενία, ήρεμη ατμόσφαιρα",
