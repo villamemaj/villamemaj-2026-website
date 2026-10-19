@@ -5,12 +5,11 @@ import EditorialPageHero from "@/components/EditorialPageHero";
 import BookingForm from "@/components/BookingForm";
 import { getDictionary } from "@/lib/i18n";
 import { getRoomBySlug, getRooms } from "@/lib/data";
-import { isLocale, SITE_CONFIG, type Locale } from "@/lib/site";
+import { isLocale, LOCALES, SITE_CONFIG, type Locale } from "@/lib/site";
 
 export async function generateStaticParams() {
   const rooms = await getRooms();
-  const locales = ["el", "en"];
-  return locales.flatMap((locale) => rooms.map((room) => ({ locale, slug: room.slug })));
+  return LOCALES.flatMap((locale) => rooms.map((room) => ({ locale, slug: room.slug })));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
