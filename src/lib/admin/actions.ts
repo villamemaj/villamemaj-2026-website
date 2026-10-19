@@ -4,6 +4,41 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireStaff, type StaffRole } from "@/lib/admin/auth";
+import { dispatchQueuedEmails } from "@/lib/email/dispatch";
+import { dispatchQueuedGuestMessages } from "@/lib/messaging/dispatch";
+
+async function dispatchBookingNotifications(bookingId: string): Promise<void> {
+  try {
+    await Promise.all([
+      dispatchQueuedEmails(10, bookingId),
+      dispatchQueuedGuestMessages(10, bookingId),
+    ]);
+  } catch (error) {
+    // The durable outboxes and scheduled cron remain the retry path if immediate delivery fails.
+    console.error("Immediate booking notification dispatch failed", {
+      bookingId,
+      error: error instanceof Error ? error.message.slice(0, 200) : "unknown",
+    });
+  }
+}
+
+async function notifyOwnerSlack(message: string): Promise<void> {
+  const webhook = process.env.SLACK_WEBHOOK_URL?.trim();
+  if (!webhook) return;
+  try {
+    const url = new URL(webhook);
+    if (url.protocol !== "https:" || url.hostname !== "hooks.slack.com") return;
+    await fetch(url.toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: message.slice(0, 1000) }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(3500),
+    });
+  } catch {
+    // Email outbox remains the durable owner-notification fallback.
+  }
+}
 
 const BOOKING_ROLES: StaffRole[] = ["owner", "manager", "receptionist"];
 const MONEY_ROLES: StaffRole[] = ["owner", "manager", "receptionist", "accountant"];
@@ -78,7 +113,7 @@ export async function confirmBooking(formData: FormData) {
   const id = String(formData.get("booking_id") ?? "");
   const { supabase } = await staffActor();
 
-  await supabase
+  const { data: confirmed, error: confirmationError } = await supabase
     .from("hotel_bookings")
     .update({
       status: "confirmed",
@@ -87,7 +122,21 @@ export async function confirmBooking(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
-    .in("status", ["request", "hold"]);
+    .in("status", ["request", "hold"])
+    .select("id,code,check_in,check_out,total_price,currency_code")
+    .maybeSingle();
+
+  if (!confirmationError && confirmed) {
+    await Promise.all([
+      dispatchBookingNotifications(id),
+      notifyOwnerSlack(
+        "Villa Memaj booking confirmed: " + (confirmed.code || id)
+        + " · " + confirmed.check_in + " to " + confirmed.check_out
+        + " · " + confirmed.currency_code + " " + Number(confirmed.total_price || 0).toFixed(2)
+        + "\nOpen the CRM reservations workspace to view guest details."
+      ),
+    ]);
+  }
 
   revalidateBookingViews(id);
 }
@@ -115,7 +164,7 @@ export async function checkOutBooking(formData: FormData) {
   const id = String(formData.get("booking_id") ?? "");
   const { supabase } = await staffActor();
 
-  await supabase
+  const { data: checkedOut, error: checkOutError } = await supabase
     .from("hotel_bookings")
     .update({
       status: "checked_out",
@@ -123,8 +172,11 @@ export async function checkOutBooking(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
-    .eq("status", "checked_in");
+    .eq("status", "checked_in")
+    .select("id")
+    .maybeSingle();
 
+  if (!checkOutError && checkedOut) await dispatchBookingNotifications(id);
   revalidateBookingViews(id);
 }
 
@@ -176,7 +228,7 @@ export async function cancelBooking(formData: FormData) {
 
   const fee = waiveFee ? 0 : computeCancellationFee(booking as never);
 
-  await supabase
+  const { data: cancelled, error: cancelError } = await supabase
     .from("hotel_bookings")
     .update({
       status: "cancelled",
@@ -188,7 +240,19 @@ export async function cancelBooking(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
-    .not("status", "in", "(checked_out,cancelled)");
+    .not("status", "in", "(checked_out,cancelled)")
+    .select("id,code,check_in,check_out")
+    .maybeSingle();
+
+  if (cancelError || !cancelled) return;
+  await Promise.all([
+    dispatchBookingNotifications(id),
+    notifyOwnerSlack(
+      "Villa Memaj booking cancelled: " + (cancelled.code || id)
+      + " · stay " + cancelled.check_in + " to " + cancelled.check_out
+      + "\nOpen the CRM reservations workspace to review the cancellation."
+    ),
+  ]);
 
   // Refund anything paid above the cancellation fee (tracked, processed manually/bank)
   const paid = Number(booking.amount_paid ?? 0);
