@@ -10,6 +10,7 @@ const items = [
   { group: "Rates & availability", label: "Rates and promotions", href: "/admin/rate-plans", keywords: "rates pricing promotions discounts" },
   { group: "Reservations", label: "Reservations", href: "/admin/reservations", keywords: "bookings requests confirmed guests" },
   { group: "Property", label: "Rooms and amenities", href: "/admin/rooms", keywords: "property content photos amenities" },
+  { group: "Property", label: "Media library", href: "/admin/media", keywords: "photos images room gallery website visuals upload" },
   { group: "Property", label: "Property policies", href: "/admin/extranet/property-policies", keywords: "children check-in checkout smoking pets parking wifi" },
   { group: "Guest experience", label: "Support inbox", href: "/admin/support", keywords: "chat guest support ai team replies" },
   { group: "Guest experience", label: "Inbox and notifications", href: "/admin/notifications", keywords: "email guest messages inbox" },
