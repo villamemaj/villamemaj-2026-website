@@ -1,7 +1,7 @@
 import type { Dictionary } from "../i18n";
 
 const dictionary: Dictionary = {
-  nav: { home: "Home", rooms: "Camere", gallery: "Galleria", booking: "Prenotazioni", contact: "Contatti" },
+  nav: { home: "Home", rooms: "Camere", gallery: "Galleria", booking: "Prenotazioni", contact: "Contatti" , travel: "Viaggio"},
   hero: { title: "Villa Memaj", subtitle: "Un rifugio tranquillo, un’accoglienza calorosa e spazi pensati per il vostro relax.", ctaRooms: "Scopri le camere", ctaBook: "Prenota ora" },
   home: {
     welcomeLabel: "Benvenuti", welcomeTitle: "Ospitalità con il cuore",
